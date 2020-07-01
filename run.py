@@ -615,12 +615,23 @@ def PreprocessingPred():
     dfLR = pd.DataFrame.from_dict(dicLR)
 
     df_concatProbs = pd.concat([dfKNN, dfLR])
+
+    predictionsKNN = []
+    for column, content in dfKNN.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsKNN.append(el)
+
+    predictionsLR = []
+    for column, content in dfLR.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsLR.append(el)
+    
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
-    return predictions
+    return [predictionsKNN, predictionsLR, predictions]
 
 def PreprocessingParam():
     dicKNN = allParametersPerformancePerModel[1]

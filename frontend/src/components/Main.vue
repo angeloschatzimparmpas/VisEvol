@@ -15,24 +15,24 @@
               </mdb-card-body>
           </mdb-card>
         </b-col>
-        <!--
         <b-col cols="6">
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-parameters' Space</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Provenance</mdb-card-header>
             <mdb-card-body>
-                <ScatterPlot/>
+              <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 230px">
+              </mdb-card-text>
             </mdb-card-body>
           </mdb-card>
         </b-col>
         <b-col cols="3">
-            <mdb-card>
-              <mdb-card-header color="primary-color" tag="h5" class="text-center" style="background-color: #C0C0C0;"><small class="float-left" style="padding-top: 3px;"><font-awesome-icon class="fa-lg" icon="dice-four"/>&nbsp;Metrics Support: [M1, M3-M5 (W)]</small>Metamodel's Performance</mdb-card-header>
+            <mdb-card >
+              <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority Voting Results</mdb-card-header>
               <mdb-card-body>
-                <FinalResultsLinePlot/>
+                <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 230px">
+                </mdb-card-text>
               </mdb-card-body>
             </mdb-card>
         </b-col>
-      -->
       </b-row>
       <!--
       <hr/>
@@ -122,7 +122,7 @@
                     [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small>
                     </mdb-card-header>
                     <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 822px">
+                      <mdb-card-text class="text-center"  style="min-height: 600px">
                         <HyperParameterSpace/>
                       </mdb-card-text>
                     </mdb-card-body>
@@ -134,10 +134,23 @@
                     [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small>
                   </mdb-card-header>
                   <mdb-card-body>
-                    <mdb-card-text class="text-center"  style="min-height: 822px">
+                    <mdb-card-text class="text-center"  style="min-height: 600px">
                       <CrossoverMutationSpace/>
                     </mdb-card-text>
                   </mdb-card-body>
+                </mdb-card>
+              </b-col>
+            </b-row>
+            <b-row class="md-3">
+              <b-col cols="12">
+                <mdb-card style="margin-top: 15px;">
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictions' Space
+                    </mdb-card-header>
+                    <mdb-card-body>
+                      <mdb-card-text class="text-center"  style="min-height: 270px">
+                        <Predictions/>
+                      </mdb-card-text>
+                    </mdb-card-body>
                 </mdb-card>
               </b-col>
             </b-row>
@@ -156,8 +169,9 @@ import Algorithms from './Algorithms.vue'
 import AlgorithmHyperParam from './AlgorithmHyperParam.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
 import CrossoverMutationSpace from './CrossoverMutationSpace.vue'
-import FinalResultsLinePlot from './FinalResultsLinePlot.vue'
+import VotingResults from './VotingResults.vue'
 import Parameters from './Parameters.vue'
+import Predictions from './Predictions.vue'
 import axios from 'axios'
 import { loadProgressBar } from 'axios-progress-bar'
 import 'axios-progress-bar/dist/nprogress.css'
@@ -182,7 +196,8 @@ export default Vue.extend({
     HyperParameterSpace,
     CrossoverMutationSpace,
     Parameters,
-    FinalResultsLinePlot,
+    Predictions,
+    VotingResults,
     mdbCard,
     mdbCardBody,
     mdbCardHeader,
@@ -289,6 +304,8 @@ export default Vue.extend({
           this.OverviewResults = response.data.OverviewResults
           console.log('Server successfully sent all the data related to visualizations!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
+          EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
+          EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
           //this.getFinalResults()
         })
         .catch(error => {

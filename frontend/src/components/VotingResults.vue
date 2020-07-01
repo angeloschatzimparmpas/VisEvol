@@ -7,7 +7,7 @@ import * as Plotly from 'plotly.js'
 import { EventBus } from '../main.js'
 
 export default {
-  name: 'FinalResultsLinePlot',
+  name: 'VotingResults',
   data () {
     return {
       FinalResultsforLinePlot: 0,
