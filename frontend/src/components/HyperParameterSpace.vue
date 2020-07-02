@@ -288,6 +288,7 @@ export default {
             }
           }
             EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
+            EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
             EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
         }
       })

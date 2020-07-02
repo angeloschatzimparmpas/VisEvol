@@ -22,6 +22,8 @@ export default {
       GetResultsAll: [],
       GetResultsSelection: [],
       responsiveWidthHeight: [],
+      predictSelection: [],
+      StoreIndices: [],
     }
   },
   methods: {
@@ -42,8 +44,8 @@ export default {
           }
           return idxs;
       };
-      // Clear Heatmap first
-      var svg = d3.select("#GridView");
+
+      var svg = d3.select("#containerAll");
       svg.selectAll("*").remove();
 
       var yValues = JSON.parse(this.GetResultsAll[6])
@@ -87,9 +89,9 @@ export default {
           dataLR.push({ id: element, value: LRPred[element][targetNames[i]] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
-          dataAver.push({ id: null, value: 0.0 })
-          dataKNN.push({ id: null, value: 0.0 })
-          dataLR.push({ id: null, value: 0.0 })
+          dataAver.push({ id: null, value: 1.0 })
+          dataKNN.push({ id: null, value: 1.0 })
+          dataLR.push({ id: null, value: 1.0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
@@ -100,14 +102,15 @@ export default {
     dataLRResults.reverse()
     
     var classArray = []
-
+    this.StoreIndices = []
     for (let i = 0; i < dataAverGetResults.length; i++) {
-      dataAverGetResults[i].sort((a, b) => (a.value > b.value) ? -1 : 1)
+      dataAverGetResults[i].sort((a, b) => (a.value > b.value) ? 1 : -1)
       var len = dataAverGetResults[i].length
       var indices = new Array(len)
       for (let j = 0; j < len; j++) {
         indices[j] = dataAverGetResults[i][j].id;
       }
+      this.StoreIndices.push(indices)
       
       dataKNNResults[i].sort(function(a, b){
         return indices.indexOf(a.id) - indices.indexOf(b.id)
@@ -160,7 +163,7 @@ export default {
 		function databind(data, size, sqrtSize) {
 
       
-			colourScale = d3.scaleSequential(d3.interpolateReds).domain(d3.extent(data, function(d) { return d.value; }));
+			colourScale = d3.scaleSequential(d3.interpolateReds).domain([1, 0])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -169,11 +172,11 @@ export default {
 				.append('custom')
 				.attr('class', 'rect')
 	      .attr('x', function(d, i) {
-	        var x0 = Math.floor(i / 169) % 13, x1 = Math.floor(i % 13);
+	        var x0 = Math.floor(i / size) % sqrtSize, x1 = Math.floor(i % sqrtSize);
 	        return groupSpacing * x0 + (cellSpacing + cellSize) * (x1 + x0 * 10);
 	      })
 	      .attr('y', function(d, i) {
-	        var y0 = Math.floor(i / 1000), y1 = Math.floor(i % 169 / 13);
+	        var y0 = Math.floor(i / data.length), y1 = Math.floor(i % size / sqrtSize);
 	        return groupSpacing * y0 + (cellSpacing + cellSize) * (y1 + y0 * 10);
 	      })
 				.attr('width', 0)
@@ -233,9 +236,25 @@ export default {
           }
           return idxs;
       };
-      // Clear Heatmap first
-      var svg = d3.select("#GridView");
+
+      var svg = d3.select("#containerSelection");
       svg.selectAll("*").remove();
+
+      var predictionsAll = JSON.parse(this.GetResultsSelection[12])
+
+      if (this.predictSelection.length != 0) {
+        var predictions = this.predictSelection
+        var KNNPred = predictions[0]
+        var LRPred = predictions[1]
+        var PredAver = predictions[2]
+      } else {
+        var KNNPred = predictionsAll[0]
+        var LRPred = predictionsAll[1]
+        var PredAver = predictionsAll[2]
+      }
+      var KNNPredAll = predictionsAll[0]
+      var LRPredAll = predictionsAll[1]
+      var PredAverAll = predictionsAll[2]
 
       var yValues = JSON.parse(this.GetResultsSelection[6])
       var targetNames = JSON.parse(this.GetResultsSelection[7])
@@ -245,11 +264,6 @@ export default {
         getIndices.push(yValues.multiIndexOf(targetNames[i]))
       }
       getIndices.reverse()
-
-      var predictions = JSON.parse(this.GetResultsSelection[12])
-      var KNNPred = predictions[0]
-      var LRPred = predictions[1]
-      var PredAver = predictions[2]
 
       var dataAver = []
       var dataAverGetResults = []
@@ -273,14 +287,14 @@ export default {
         dataKNN = []
         dataLR = []
         getIndices[targetNames[i]].forEach(element => {
-          dataAver.push({ id: element, value: PredAver[element][targetNames[i]] })
-          dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] })
-          dataLR.push({ id: element, value: LRPred[element][targetNames[i]] })
+          dataAver.push({ id: element, value: PredAver[element][targetNames[i]] - PredAverAll[element][targetNames[i]] })
+          dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] - KNNPredAll[element][targetNames[i]] })
+          dataLR.push({ id: element, value: LRPred[element][targetNames[i]] - LRPredAll[element][targetNames[i]] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
-          dataAver.push({ id: null, value: 0.0 })
-          dataKNN.push({ id: null, value: 0.0 })
-          dataLR.push({ id: null, value: 0.0 })
+          dataAver.push({ id: null, value: 0 })
+          dataKNN.push({ id: null, value: 0 })
+          dataLR.push({ id: null, value: 0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
@@ -293,13 +307,12 @@ export default {
     var classArray = []
 
     for (let i = 0; i < dataAverGetResults.length; i++) {
-      dataAverGetResults[i].sort((a, b) => (a.value > b.value) ? -1 : 1)
-      var len = dataAverGetResults[i].length
-      var indices = new Array(len)
-      for (let j = 0; j < len; j++) {
-        indices[j] = dataAverGetResults[i][j].id;
-      }
       
+      var indices = this.StoreIndices[i]
+      dataAverGetResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
       dataKNNResults[i].sort(function(a, b){
         return indices.indexOf(a.id) - indices.indexOf(b.id)
       });
@@ -312,7 +325,6 @@ export default {
     }
     
     var classStore = [].concat.apply([], classArray);
-
 		// === Set up canvas === //
 
 		var width = 2500,
@@ -351,7 +363,7 @@ export default {
 		function databind(data, size, sqrtSize) {
 
       
-			colourScale = d3.scaleSequential(d3.interpolateReds).domain(d3.extent(data, function(d) { return d.value; }));
+			colourScale = d3.scaleSequential(d3.interpolatePRGn).domain([-1, 1])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -360,11 +372,11 @@ export default {
 				.append('custom')
 				.attr('class', 'rect')
 	      .attr('x', function(d, i) {
-	        var x0 = Math.floor(i / 169) % 13, x1 = Math.floor(i % 13);
+	        var x0 = Math.floor(i / size) % sqrtSize, x1 = Math.floor(i % sqrtSize);
 	        return groupSpacing * x0 + (cellSpacing + cellSize) * (x1 + x0 * 10);
 	      })
 	      .attr('y', function(d, i) {
-	        var y0 = Math.floor(i / 1000), y1 = Math.floor(i % 169 / 13);
+	        var y0 = Math.floor(i / data.length), y1 = Math.floor(i % size / sqrtSize);
 	        return groupSpacing * y0 + (cellSpacing + cellSize) * (y1 + y0 * 10);
 	      })
 				.attr('width', 0)
@@ -420,6 +432,9 @@ export default {
 
       EventBus.$on('emittedEventCallingGridSelection', data => { this.GetResultsSelection = data; })
       EventBus.$on('emittedEventCallingGridSelection', this.GridSelection)
+
+      EventBus.$on('SendSelectedPointsToServerEvent', data => { this.predictSelection = data; })
+      EventBus.$on('SendSelectedPointsToServerEvent', this.GridSelection)
 
       EventBus.$on('Responsive', data => {
       this.responsiveWidthHeight = data})

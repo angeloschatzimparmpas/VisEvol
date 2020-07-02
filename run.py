@@ -18,6 +18,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import log_loss
 from imblearn.metrics import geometric_mean_score
@@ -562,7 +563,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
         clf.fit(XData, yData) 
         yPredict = clf.predict(XData)
         yPredict = np.nan_to_num(yPredict)
-        yPredictProb = clf.predict_proba(XData)
+        yPredictProb = cross_val_predict(clf, XData, yData, cv=crossValidation, method='predict_proba')
         yPredictProb = np.nan_to_num(yPredictProb)
         perModelProb.append(yPredictProb.tolist())
 
@@ -615,6 +616,7 @@ def PreprocessingPred():
     dfLR = pd.DataFrame.from_dict(dicLR)
 
     df_concatProbs = pd.concat([dfKNN, dfLR])
+    df_concatProbs.reset_index(drop=True, inplace=True)
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -814,7 +816,7 @@ def CrossoverMutateFun():
 
     countKNN = 0
     countLR = 0
-    setMaxLoopValue = 5
+    setMaxLoopValue = 50
     paramAllAlgs = PreprocessingParam()
     KNNIntIndex = []
     LRIntIndex = []
@@ -873,7 +875,7 @@ def CrossoverMutateFun():
         for column in pairDF:
             listData = []
             if (column == 'n_neighbors'):
-                randomNumber = random.randint(1, math.floor(((len(yData)/crossValidation)*(crossValidation-1)))-1)
+                randomNumber = random.randint(101, math.floor(((len(yData)/crossValidation)*(crossValidation-1)))-1)
                 listData.append(randomNumber)
                 crossoverDF[column] = listData
             else:
@@ -885,7 +887,7 @@ def CrossoverMutateFun():
         else:
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
-            AlgorithmsIDsEnd = 205 + countKNN
+            AlgorithmsIDsEnd = 250 + countKNN
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
@@ -924,7 +926,7 @@ def CrossoverMutateFun():
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = 210 + countLR
+            AlgorithmsIDsEnd = 300 + countLR
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
@@ -957,7 +959,7 @@ def CrossoverMutateFun():
         for column in pairDF:
             listData = []
             if (column == 'C'):
-                randomNumber = random.randint(1, 100)
+                randomNumber = random.randint(101, 1000)
                 listData.append(randomNumber)
                 crossoverDF[column] = listData
             else:
@@ -969,7 +971,7 @@ def CrossoverMutateFun():
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = 215 + countLR
+            AlgorithmsIDsEnd = 350 + countLR
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
@@ -1073,7 +1075,7 @@ def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
         clf.fit(XData, yData) 
         yPredict = clf.predict(XData)
         yPredict = np.nan_to_num(yPredict)
-        yPredictProb = clf.predict_proba(XData)
+        yPredictProb = cross_val_predict(clf, XData, yData, cv=crossValidation, method='predict_proba')
         yPredictProb = np.nan_to_num(yPredictProb)
         perModelProb.append(yPredictProb.tolist())
 
@@ -1299,3 +1301,62 @@ def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,Predict
     ResultsCM.append(json.dumps(PredictionProbSel))
 
     return Results
+
+def PreprocessingPredSel(SelectedIDs):
+
+    numberIDKNN = []
+    numberIDLR = []
+    for el in SelectedIDs:
+        match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
+        if match:
+            items = match.groups()
+            if (items[0] == 'KNN'):
+                numberIDKNN.append(int(items[1]))
+            else:
+                numberIDLR.append(int(items[1]) - 100)
+
+    dicKNN = allParametersPerformancePerModel[3]
+    dicLR = allParametersPerformancePerModel[7]
+
+    dfKNN = pd.DataFrame.from_dict(dicKNN)
+    dfKNN = dfKNN.loc[numberIDKNN]
+    dfLR = pd.DataFrame.from_dict(dicLR)
+    dfLR = dfLR.loc[numberIDLR]
+    dfLR.index += 100
+    df_concatProbs = pd.concat([dfKNN, dfLR])
+
+    predictionsKNN = []
+    for column, content in dfKNN.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsKNN.append(el)
+
+    predictionsLR = []
+    for column, content in dfLR.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsLR.append(el)
+    predictions = []
+    for column, content in df_concatProbs.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictions.append(el)
+
+    return [predictionsKNN, predictionsLR, predictions]
+
+@cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
+@app.route('/data/SendtoSeverSelIDs', methods=["GET", "POST"])
+def RetrieveSelIDsPredict():
+    global ResultsSelPred
+    ResultsSelPred = []
+    RetrieveIDsSelection = request.get_data().decode('utf8').replace("'", '"')
+    RetrieveIDsSelection = json.loads(RetrieveIDsSelection)
+    RetrieveIDsSelection = RetrieveIDsSelection['predictSelectionIDs']
+    ResultsSelPred = PreprocessingPredSel(RetrieveIDsSelection)
+
+    return 'Everything Okay'
+
+@app.route('/data/RetrievePredictions', methods=["GET", "POST"])
+def SendPredictSel():
+    global ResultsSelPred
+    response = {    
+        'PredictSel': ResultsSelPred
+    }
+    return jsonify(response)

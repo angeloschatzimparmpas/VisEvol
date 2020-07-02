@@ -237,9 +237,6 @@ export default Vue.extend({
       OverAllLength: 0,
       OverSelLengthCM: 0,
       OverAllLengthCM: 0,
-      toggle1: 1,
-      toggle2: 1,
-      toggle3: 1,
       modelsUpdate: [],
       AlgorithmsUpdate: [],
       SelectedMetricsForModels: [],
@@ -254,7 +251,8 @@ export default Vue.extend({
       toggleDeepMain: 1,
       keyLoc: 0,
       keyData: true,
-      ClassifierIDsListRemaining: []
+      ClassifierIDsListRemaining: [],
+      PredictSel: []
     }
   },
   methods: {
@@ -357,7 +355,51 @@ export default Vue.extend({
       })
     },
     SelectedPoints () {
-      this.OverSelLength = this.ClassifierIDsList.length     
+      this.OverSelLength = this.ClassifierIDsList.length
+      this.SendSelectedIDs()
+    },
+    SendSelectedIDs () {
+      const path = `http://127.0.0.1:5000/data/SendtoSeverSelIDs`
+      const postData = {
+        predictSelectionIDs: this.ClassifierIDsList
+      }
+      const axiosConfig = {
+      headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+      'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS'
+      }
+      }
+      axios.post(path, postData, axiosConfig)
+      .then(response => {
+        console.log('Sent the selected IDs to compute predictions!')
+        this.retrievePredictionsSel()
+      })
+      .catch(error => {
+      console.log(error)
+      }) 
+    },
+    retrievePredictionsSel () {
+      const path = `http://localhost:5000/data/RetrievePredictions`
+
+      const axiosConfig = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+          'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS'
+        }
+      }
+      axios.get(path, axiosConfig)
+        .then(response => {
+          this.PredictSel = response.data.PredictSel
+          console.log('Server successfully sent the predictions!')
+          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
+        })
+        .catch(error => {
+          console.log(error)
+        })
     },
     SendSelectedPointsToServer () {
       if (this.ClassifierIDsList === ''){
@@ -817,8 +859,8 @@ export default Vue.extend({
     EventBus.$on('InitializeCrossoverMutation', this.sendPointsCrossMutat)
 
     EventBus.$on('ChangeKey', data => { this.keyNow = data })
-    EventBus.$on('SendSelectedPointsToServerEvent', data => { this.ClassifierIDsList = data })
-    EventBus.$on('SendSelectedPointsToServerEvent', this.SelectedPoints)
+    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicator', this.SelectedPoints)
     EventBus.$on('sendToServerSelectedScatter', this.SendSelectedPointsToServer)
 
     EventBus.$on('SendSelectedDataPointsToServerEvent', data => { this.DataPointsSel = data })

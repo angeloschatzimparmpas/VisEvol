@@ -71,7 +71,7 @@ export default {
 
       var classifiersInfoProcessing = []
       for (let i = 0; i < modelId.length; i++) {
-        if (i < 10) {
+        if (i < 100) {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> k-nearest neighbor' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
         else {

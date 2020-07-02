@@ -1,4 +1,4 @@
-# first line: 491
+# first line: 501
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
 
@@ -64,7 +64,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
         clf.fit(XData, yData) 
         yPredict = clf.predict(XData)
         yPredict = np.nan_to_num(yPredict)
-        yPredictProb = clf.predict_proba(XData)
+        yPredictProb = cross_val_predict(clf, XData, yData, cv=crossValidation, method='predict_proba')
         yPredictProb = np.nan_to_num(yPredictProb)
         perModelProb.append(yPredictProb.tolist())
 
