@@ -213,7 +213,8 @@ export default Vue.extend({
       keyNow: 1,
       instancesImportance: '',
       RetrieveValueFile: 'HeartC', // this is for the default data set
-      ClassifierIDsList: '',
+      ClassifierIDsList: [],
+      ClassifierIDsListCM: [],
       SelectedFeaturesPerClassifier: '',
       FinalResults: 0,
       Algorithms: ['KNN','LR'],
@@ -400,6 +401,9 @@ export default Vue.extend({
         .catch(error => {
           console.log(error)
         })
+    },
+    SelectedPointsCM () {
+      this.OverSelLengthCM = this.ClassifierIDsListCM.length
     },
     SendSelectedPointsToServer () {
       if (this.ClassifierIDsList === ''){
@@ -862,6 +866,9 @@ export default Vue.extend({
     EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data })
     EventBus.$on('SendSelectedPointsUpdateIndicator', this.SelectedPoints)
     EventBus.$on('sendToServerSelectedScatter', this.SendSelectedPointsToServer)
+
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', data => { this.ClassifierIDsListCM = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', this.SelectedPointsCM)
 
     EventBus.$on('SendSelectedDataPointsToServerEvent', data => { this.DataPointsSel = data })
     EventBus.$on('SendSelectedDataPointsToServerEvent', this.SendSelectedDataPointsToServer)

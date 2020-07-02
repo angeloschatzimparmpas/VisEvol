@@ -1,10 +1,10 @@
 <template>
 <div>
   <div align="center">
-            Projection method: <select id="selectBarChart" @change="selectVisualRepresentation()">
-              <option value="mds" selected>MDS</option>
-              <option value="tsne">t-SNE</option>
-              <option value="umap">UMAP</option>
+            Projection method: <select id="selectBarChartCM" @change="selectVisualRepresentationCM()">
+              <option value="mdsCM" selected>MDS</option>
+              <option value="tsneCM">t-SNE</option>
+              <option value="umapCM">UMAP</option>
             </select>
             &nbsp;&nbsp;
             Action: <button
@@ -34,12 +34,17 @@ export default {
       CrossoverMutateText: 'Unselected points\' crossover & mutation',
       WH: [],
       ScatterPlotResults: '',
-      representationDef: 'mds',
+      representationDef: 'mdsCM',
     }
   },
   methods: {
     reset () {
       Plotly.purge('OverviewPlotlyCM')
+    },
+    selectVisualRepresentationCM () {
+      const representationSelectionDocum = document.getElementById('selectBarChartCM')
+      this.representationSelection = representationSelectionDocum.options[representationSelectionDocum.selectedIndex].value
+      EventBus.$emit('RepresentationSelectionCM', this.representationSelection)
     },
     clean(obj) {
       var propNames = Object.getOwnPropertyNames(obj);
@@ -84,7 +89,7 @@ export default {
       var width = this.WH[0]*8 // interactive visualization
       var height = this.WH[1]*4 // interactive visualization
 
-      if (this.representationDef == 'mds') {
+      if (this.representationDef == 'mdsCM') {
         maxX = Math.max(MDSData[0])
         minX = Math.min(MDSData[0])
         maxY = Math.max(MDSData[1])
@@ -137,7 +142,7 @@ export default {
             pad: 0
           },
         }
-      } else if (this.representationDef == 'tsne') {
+      } else if (this.representationDef == 'tsneCM') {
         var result = TSNEData.reduce(function(r, a) {
             a.forEach(function(s, i) {
                 var key = i === 0 ? 'Xax' : 'Yax';
@@ -169,8 +174,8 @@ export default {
               size: 12,
               colorscale: 'Viridis',
               colorbar: {
-                title: 'Metrics Average',
-                titleside: 'Top'
+                title: '# Performance (%) #',
+                titleside: 'right'
               },
           }
         }]
@@ -221,8 +226,8 @@ export default {
             size: 12,
             colorscale: 'Viridis',
             colorbar: {
-              title: 'Metrics Average',
-              titleside: 'Top'
+              title: '# Performance (%) #',
+              titleside: 'right'
             },
           }
         
@@ -262,45 +267,40 @@ export default {
       this.selectedPointsOverview()
     },
     selectedPointsOverview () {
-      const OverviewPlotly = document.getElementById('OverviewPlotlyCM')
-      var allModels = JSON.parse(this.ScatterPlotResults[1])
-      OverviewPlotly.on('plotly_selected', function (evt) {
-        if (typeof evt !== 'undefined') {
-          var pushModelsRemainingTemp = []
-          const ClassifierIDsList = []
-          const ClassifierIDsListCleared = []
-          for (let i = 0; evt.points.length; i++) {
-            if (evt.points[i] === undefined) {
-              break
-            } else {
-              const OnlyId = evt.points[i].text.split(' ')[2]
-              const OnlyIdCleared = OnlyId.split('<br>')
-              ClassifierIDsList.push(OnlyIdCleared[0])
-              let numberNumb = parseInt(OnlyIdCleared[0])
-              ClassifierIDsListCleared.push(numberNumb)
+        const OverviewPlotly = document.getElementById('OverviewPlotlyCM')
+        var allModels = JSON.parse(this.ScatterPlotResults[0])
+        OverviewPlotly.on('plotly_selected', function (evt) {
+          if (typeof evt !== 'undefined') {
+            var pushModelsRemainingTemp = []
+            const ClassifierIDsList = []
+            for (let i = 0; evt.points.length; i++) {
+              if (evt.points[i] === undefined) {
+                break
+              } else {
+                const OnlyId = evt.points[i].text.split(' ')[2]
+                const OnlyIdCleared = OnlyId.split('<br>')
+                ClassifierIDsList.push(OnlyIdCleared[0])
+              }
             }
-          }
-          for (let i = 0; i < allModels.length; i++) {
-            if (!ClassifierIDsListCleared.includes(allModels[i])) {
-              pushModelsRemainingTemp.push(allModels[i])
+            for (let i = 0; i < allModels.length; i++) {
+              if (ClassifierIDsList.indexOf((allModels[i])) < 0) {
+                pushModelsRemainingTemp.push(allModels[i])
+              }
             }
+              EventBus.$emit('RemainingPointsCM', pushModelsRemainingTemp)
+              EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', ClassifierIDsList)
+              EventBus.$emit('SendSelectedPointsToServerEventCM', ClassifierIDsList)
           }
-            EventBus.$emit('updateRemaining', pushModelsRemainingTemp)
-          if (allModels != '') {
-            EventBus.$emit('ChangeKey', 1)
-            EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsListCleared)
-            EventBus.$emit('SendSelectedPointsToBrushHeatmap', ClassifierIDsListCleared)
-          } else {
-            EventBus.$emit('ChangeKey', 1)
-          }
-        }
-      })
-    },
+        })
+      },
   },
   mounted() {
     EventBus.$on('emittedEventCallingCrossoverMutation', data => {
       this.ScatterPlotResults = data})
     EventBus.$on('emittedEventCallingCrossoverMutation', this.ScatterPlotView)
+
+    EventBus.$on('RepresentationSelectionCM', data => {this.representationDef = data})
+    EventBus.$on('RepresentationSelectionCM', this.ScatterPlotView)
 
     // reset view
     EventBus.$on('resetViews', this.reset)

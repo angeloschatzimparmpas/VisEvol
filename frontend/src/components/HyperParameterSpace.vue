@@ -174,8 +174,8 @@ export default {
               size: 12,
               colorscale: 'Viridis',
               colorbar: {
-                title: 'Metrics Average',
-                titleside: 'Top'
+                title: '# Performance (%) #',
+                titleside: 'right'
               },
           }
         }]
@@ -226,8 +226,8 @@ export default {
             size: 12,
             colorscale: 'Viridis',
             colorbar: {
-              title: 'Metrics Average',
-              titleside: 'Top'
+              title: '# Performance (%) #',
+              titleside: 'right'
             },
           }
         
