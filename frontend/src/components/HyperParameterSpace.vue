@@ -31,7 +31,7 @@ export default {
   name: 'HyperParameterSpace',
   data () {
     return {
-      CrossoverMutateText: 'Unselected points\' crossover & mutation',
+      CrossoverMutateText: 'Crossover and mutate unselected points',
       WH: [],
       ScatterPlotResults: '',
       representationDef: 'mds',
@@ -287,9 +287,9 @@ export default {
               pushModelsRemainingTemp.push(allModels[i])
             }
           }
-            EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
-            EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
-            EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
+          EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
+          EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
+          EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
         }
       })
     },

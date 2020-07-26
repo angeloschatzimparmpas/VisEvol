@@ -10,7 +10,7 @@
             Action: <button
             id="Remove"
             v-on:click="Remove">
-            <font-awesome-icon icon="dna" />
+            <font-awesome-icon icon="eraser" />
             {{ CrossoverMutateText }}
             </button>
   </div>
@@ -28,13 +28,14 @@ import { EventBus } from '../main.js'
 const d3 = Object.assign(d3Base)
 
 export default {
-  name: 'CrossoverMutationSpace',
+  name: 'Ensemble',
   data () {
     return {
-      CrossoverMutateText: 'Unselected points\' crossover & mutation',
+      CrossoverMutateText: 'Remove unselected points from ensemble',
       WH: [],
       ScatterPlotResults: '',
       representationDef: 'mdsCM',
+      storeEnsembleLoc: [],
     }
   },
   methods: {
@@ -65,6 +66,21 @@ export default {
       var MDSData= JSON.parse(this.ScatterPlotResults[9])
       var TSNEData = JSON.parse(this.ScatterPlotResults[10])
       var UMAPData = JSON.parse(this.ScatterPlotResults[11])
+
+      var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsembleLoc)
+      var mergedStoreEnsembleLocFormatted = []
+      for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
+        mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
+      }
+
+      modelId = mergedStoreEnsembleLocFormatted.map((item) => modelId[item])
+      colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
+      parameters = mergedStoreEnsembleLocFormatted.map((item) => parameters[item])
+      MDSData[0] = mergedStoreEnsembleLocFormatted.map((item) => MDSData[0][item])
+      MDSData[1] = mergedStoreEnsembleLocFormatted.map((item) => MDSData[1][item])
+      TSNEData = mergedStoreEnsembleLocFormatted.map((item) => TSNEData[item])
+      UMAPData[0] = mergedStoreEnsembleLocFormatted.map((item) => UMAPData[0][item])
+      UMAPData[1] = mergedStoreEnsembleLocFormatted.map((item) => UMAPData[1][item])
 
       EventBus.$emit('sendPointsNumberCM', modelId.length)
 
@@ -295,6 +311,8 @@ export default {
       },
   },
   mounted() {
+    EventBus.$on('SendStoredEnsemble', data => { this.storeEnsembleLoc = data })
+    
     EventBus.$on('emittedEventCallingCrossoverMutation', data => {
       this.ScatterPlotResults = data})
     EventBus.$on('emittedEventCallingCrossoverMutation', this.ScatterPlotView)

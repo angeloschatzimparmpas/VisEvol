@@ -26,7 +26,7 @@
         </b-col>
         <b-col cols="3">
             <mdb-card >
-              <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority Voting Results</mdb-card-header>
+              <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Results</mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 230px">
                 </mdb-card-text>
@@ -118,33 +118,33 @@
           <b-row class="md-3">
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-parameters' Space
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Space
                     [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small>
-                    </mdb-card-header>
-                    <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 600px">
-                        <HyperParameterSpace/>
-                      </mdb-card-text>
-                    </mdb-card-body>
-                </mdb-card>
-              </b-col>
-              <b-col cols="6">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Crossover and Mutation
-                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small>
                   </mdb-card-header>
                   <mdb-card-body>
                     <mdb-card-text class="text-center"  style="min-height: 600px">
-                      <CrossoverMutationSpace/>
+                      <HyperParameterSpace/>
                     </mdb-card-text>
                   </mdb-card-body>
                 </mdb-card>
               </b-col>
+              <b-col cols="6">
+                <mdb-card style="margin-top: 15px;">
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble
+                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small>
+                    </mdb-card-header>
+                    <mdb-card-body>
+                      <mdb-card-text class="text-center"  style="min-height: 600px">
+                        <Ensemble/>
+                      </mdb-card-text>
+                    </mdb-card-body>
+                </mdb-card>
+              </b-col>
             </b-row>
             <b-row class="md-3">
-              <b-col cols="12">
+              <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictions' Space
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters Predictions
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -153,9 +153,18 @@
                     </mdb-card-body>
                 </mdb-card>
               </b-col>
+              <b-col cols="6">
+                <mdb-card style="margin-top: 15px;">
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble Predictions
+                    </mdb-card-header>
+                    <mdb-card-body>
+                      <mdb-card-text class="text-center"  style="min-height: 270px">   
+                        <PredictionsCM/>          
+                      </mdb-card-text>
+                    </mdb-card-body>
+                </mdb-card>
+              </b-col>
             </b-row>
-        </div>
-      </div>
     </b-container>
   </body>
 </template>
@@ -168,10 +177,11 @@ import PerformanceMetrics from './PerformanceMetrics.vue'
 import Algorithms from './Algorithms.vue'
 import AlgorithmHyperParam from './AlgorithmHyperParam.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
-import CrossoverMutationSpace from './CrossoverMutationSpace.vue'
+import Ensemble from './Ensemble.vue'
 import VotingResults from './VotingResults.vue'
 import Parameters from './Parameters.vue'
 import Predictions from './Predictions.vue'
+import PredictionsCM from './PredictionsCM.vue'
 import axios from 'axios'
 import { loadProgressBar } from 'axios-progress-bar'
 import 'axios-progress-bar/dist/nprogress.css'
@@ -194,9 +204,10 @@ export default Vue.extend({
     Algorithms,
     AlgorithmHyperParam,
     HyperParameterSpace,
-    CrossoverMutationSpace,
+    Ensemble,
     Parameters,
     Predictions,
+    PredictionsCM,
     VotingResults,
     mdbCard,
     mdbCardBody,
@@ -205,6 +216,8 @@ export default Vue.extend({
   },
   data () {
     return {
+      storeEnsemble: [],
+      firstTimeExec: true,
       unselectedRemainingPoints: [],
       Collection: 0,
       OverviewResults: 0,
@@ -302,10 +315,17 @@ export default Vue.extend({
         .then(response => {
           this.OverviewResults = response.data.OverviewResults
           console.log('Server successfully sent all the data related to visualizations!')
-          EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
-          EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
-          EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
-          //this.getFinalResults()
+          if (this.firstTimeExec) {
+            EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
+            this.firstTimeExec = false
+          } else {
+            EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingGridCrossoverMutation', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingGridSelectionGridCrossoverMutation', this.OverviewResults)
+            //this.getFinalResults()
+          }
         })
         .catch(error => {
           console.log(error)
@@ -326,7 +346,9 @@ export default Vue.extend({
         .then(response => {
           this.OverviewResultsCM = response.data.OverviewResultsCM
           console.log('Server successfully sent all the data related to visualizations!')
-          EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResultsCM)
+          EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
+          EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
+          EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResultsCM)
           //this.getFinalResults()
         })
         .catch(error => {
@@ -795,7 +817,9 @@ export default Vue.extend({
     },
     sendPointsCrossMutat () {
       const path = `http://127.0.0.1:5000/data/CrossoverMutation`
-
+      
+      EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
+      
       const postData = {
         RemainingPoints: this.unselectedRemainingPoints
       }
@@ -863,7 +887,7 @@ export default Vue.extend({
     EventBus.$on('InitializeCrossoverMutation', this.sendPointsCrossMutat)
 
     EventBus.$on('ChangeKey', data => { this.keyNow = data })
-    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data; this.storeEnsemble.push(this.ClassifierIDsList)})
     EventBus.$on('SendSelectedPointsUpdateIndicator', this.SelectedPoints)
     EventBus.$on('sendToServerSelectedScatter', this.SendSelectedPointsToServer)
 

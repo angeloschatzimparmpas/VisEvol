@@ -788,6 +788,7 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel)
     Results.append(json.dumps(ModelSpaceTSNE))
     Results.append(json.dumps(ModelSpaceUMAP))
     Results.append(json.dumps(PredictionProbSel))
+    print('mpike')
 
     return Results
 
@@ -816,7 +817,7 @@ def CrossoverMutateFun():
 
     countKNN = 0
     countLR = 0
-    setMaxLoopValue = 50
+    setMaxLoopValue = 5
     paramAllAlgs = PreprocessingParam()
     KNNIntIndex = []
     LRIntIndex = []
@@ -887,7 +888,7 @@ def CrossoverMutateFun():
         else:
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
-            AlgorithmsIDsEnd = 250 + countKNN
+            AlgorithmsIDsEnd = 205 + countKNN
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
@@ -926,7 +927,7 @@ def CrossoverMutateFun():
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = 300 + countLR
+            AlgorithmsIDsEnd = 210 + countLR
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
@@ -971,7 +972,7 @@ def CrossoverMutateFun():
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = 350 + countLR
+            AlgorithmsIDsEnd = 215 + countLR
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
@@ -991,23 +992,48 @@ def CrossoverMutateFun():
 
     allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNC + allParametersPerfCrossMutrKNNM + allParametersPerfCrossMutrLRC + allParametersPerfCrossMutrLRM
 
-    KNNIntIndex = []
-    for dr in KNNIDs:
-        KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+    allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNC[0] + allParametersPerfCrossMutrKNNM[0]
+    
+    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNC[1]], ignore_index=True)
+    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNM[1]], ignore_index=True)
+    
+    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNC[2]], ignore_index=True)
+    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNC[3]], ignore_index=True)
+    allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNM[3]], ignore_index=True)
+    
 
-    allParametersPerformancePerModel[0] = [j for i, j in enumerate(allParametersPerformancePerModel[0]) if i not in KNNIntIndex]
-    allParametersPerformancePerModel[1].drop(allParametersPerformancePerModel[1].index[KNNIntIndex], inplace=True)
-    allParametersPerformancePerModel[2].drop(allParametersPerformancePerModel[2].index[KNNIntIndex], inplace=True)
-    allParametersPerformancePerModel[3].drop(allParametersPerformancePerModel[3].index[KNNIntIndex], inplace=True)
+    allParametersPerformancePerModel[4] = allParametersPerformancePerModel[4] + allParametersPerfCrossMutrLRC[0] + allParametersPerfCrossMutrLRM[0]
+    
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRC[1]], ignore_index=True)
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRM[1]], ignore_index=True)
+    
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRC[2]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRC[3]], ignore_index=True)
+    allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRM[3]], ignore_index=True)
 
-    LRIntIndex = []
-    for dr in LRIDs:
-        LRIntIndex.append(int(re.findall('\d+', dr)[0]) - 100)
+    print(allParametersPerformancePerModel[7])
 
-    allParametersPerformancePerModel[4] = [j for i, j in enumerate(allParametersPerformancePerModel[4]) if i not in LRIntIndex]
-    allParametersPerformancePerModel[5].drop(allParametersPerformancePerModel[5].index[LRIntIndex], inplace=True)
-    allParametersPerformancePerModel[6].drop(allParametersPerformancePerModel[6].index[LRIntIndex], inplace=True)
-    allParametersPerformancePerModel[7].drop(allParametersPerformancePerModel[7].index[LRIntIndex], inplace=True)
+    # KNNIntIndex = []
+    # for dr in KNNIDs:
+    #     KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
+    # allParametersPerformancePerModel[0] = [j for i, j in enumerate(allParametersPerformancePerModel[0]) if i not in KNNIntIndex]
+    # allParametersPerformancePerModel[1].drop(allParametersPerformancePerModel[1].index[KNNIntIndex], inplace=True)
+    # allParametersPerformancePerModel[2].drop(allParametersPerformancePerModel[2].index[KNNIntIndex], inplace=True)
+    # allParametersPerformancePerModel[3].drop(allParametersPerformancePerModel[3].index[KNNIntIndex], inplace=True)
+
+    # LRIntIndex = []
+    # for dr in LRIDs:
+    #     LRIntIndex.append(int(re.findall('\d+', dr)[0]) - 100)
+
+    # allParametersPerformancePerModel[4] = [j for i, j in enumerate(allParametersPerformancePerModel[4]) if i not in LRIntIndex]
+    # allParametersPerformancePerModel[5].drop(allParametersPerformancePerModel[5].index[LRIntIndex], inplace=True)
+    # allParametersPerformancePerModel[6].drop(allParametersPerformancePerModel[6].index[LRIntIndex], inplace=True)
+    # allParametersPerformancePerModel[7].drop(allParametersPerformancePerModel[7].index[LRIntIndex], inplace=True)
 
     return 'Everything Okay'
 

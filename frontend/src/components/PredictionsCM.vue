@@ -1,7 +1,8 @@
+
 <template>
   <div>
-    <div id="containerAll"></div>
-    <div id="containerSelection"></div>
+    <div id="containerAllCM"></div>
+    <div id="containerSelectionCM"></div>
   </div>
 </template>
 
@@ -16,21 +17,21 @@ const d3 = Object.assign(d3Base)
 const colorbrewer = Object.assign(colorbr)
 
 export default {
-  name: "Predictions",
+  name: "PredictionsCM",
   data () {
     return {
       GetResultsAll: [],
-      GetResultsSelection: [],
+      GetResultsSelectionCM: [],
       responsiveWidthHeight: [],
-      predictSelection: [],
+      predictSelectionCM: [],
       StoreIndices: [],
     }
   },
   methods: {
     reset () {
-      var svg = d3.select("#containerAll");
+      var svg = d3.select("#containerAllCM");
       svg.selectAll("*").remove();
-      var svg = d3.select("#containerSelection");
+      var svg = d3.select("#containerSelectionCM");
       svg.selectAll("*").remove();
     },
     Grid () {
@@ -45,11 +46,11 @@ export default {
           return idxs;
       };
 
-      var svg = d3.select("#containerAll");
+      var svg = d3.select("#containerAllCM");
       svg.selectAll("*").remove();
 
-      var yValues = JSON.parse(this.GetResultsAll[6])
-      var targetNames = JSON.parse(this.GetResultsAll[7])
+      var yValues = JSON.parse(this.GetResultsAllCM[6])
+      var targetNames = JSON.parse(this.GetResultsAllCM[7])
 
       var getIndices = []
       for (let i = 0; i < targetNames.length; i++) {
@@ -57,7 +58,7 @@ export default {
       }
       getIndices.reverse()
 
-      var predictions = JSON.parse(this.GetResultsAll[12])
+      var predictions = JSON.parse(this.GetResultsAllCM[12])
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
       var PredAver = predictions[2]
@@ -132,7 +133,7 @@ export default {
 		var colourScale;
 
 
-		var canvas = d3.select('#containerAll')
+		var canvas = d3.select('#containerAllCM')
 			.append('canvas')
 			.attr('width', width)
 			.attr('height', height);
@@ -237,13 +238,13 @@ export default {
           return idxs;
       };
 
-      var svg = d3.select("#containerSelection");
+      var svg = d3.select("#containerSelectionCM");
       svg.selectAll("*").remove();
 
-      var predictionsAll = JSON.parse(this.GetResultsSelection[12])
+      var predictionsAll = JSON.parse(this.GetResultsSelectionCM[12])
 
-      if (this.predictSelection.length != 0) {
-        var predictions = this.predictSelection
+      if (this.predictSelectionCM.length != 0) {
+        var predictions = this.predictSelectionCM
         var KNNPred = predictions[0]
         var LRPred = predictions[1]
         var PredAver = predictions[2]
@@ -256,8 +257,8 @@ export default {
       var LRPredAll = predictionsAll[1]
       var PredAverAll = predictionsAll[2]
 
-      var yValues = JSON.parse(this.GetResultsSelection[6])
-      var targetNames = JSON.parse(this.GetResultsSelection[7])
+      var yValues = JSON.parse(this.GetResultsSelectionCM[6])
+      var targetNames = JSON.parse(this.GetResultsSelectionCM[7])
 
       var getIndices = []
       for (let i = 0; i < targetNames.length; i++) {
@@ -332,7 +333,7 @@ export default {
 		var colourScale;
 
 
-		var canvas = d3.select('#containerSelection')
+		var canvas = d3.select('#containerSelectionCM')
 			.append('canvas')
 			.attr('width', width)
 			.attr('height', height);
@@ -427,14 +428,14 @@ export default {
   },
   },
   mounted () {
-      EventBus.$on('emittedEventCallingGrid', data => { this.GetResultsAll = data; })
-      EventBus.$on('emittedEventCallingGrid', this.Grid)
+      EventBus.$on('emittedEventCallingGridCrossoverMutation', data => { this.GetResultsAllCM = data; })
+      EventBus.$on('emittedEventCallingGridCrossoverMutation', this.Grid)
 
-      EventBus.$on('emittedEventCallingGridSelection', data => { this.GetResultsSelection = data; })
-      EventBus.$on('emittedEventCallingGridSelection', this.GridSelection)
+      EventBus.$on('emittedEventCallingGridSelectionGridCrossoverMutation', data => { this.GetResultsSelectionCM = data; })
+      EventBus.$on('emittedEventCallingGridSelectionGridCrossoverMutation', this.GridSelection)
 
-      EventBus.$on('SendSelectedPointsToServerEvent', data => { this.predictSelection = data; })
-      EventBus.$on('SendSelectedPointsToServerEvent', this.GridSelection)
+      EventBus.$on('SendSelectedPointsToServerEventCM', data => { this.predictSelectionCM = data; })
+      EventBus.$on('SendSelectedPointsToServerEventCM', this.GridSelection)
 
       EventBus.$on('Responsive', data => {
       this.responsiveWidthHeight = data})
