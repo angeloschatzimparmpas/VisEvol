@@ -76,6 +76,15 @@ def reset():
     global yData
     yData = []
 
+    global addKNN
+    addKNN = 0
+
+    global addLR
+    addLR = 100
+
+    global countAllModels
+    countAllModels = 0
+
     global XDataStored
     XDataStored = []
     global yDataStored
@@ -196,6 +205,12 @@ def retrieveFileName():
 
     global detailsParams
     detailsParams = []
+
+    global addKNN
+    addKNN = 0
+
+    global addLR
+    addLR = 100
 
     # Initializing models
 
@@ -475,6 +490,7 @@ def retrieveModel():
     global XData
     global yData
     global LRModelsCount
+    global countAllModels
 
     # loop through the algorithms
     global allParametersPerformancePerModel
@@ -484,11 +500,12 @@ def retrieveModel():
         if (eachAlgor) == 'KNN':
             clf = KNeighborsClassifier()
             params = {'n_neighbors': list(range(1, 100)), 'metric': ['chebyshev', 'manhattan', 'euclidean', 'minkowski'], 'algorithm': ['brute', 'kd_tree', 'ball_tree'], 'weights': ['uniform', 'distance']}
-            AlgorithmsIDsEnd = KNNModelsCount
+            AlgorithmsIDsEnd = countAllModels
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': list(np.arange(1,100,1)), 'max_iter': list(np.arange(50,500,50)), 'solver': ['lbfgs', 'newton-cg', 'sag', 'saga'], 'penalty': ['l2', 'none']}
-            AlgorithmsIDsEnd = LRModelsCount
+            AlgorithmsIDsEnd = countAllModels
+        countAllModels = countAllModels + 100
         allParametersPerformancePerModel = randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd)
     HistoryPreservation = allParametersPerformancePerModel.copy()
     # call the function that sends the results to the frontend
@@ -652,6 +669,7 @@ def PreprocessingParam():
     dfLR = dfLR.T
 
     df_params = pd.concat([dfKNN, dfLR])
+    df_params = df_params.reset_index(drop=True)
     return df_params
 
 def PreprocessingParamSep():
@@ -788,7 +806,6 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel)
     Results.append(json.dumps(ModelSpaceTSNE))
     Results.append(json.dumps(ModelSpaceUMAP))
     Results.append(json.dumps(PredictionProbSel))
-    print('mpike')
 
     return Results
 
@@ -806,6 +823,9 @@ def CrossoverMutateFun():
     global XData
     global yData
     global LRModelsCount
+    global addKNN
+    global addLR
+    global countAllModels
 
     # loop through the algorithms
     global allParametersPerfCrossMutr
@@ -819,17 +839,16 @@ def CrossoverMutateFun():
     countLR = 0
     setMaxLoopValue = 5
     paramAllAlgs = PreprocessingParam()
+
     KNNIntIndex = []
     LRIntIndex = []
     
     localCrossMutr = []
     allParametersPerfCrossMutrKNNC = []
-
     while countKNN < setMaxLoopValue:
         for dr in KNNIDs:
             KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
         KNNPickPair = random.sample(KNNIntIndex,2)
-
         pairDF = paramAllAlgs.iloc[KNNPickPair]
         crossoverDF = pd.DataFrame()
         for column in pairDF:
@@ -843,10 +862,12 @@ def CrossoverMutateFun():
         else:
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
-            AlgorithmsIDsEnd = 200 + countKNN
+            AlgorithmsIDsEnd = countAllModels + countKNN
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + 5
 
     for loop in range(setMaxLoopValue - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
@@ -888,10 +909,12 @@ def CrossoverMutateFun():
         else:
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
-            AlgorithmsIDsEnd = 205 + countKNN
+            AlgorithmsIDsEnd = countAllModels + countKNN
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + 5
 
     for loop in range(setMaxLoopValue - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
@@ -927,10 +950,12 @@ def CrossoverMutateFun():
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = 210 + countLR
+            AlgorithmsIDsEnd = countAllModels + countLR
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + 5
 
     for loop in range(setMaxLoopValue - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
@@ -972,10 +997,12 @@ def CrossoverMutateFun():
         else:
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = 215 + countLR
+            AlgorithmsIDsEnd = countAllModels + countLR
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + 5
 
     for loop in range(setMaxLoopValue - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
@@ -990,15 +1017,15 @@ def CrossoverMutateFun():
 
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRM
 
+    localCrossMutr.clear()
+
     allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNC + allParametersPerfCrossMutrKNNM + allParametersPerfCrossMutrLRC + allParametersPerfCrossMutrLRM
 
-    allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNC[0] + allParametersPerfCrossMutrKNNM[0]
-    
-    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNC[1]], ignore_index=True)
-    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNM[1]], ignore_index=True)
-    
-    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNC[2]], ignore_index=True)
-    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNM[2]], ignore_index=True)
+    allParametersPerformancePerModel[4] = allParametersPerformancePerModel[4] + allParametersPerfCrossMutrKNNC[0] + allParametersPerfCrossMutrKNNM[0]
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrKNNC[1]], ignore_index=True)
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrKNNM[1]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrKNNC[2]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrKNNM[2]], ignore_index=True)
     
     allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNC[3]], ignore_index=True)
     allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNM[3]], ignore_index=True)
@@ -1008,14 +1035,15 @@ def CrossoverMutateFun():
     
     allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRC[1]], ignore_index=True)
     allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRM[1]], ignore_index=True)
-    
     allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRC[2]], ignore_index=True)
     allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRM[2]], ignore_index=True)
     
     allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRC[3]], ignore_index=True)
     allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRM[3]], ignore_index=True)
 
-    print(allParametersPerformancePerModel[7])
+    addKNN = addLR
+
+    addLR = addLR + 10
 
     # KNNIntIndex = []
     # for dr in KNNIDs:
@@ -1038,7 +1066,6 @@ def CrossoverMutateFun():
     return 'Everything Okay'
 
 def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
-
     search = GridSearchCV(    
     estimator=clf, param_grid=params, cv=crossValidation, refit='accuracy', 
     scoring=scoring, verbose=0, n_jobs=-1)
@@ -1134,7 +1161,6 @@ def PreprocessingIDsCM():
     dicLRM = allParametersPerfCrossMutr[12]
 
     df_concatIDs = dicKNNC + dicKNNM + dicLRC + dicLRM
-
     return df_concatIDs
 
 def PreprocessingMetricsCM():
@@ -1163,13 +1189,28 @@ def PreprocessingPredCM():
     dfLRC = pd.DataFrame.from_dict(dicLRC)
     dfLRM = pd.DataFrame.from_dict(dicLRM)
 
+    dfKNN = pd.concat([dfKNNC, dfKNNM])
+
+    dfLR = pd.concat([dfLRC, dfLRM])
+
     df_concatProbs = pd.concat([dfKNNC, dfKNNM, dfLRC, dfLRM])
+
+    predictionsKNN = []
+    for column, content in dfKNN.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsKNN.append(el)
+
+    predictionsLR = []
+    for column, content in dfLR.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsLR.append(el)
+    
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
-    return predictions
+    return [predictionsKNN, predictionsLR, predictions]
 
 def PreprocessingParamCM():
     dicKNNC = allParametersPerfCrossMutr[1]
@@ -1198,6 +1239,7 @@ def PreprocessingParamCM():
     dfLRM = dfLRM.T
 
     df_params = pd.concat([dfKNNC, dfKNNM, dfLRC, dfLRM])
+    df_params = df_params.reset_index(drop=True)
     return df_params
 
 def PreprocessingParamSepCM():
@@ -1326,30 +1368,37 @@ def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,Predict
     ResultsCM.append(json.dumps(ModelSpaceUMAPCM))
     ResultsCM.append(json.dumps(PredictionProbSel))
 
-    return Results
+    return ResultsCM
 
 def PreprocessingPredSel(SelectedIDs):
 
+    global addKNN
+    global addLR
+
     numberIDKNN = []
     numberIDLR = []
+    print(SelectedIDs)
     for el in SelectedIDs:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
             if (items[0] == 'KNN'):
-                numberIDKNN.append(int(items[1]))
+                numberIDKNN.append(int(items[1]) - addKNN)
             else:
-                numberIDLR.append(int(items[1]) - 100)
-
+                numberIDLR.append(int(items[1]) - addLR)
+    print(numberIDKNN)
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
+    print(dfKNN)
     dfKNN = dfKNN.loc[numberIDKNN]
     dfLR = pd.DataFrame.from_dict(dicLR)
     dfLR = dfLR.loc[numberIDLR]
-    dfLR.index += 100
+    print(dfLR)
+    dfLR.index += addKNN
     df_concatProbs = pd.concat([dfKNN, dfLR])
+    print(df_concatProbs)
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -1360,6 +1409,7 @@ def PreprocessingPredSel(SelectedIDs):
     for column, content in dfLR.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsLR.append(el)
+
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
@@ -1375,6 +1425,7 @@ def RetrieveSelIDsPredict():
     RetrieveIDsSelection = request.get_data().decode('utf8').replace("'", '"')
     RetrieveIDsSelection = json.loads(RetrieveIDsSelection)
     RetrieveIDsSelection = RetrieveIDsSelection['predictSelectionIDs']
+    
     ResultsSelPred = PreprocessingPredSel(RetrieveIDsSelection)
 
     return 'Everything Okay'

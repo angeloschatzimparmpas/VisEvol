@@ -73,7 +73,7 @@ export default {
         this.clean(parameters[i])
         stringParameters.push(JSON.stringify(parameters[i]).replace(/,/gi, '<br>'))
       }
-
+      // fix that!
       var classifiersInfoProcessing = []
       for (let i = 0; i < modelId.length; i++) {
         if (i < 100) {

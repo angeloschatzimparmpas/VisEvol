@@ -323,7 +323,7 @@ export default Vue.extend({
           } else {
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridCrossoverMutation', this.OverviewResults)
-            EventBus.$emit('emittedEventCallingGridSelectionGridCrossoverMutation', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingGridSelectionCrossoverMutation', this.OverviewResults)
             //this.getFinalResults()
           }
         })
@@ -349,7 +349,6 @@ export default Vue.extend({
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
           EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResultsCM)
-          //this.getFinalResults()
         })
         .catch(error => {
           console.log(error)

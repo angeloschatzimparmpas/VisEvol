@@ -431,8 +431,8 @@ export default {
       EventBus.$on('emittedEventCallingGridCrossoverMutation', data => { this.GetResultsAllCM = data; })
       EventBus.$on('emittedEventCallingGridCrossoverMutation', this.Grid)
 
-      EventBus.$on('emittedEventCallingGridSelectionGridCrossoverMutation', data => { this.GetResultsSelectionCM = data; })
-      EventBus.$on('emittedEventCallingGridSelectionGridCrossoverMutation', this.GridSelection)
+      EventBus.$on('emittedEventCallingGridSelectionCrossoverMutation', data => { this.GetResultsSelectionCM = data; })
+      EventBus.$on('emittedEventCallingGridSelectionCrossoverMutation', this.GridSelection)
 
       EventBus.$on('SendSelectedPointsToServerEventCM', data => { this.predictSelectionCM = data; })
       EventBus.$on('SendSelectedPointsToServerEventCM', this.GridSelection)
