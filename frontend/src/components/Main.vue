@@ -144,7 +144,7 @@
             <b-row class="md-3">
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters Predictions
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Predictions
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -155,7 +155,7 @@
               </b-col>
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble Predictions
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble's Predictions
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">   
@@ -217,8 +217,10 @@ export default Vue.extend({
   data () {
     return {
       storeEnsemble: [],
+      PredictSelEnsem: [],
       firstTimeExec: true,
       unselectedRemainingPoints: [],
+      unselectedRemainingPointsEnsem: [],
       Collection: 0,
       OverviewResults: 0,
       preDataResults: '',
@@ -321,6 +323,8 @@ export default Vue.extend({
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
             this.firstTimeExec = false
           } else {
+            this.PredictSelEnsem = []
+            EventBus.$emit('SendSelectedPointsToServerEventCM', this.PredictSelEnsem)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridCrossoverMutation', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelectionCrossoverMutation', this.OverviewResults)
@@ -346,6 +350,8 @@ export default Vue.extend({
         .then(response => {
           this.OverviewResultsCM = response.data.OverviewResultsCM
           console.log('Server successfully sent all the data related to visualizations!')
+          this.PredictSel = []
+          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
           EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResultsCM)
@@ -423,8 +429,52 @@ export default Vue.extend({
           console.log(error)
         })
     },
+    SendSelectedIDsEnsemble () {
+      const path = `http://127.0.0.1:5000/data/SendtoSeverSelIDsEnsem`
+      const postData = {
+        predictSelectionIDsCM: this.ClassifierIDsListCM
+      }
+      const axiosConfig = {
+      headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+      'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS'
+      }
+      }
+      axios.post(path, postData, axiosConfig)
+      .then(response => {
+        console.log('Sent the selected IDs to compute predictions!')
+        this.retrievePredictionsSelEnsemble()
+      })
+      .catch(error => {
+      console.log(error)
+      }) 
+    },
+    retrievePredictionsSelEnsemble () {
+      const path = `http://localhost:5000/data/RetrievePredictionsEnsem`
+
+      const axiosConfig = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+          'Access-Control-Allow-Methods': 'GET, PUT, POST, DELETE, OPTIONS'
+        }
+      }
+      axios.get(path, axiosConfig)
+        .then(response => {
+          this.PredictSelEnsem = response.data.PredictSelEnsem
+          console.log('Server successfully sent the predictions!')
+          EventBus.$emit('SendSelectedPointsToServerEventCM', this.PredictSelEnsem)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    },
     SelectedPointsCM () {
       this.OverSelLengthCM = this.ClassifierIDsListCM.length
+      this.SendSelectedIDsEnsemble()
     },
     SendSelectedPointsToServer () {
       if (this.ClassifierIDsList === ''){
@@ -818,9 +868,12 @@ export default Vue.extend({
       const path = `http://127.0.0.1:5000/data/CrossoverMutation`
       
       EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
+
+      var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsemble)
       
       const postData = {
-        RemainingPoints: this.unselectedRemainingPoints
+        RemainingPoints: this.unselectedRemainingPoints,
+        StoreEnsemble: mergedStoreEnsembleLoc
       }
       const axiosConfig = {
         headers: {
@@ -884,6 +937,8 @@ export default Vue.extend({
 
     EventBus.$on('RemainingPoints', data => { this.unselectedRemainingPoints = data })
     EventBus.$on('InitializeCrossoverMutation', this.sendPointsCrossMutat)
+
+    EventBus.$on('RemainingPointsCM', data => { this.unselectedRemainingPointsEnsem = data })
 
     EventBus.$on('ChangeKey', data => { this.keyNow = data })
     EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data; this.storeEnsemble.push(this.ClassifierIDsList)})

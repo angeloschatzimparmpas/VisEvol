@@ -76,6 +76,9 @@ def reset():
     global yData
     yData = []
 
+    global EnsembleActive
+    EnsembleActive = []
+
     global addKNN
     addKNN = 0
 
@@ -205,6 +208,9 @@ def retrieveFileName():
 
     global detailsParams
     detailsParams = []
+    
+    global EnsembleActive
+    EnsembleActive = []
 
     global addKNN
     addKNN = 0
@@ -652,6 +658,53 @@ def PreprocessingPred():
 
     return [predictionsKNN, predictionsLR, predictions]
 
+def PreprocessingPredEnsemble():
+
+    global EnsembleActive
+
+    numberIDKNN = []
+    numberIDLR = []
+    for el in EnsembleActive:
+        match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
+        if match:
+            items = match.groups()
+            if (items[0] == 'KNN'):
+                numberIDKNN.append(int(items[1]))
+            else:
+                numberIDLR.append(int(items[1]))
+
+    dicKNN = allParametersPerformancePerModel[3]
+    dicLR = allParametersPerformancePerModel[7]
+
+    dfKNN = pd.DataFrame.from_dict(dicKNN)
+    dfLR = pd.DataFrame.from_dict(dicLR)
+    df_concatProbs = pd.concat([dfKNN, dfLR])
+    df_concatProbs = df_concatProbs.reset_index(drop=True)
+
+    dfKNN = df_concatProbs.loc[numberIDKNN]
+    dfLR = df_concatProbs.loc[numberIDLR]
+
+    df_concatProbs = pd.DataFrame()
+    df_concatProbs = df_concatProbs.iloc[0:0]
+    df_concatProbs = pd.concat([dfKNN, dfLR])
+
+    predictionsKNN = []
+    for column, content in dfKNN.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsKNN.append(el)
+
+    predictionsLR = []
+    for column, content in dfLR.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsLR.append(el)
+
+    predictions = []
+    for column, content in df_concatProbs.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictions.append(el)
+
+    return [predictionsKNN, predictionsLR, predictions]
+
 def PreprocessingParam():
     dicKNN = allParametersPerformancePerModel[1]
     dicLR = allParametersPerformancePerModel[5]
@@ -765,6 +818,7 @@ def InitializeEnsemble():
     global ModelSpaceMDS
     global ModelSpaceTSNE
     global allParametersPerformancePerModel
+    global EnsembleActive
 
     XModels = XModels.fillna(0)
 
@@ -773,7 +827,10 @@ def InitializeEnsemble():
     ModelSpaceTSNE = ModelSpaceTSNE.tolist()
     ModelSpaceUMAP = FunUMAP(XModels)
 
-    PredictionProbSel = PreprocessingPred()
+    if (len(EnsembleActive) == 0):
+        PredictionProbSel = PreprocessingPred()
+    else:
+        PredictionProbSel = PreprocessingPredEnsemble()
 
     returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel)
 
@@ -819,6 +876,13 @@ def CrossoverMutateFun():
     RemainingIds = json.loads(RemainingIds)
 
     RemainingIds = RemainingIds['RemainingPoints']
+    
+    global EnsembleActive
+
+    EnsembleActive = request.get_data().decode('utf8').replace("'", '"')
+    EnsembleActive = json.loads(EnsembleActive)
+
+    EnsembleActive = EnsembleActive['StoreEnsemble']
     
     global XData
     global yData
@@ -1377,28 +1441,25 @@ def PreprocessingPredSel(SelectedIDs):
 
     numberIDKNN = []
     numberIDLR = []
-    print(SelectedIDs)
     for el in SelectedIDs:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
             if (items[0] == 'KNN'):
-                numberIDKNN.append(int(items[1]) - addKNN)
+                numberIDKNN.append(int(items[1]) -addKNN)
             else:
                 numberIDLR.append(int(items[1]) - addLR)
-    print(numberIDKNN)
+
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
-    print(dfKNN)
+
     dfKNN = dfKNN.loc[numberIDKNN]
     dfLR = pd.DataFrame.from_dict(dicLR)
     dfLR = dfLR.loc[numberIDLR]
-    print(dfLR)
     dfLR.index += addKNN
     df_concatProbs = pd.concat([dfKNN, dfLR])
-    print(df_concatProbs)
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -1435,5 +1496,72 @@ def SendPredictSel():
     global ResultsSelPred
     response = {    
         'PredictSel': ResultsSelPred
+    }
+    return jsonify(response)
+
+def PreprocessingPredSelEnsem(SelectedIDsEnsem):
+
+    numberIDKNN = []
+    numberIDLR = []
+    for el in SelectedIDsEnsem:
+        match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
+        if match:
+            items = match.groups()
+            if (items[0] == 'KNN'):
+                numberIDKNN.append(int(items[1]))
+            else:
+                numberIDLR.append(int(items[1]))
+
+    dicKNN = allParametersPerformancePerModel[3]
+    dicLR = allParametersPerformancePerModel[7]
+
+    dfKNN = pd.DataFrame.from_dict(dicKNN)
+    dfLR = pd.DataFrame.from_dict(dicLR)
+    df_concatProbs = pd.concat([dfKNN, dfLR])
+    df_concatProbs = df_concatProbs.reset_index(drop=True)
+
+    dfKNN = df_concatProbs.loc[numberIDKNN]
+
+    dfLR = df_concatProbs.loc[numberIDLR]
+
+    df_concatProbs = pd.DataFrame()
+    df_concatProbs = df_concatProbs.iloc[0:0]
+    df_concatProbs = pd.concat([dfKNN, dfLR])
+
+    predictionsKNN = []
+    for column, content in dfKNN.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsKNN.append(el)
+
+    predictionsLR = []
+    for column, content in dfLR.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsLR.append(el)
+
+    predictions = []
+    for column, content in df_concatProbs.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictions.append(el)
+
+    return [predictionsKNN, predictionsLR, predictions]
+
+@cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
+@app.route('/data/SendtoSeverSelIDsEnsem', methods=["GET", "POST"])
+def RetrieveSelIDsPredictEnsem():
+    global ResultsSelPredEnsem
+    ResultsSelPredEnsem = []
+    RetrieveIDsSelectionEnsem = request.get_data().decode('utf8').replace("'", '"')
+    RetrieveIDsSelectionEnsem = json.loads(RetrieveIDsSelectionEnsem)
+    RetrieveIDsSelectionEnsem = RetrieveIDsSelectionEnsem['predictSelectionIDsCM']
+    
+    ResultsSelPredEnsem = PreprocessingPredSelEnsem(RetrieveIDsSelectionEnsem)
+
+    return 'Everything Okay'
+
+@app.route('/data/RetrievePredictionsEnsem', methods=["GET", "POST"])
+def SendPredictSelEnsem():
+    global ResultsSelPredEnsem
+    response = {    
+        'PredictSelEnsem': ResultsSelPredEnsem
     }
     return jsonify(response)

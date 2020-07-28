@@ -61,8 +61,6 @@ export default {
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
       var PredAver = predictions[2]
-      console.log(PredAver)
-
       var dataAver = []
       var dataAverGetResults = []
       var dataKNN = []
@@ -125,7 +123,7 @@ export default {
     }
     
     var classStore = [].concat.apply([], classArray);
-    console.log(classStore)
+
 		// === Set up canvas === //
 
 		var width = 1200,

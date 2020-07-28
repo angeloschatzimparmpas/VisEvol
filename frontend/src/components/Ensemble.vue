@@ -287,25 +287,25 @@ export default {
         var allModels = JSON.parse(this.ScatterPlotResults[0])
         OverviewPlotly.on('plotly_selected', function (evt) {
           if (typeof evt !== 'undefined') {
-            var pushModelsRemainingTemp = []
-            const ClassifierIDsList = []
+            var pushModelsRemainingTempCM = []
+            const ClassifierIDsListCM = []
             for (let i = 0; evt.points.length; i++) {
               if (evt.points[i] === undefined) {
                 break
               } else {
                 const OnlyId = evt.points[i].text.split(' ')[2]
                 const OnlyIdCleared = OnlyId.split('<br>')
-                ClassifierIDsList.push(OnlyIdCleared[0])
+                ClassifierIDsListCM.push(OnlyIdCleared[0])
               }
             }
             for (let i = 0; i < allModels.length; i++) {
-              if (ClassifierIDsList.indexOf((allModels[i])) < 0) {
-                pushModelsRemainingTemp.push(allModels[i])
+              if (ClassifierIDsListCM.indexOf((allModels[i])) < 0) {
+                pushModelsRemainingTempCM.push(allModels[i])
               }
             }
-              EventBus.$emit('RemainingPointsCM', pushModelsRemainingTemp)
-              EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', ClassifierIDsList)
-              EventBus.$emit('SendSelectedPointsToServerEventCM', ClassifierIDsList)
+              EventBus.$emit('RemainingPointsCM', pushModelsRemainingTempCM)
+              EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', ClassifierIDsListCM)
+              EventBus.$emit('SendSelectedPointsToServerEventCM', ClassifierIDsListCM)
           }
         })
       },
