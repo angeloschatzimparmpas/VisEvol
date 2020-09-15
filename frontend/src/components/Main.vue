@@ -26,7 +26,7 @@
         </b-col>
         <b-col cols="3">
             <mdb-card >
-              <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Results</mdb-card-header>
+              <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble's Results</mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 230px">
                 </mdb-card-text>
@@ -130,7 +130,7 @@
               </b-col>
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Models Included in the Majority-Voting Ensemble
                     [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small>
                     </mdb-card-header>
                     <mdb-card-body>
@@ -142,9 +142,20 @@
               </b-col>
             </b-row>
             <b-row class="md-3">
+              <b-col cols="3">
+                <mdb-card style="margin-top: 15px;">
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Manipulation of Algorithms
+                    </mdb-card-header>
+                    <mdb-card-body>
+                      <mdb-card-text class="text-center"  style="min-height: 270px">
+
+                      </mdb-card-text>
+                    </mdb-card-body>
+                </mdb-card>
+              </b-col>
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Predictions
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Each Data Instance
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -153,13 +164,13 @@
                     </mdb-card-body>
                 </mdb-card>
               </b-col>
-              <b-col cols="6">
+              <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble's Predictions
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">   
-                        <PredictionsCM/>          
+        
                       </mdb-card-text>
                     </mdb-card-body>
                 </mdb-card>
@@ -175,13 +186,13 @@ import Vue from 'vue'
 import DataSetExecController from './DataSetExecController.vue'
 import PerformanceMetrics from './PerformanceMetrics.vue'
 import Algorithms from './Algorithms.vue'
+import AlgorithmsController from './AlgorithmsController.vue'
 import AlgorithmHyperParam from './AlgorithmHyperParam.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
 import Ensemble from './Ensemble.vue'
 import VotingResults from './VotingResults.vue'
 import Parameters from './Parameters.vue'
 import Predictions from './Predictions.vue'
-import PredictionsCM from './PredictionsCM.vue'
 import axios from 'axios'
 import { loadProgressBar } from 'axios-progress-bar'
 import 'axios-progress-bar/dist/nprogress.css'
@@ -202,12 +213,12 @@ export default Vue.extend({
     DataSetExecController,
     PerformanceMetrics,
     Algorithms,
+    AlgorithmsController,
     AlgorithmHyperParam,
     HyperParameterSpace,
     Ensemble,
     Parameters,
     Predictions,
-    PredictionsCM,
     VotingResults,
     mdbCard,
     mdbCardBody,
@@ -232,13 +243,13 @@ export default Vue.extend({
       ClassifierIDsListCM: [],
       SelectedFeaturesPerClassifier: '',
       FinalResults: 0,
-      Algorithms: ['KNN','LR'],
+      Algorithms: ['KNN','LR','MLP','RF','GradB'],
       selectedAlgorithm: '',
       PerformancePerModel: '',
       PerformanceCheck: '',
       firstTimeFlag: 1,
       selectedModels_Stack: [],
-      selectedAlgorithms: ['KNN','LR'],
+      selectedAlgorithms: ['KNN','LR','MLP','RF','GradB'],
       parametersofModels: [],
       reset: false,
       brushedBoxPlotUpdate: 0,
@@ -268,7 +279,8 @@ export default Vue.extend({
       keyLoc: 0,
       keyData: true,
       ClassifierIDsListRemaining: [],
-      PredictSel: []
+      PredictSel: [],
+      storeBothEnsCM: [],
     }
   },
   methods: {
@@ -321,13 +333,15 @@ export default Vue.extend({
             EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
+            this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
-          } else {
-            this.PredictSelEnsem = []
-            EventBus.$emit('SendSelectedPointsToServerEventCM', this.PredictSelEnsem)
+          } else {   
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
-            EventBus.$emit('emittedEventCallingGridCrossoverMutation', this.OverviewResults)
-            EventBus.$emit('emittedEventCallingGridSelectionCrossoverMutation', this.OverviewResults)
+            this.PredictSelEnsem = []
+            EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
+            EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
+            this.storeBothEnsCM[1] = this.OverviewResults
+            //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
             //this.getFinalResults()
           }
         })
@@ -350,11 +364,12 @@ export default Vue.extend({
         .then(response => {
           this.OverviewResultsCM = response.data.OverviewResultsCM
           console.log('Server successfully sent all the data related to visualizations!')
-          this.PredictSel = []
-          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
-          EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
-          EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResultsCM)
+          this.storeBothEnsCM[0] = this.OverviewResultsCM
+          //this.PredictSel = []
+          //EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
+          //EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
+          //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResultsCM)
         })
         .catch(error => {
           console.log(error)
@@ -424,6 +439,7 @@ export default Vue.extend({
           this.PredictSel = response.data.PredictSel
           console.log('Server successfully sent the predictions!')
           EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
+          EventBus.$emit('emittedEventCallingGrid', this.storeBothEnsCM[0])
         })
         .catch(error => {
           console.log(error)
@@ -466,7 +482,8 @@ export default Vue.extend({
         .then(response => {
           this.PredictSelEnsem = response.data.PredictSelEnsem
           console.log('Server successfully sent the predictions!')
-          EventBus.$emit('SendSelectedPointsToServerEventCM', this.PredictSelEnsem)
+          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
+          EventBus.$emit('emittedEventCallingGrid', this.storeBothEnsCM[1])
         })
         .catch(error => {
           console.log(error)

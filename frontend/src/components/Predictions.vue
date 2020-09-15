@@ -239,7 +239,8 @@ export default {
       var svg = d3.select("#containerSelection");
       svg.selectAll("*").remove();
 
-      var predictionsAll = JSON.parse(this.GetResultsSelection[12])
+      var predictionsAll = JSON.parse(this.GetResultsAll[12])
+      console.log(predictionsAll)
 
       if (this.predictSelection.length != 0) {
         var predictions = this.predictSelection

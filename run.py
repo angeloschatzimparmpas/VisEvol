@@ -17,7 +17,10 @@ from joblib import Memory
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import log_loss
@@ -503,15 +506,35 @@ def retrieveModel():
     global HistoryPreservation
 
     for eachAlgor in algorithms:
+        print(eachAlgor)
         if (eachAlgor) == 'KNN':
             clf = KNeighborsClassifier()
             params = {'n_neighbors': list(range(1, 100)), 'metric': ['chebyshev', 'manhattan', 'euclidean', 'minkowski'], 'algorithm': ['brute', 'kd_tree', 'ball_tree'], 'weights': ['uniform', 'distance']}
             AlgorithmsIDsEnd = countAllModels
-        else:
+        elif (eachAlgor) == 'LR':
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': list(np.arange(1,100,1)), 'max_iter': list(np.arange(50,500,50)), 'solver': ['lbfgs', 'newton-cg', 'sag', 'saga'], 'penalty': ['l2', 'none']}
+            countAllModels = countAllModels + 100
             AlgorithmsIDsEnd = countAllModels
-        countAllModels = countAllModels + 100
+        elif (eachAlgor) == 'MLP':
+            start = 60
+            stop = 120
+            step = 1
+            ranges = [(n, random.randint(1,3)) for n in range(start, stop, step)]
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': ranges,'alpha': list(np.arange(0.00001,0.001,0.0002)), 'tol': list(np.arange(0.00001,0.001,0.0004)), 'max_iter': list(np.arange(100,200,100)), 'activation': ['relu', 'identity', 'logistic', 'tanh'], 'solver' : ['adam', 'sgd']}
+            countAllModels = countAllModels + 100
+            AlgorithmsIDsEnd = countAllModels
+        elif (eachAlgor) == 'RF':
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': list(range(20, 100)), 'criterion': ['gini', 'entropy']}
+            countAllModels = countAllModels + 100
+            AlgorithmsIDsEnd = countAllModels
+        else: 
+            clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': list(range(20, 100)), 'learning_rate': list(np.arange(0.01,0.23,0.11)), 'criterion': ['friedman_mse', 'mse', 'mae']}
+            countAllModels = countAllModels + 100
+            AlgorithmsIDsEnd = countAllModels
         allParametersPerformancePerModel = randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd)
     HistoryPreservation = allParametersPerformancePerModel.copy()
     # call the function that sends the results to the frontend
@@ -523,6 +546,8 @@ memory = Memory(location, verbose=0)
 
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
+
+    print('inside')
 
     search = RandomizedSearchCV(    
         estimator=clf, param_distributions=params, n_iter=100,
