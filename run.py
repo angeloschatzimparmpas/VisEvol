@@ -42,6 +42,12 @@ cors = CORS(app, resources={r"/data/*": {"origins": "*"}})
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 @app.route('/data/Reset', methods=["GET", "POST"])
 def reset():
+
+    global Results
+    Results = []
+    global ResultsCM
+    ResultsCM = []
+
     global DataRawLength
     global DataResultsRaw
     global previousState
@@ -68,11 +74,20 @@ def reset():
     global factors
     factors = [1,1,1,1,0,0,0,0]
 
+    global crossValidation
+    crossValidation = 5
+
+    global randomSearchVar
+    randomSearchVar = 100
+
     global keyData
     keyData = 0
 
     KNNModelsCount = 0
-    LRModelsCount = 100
+    LRModelsCount = KNNModelsCount+randomSearchVar
+    MLPModelsCount = LRModelsCount+randomSearchVar
+    RFModelsCount = MLPModelsCount+randomSearchVar
+    GradBModelsCount = RFModelsCount+randomSearchVar
 
     global XData
     XData = []
@@ -86,7 +101,16 @@ def reset():
     addKNN = 0
 
     global addLR
-    addLR = 100
+    addLR = addKNN+randomSearchVar
+
+    global addMLP
+    addMLP = addLR+randomSearchVar
+
+    global addRF
+    addRF = addMLP+randomSearchVar
+
+    global addGradB
+    addGradB = addRF+randomSearchVar
 
     global countAllModels
     countAllModels = 0
@@ -124,9 +148,6 @@ def reset():
 
     global all_classifiers
     all_classifiers = []
-
-    global crossValidation
-    crossValidation = 5
     
     # models
     global KNNModels
@@ -166,6 +187,7 @@ def retrieveFileName():
     global DataRawLengthTest
 
     fileName = request.get_data().decode('utf8').replace("'", '"')
+    data = json.loads(fileName)  
 
     global keySpecInternal
     keySpecInternal = 1
@@ -181,6 +203,27 @@ def retrieveFileName():
 
     global keyData
     keyData = 0
+
+    global KNNModelsCount
+    global LRModelsCount
+    global MLPModelsCount
+    global RFModelsCount
+    global GradBModelsCount
+
+    global factors
+    factors = data['Factors']
+
+    global crossValidation
+    crossValidation = int(data['CrossValidation'])
+
+    global randomSearchVar
+    randomSearchVar = int(data['RandomSearch'])
+
+    KNNModelsCount = 0
+    LRModelsCount = KNNModelsCount+randomSearchVar
+    MLPModelsCount = LRModelsCount+randomSearchVar
+    RFModelsCount = MLPModelsCount+randomSearchVar
+    GradBModelsCount = RFModelsCount+randomSearchVar
 
     global XData
     XData = []
@@ -219,7 +262,16 @@ def retrieveFileName():
     addKNN = 0
 
     global addLR
-    addLR = 100
+    addLR = addKNN+randomSearchVar
+
+    global addMLP
+    addMLP = addLR+randomSearchVar
+
+    global addRF
+    addRF = addMLP+randomSearchVar
+
+    global addGradB
+    addGradB = addRF+randomSearchVar
 
     # Initializing models
 
@@ -240,9 +292,6 @@ def retrieveFileName():
 
     global all_classifiers
     all_classifiers = []
-
-    global crossValidation
-    crossValidation = 5
 
     global scoring
     scoring = {'accuracy': 'accuracy', 'precision_weighted': 'precision_weighted', 'recall_weighted': 'recall_weighted', 'f1_weighted': 'f1_weighted', 'roc_auc_ovo_weighted': 'roc_auc_ovo_weighted'}
@@ -297,7 +346,7 @@ def retrieveFileName():
 
     DataRawLength = -1
     DataRawLengthTest = -1
-    data = json.loads(fileName)  
+
     if data['fileName'] == 'HeartC':
         CollectionDB = mongo.db.HeartC.find()
     elif data['fileName'] == 'StanceC':
@@ -514,26 +563,27 @@ def retrieveModel():
         elif (eachAlgor) == 'LR':
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': list(np.arange(1,100,1)), 'max_iter': list(np.arange(50,500,50)), 'solver': ['lbfgs', 'newton-cg', 'sag', 'saga'], 'penalty': ['l2', 'none']}
-            countAllModels = countAllModels + 100
+            countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
         elif (eachAlgor) == 'MLP':
             start = 60
             stop = 120
             step = 1
+            random.seed(RANDOM_SEED)
             ranges = [(n, random.randint(1,3)) for n in range(start, stop, step)]
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': ranges,'alpha': list(np.arange(0.00001,0.001,0.0002)), 'tol': list(np.arange(0.00001,0.001,0.0004)), 'max_iter': list(np.arange(100,200,100)), 'activation': ['relu', 'identity', 'logistic', 'tanh'], 'solver' : ['adam', 'sgd']}
-            countAllModels = countAllModels + 100
+            countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
         elif (eachAlgor) == 'RF':
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': list(range(20, 100)), 'criterion': ['gini', 'entropy']}
-            countAllModels = countAllModels + 100
+            countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
         else: 
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': list(range(20, 100)), 'learning_rate': list(np.arange(0.01,0.23,0.11)), 'criterion': ['friedman_mse', 'mse', 'mae']}
-            countAllModels = countAllModels + 100
+            countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
         allParametersPerformancePerModel = randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd)
     HistoryPreservation = allParametersPerformancePerModel.copy()
@@ -546,8 +596,6 @@ memory = Memory(location, verbose=0)
 
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
-
-    print('inside')
 
     search = RandomizedSearchCV(    
         estimator=clf, param_distributions=params, n_iter=100,
@@ -640,30 +688,45 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
 def PreprocessingIDs():
     dicKNN = allParametersPerformancePerModel[0]
     dicLR = allParametersPerformancePerModel[4]
+    dicMLP = allParametersPerformancePerModel[8]
+    dicRF = allParametersPerformancePerModel[12]
+    dicGradB = allParametersPerformancePerModel[16]
 
-    df_concatIDs = dicKNN + dicLR
+    df_concatIDs = dicKNN + dicLR + dicMLP + dicRF + dicGradB
 
     return df_concatIDs
 
 def PreprocessingMetrics():
     dicKNN = allParametersPerformancePerModel[2]
     dicLR = allParametersPerformancePerModel[6]
+    dicMLP = allParametersPerformancePerModel[10]
+    dicRF = allParametersPerformancePerModel[14]
+    dicGradB = allParametersPerformancePerModel[18]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
 
-    df_concatMetrics = pd.concat([dfKNN, dfLR])
+    df_concatMetrics = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
     df_concatMetrics = df_concatMetrics.reset_index(drop=True)
     return df_concatMetrics
 
 def PreprocessingPred():
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
+    dicMLP = allParametersPerformancePerModel[11]
+    dicRF = allParametersPerformancePerModel[15]
+    dicGradB = allParametersPerformancePerModel[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
 
-    df_concatProbs = pd.concat([dfKNN, dfLR])
+    df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
     df_concatProbs.reset_index(drop=True, inplace=True)
 
     predictionsKNN = []
@@ -675,13 +738,28 @@ def PreprocessingPred():
     for column, content in dfLR.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsLR.append(el)
+
+    predictionsMLP = []
+    for column, content in dfMLP.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsMLP.append(el)
+
+    predictionsRF = []
+    for column, content in dfRF.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsRF.append(el)
+
+    predictionsGradB = []
+    for column, content in dfGradB.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsGradB.append(el)
     
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
-    return [predictionsKNN, predictionsLR, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 def PreprocessingPredEnsemble():
 
@@ -689,29 +767,49 @@ def PreprocessingPredEnsemble():
 
     numberIDKNN = []
     numberIDLR = []
+    numberIDMLP = []
+    numberIDRF = []
+    numberIDGradB = []
+
     for el in EnsembleActive:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
             if (items[0] == 'KNN'):
                 numberIDKNN.append(int(items[1]))
-            else:
+            elif (items[0] == 'LR'):
                 numberIDLR.append(int(items[1]))
+            elif (items[0] == 'MLP'):
+                numberIDMLP.append(int(items[1]))
+            elif (items[0] == 'RF'):
+                numberIDRF.append(int(items[1]))
+            else:
+                numberIDGradB.append(int(items[1]))
 
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
+    dicMLP = allParametersPerformancePerModel[11]
+    dicRF = allParametersPerformancePerModel[15]
+    dicGradB = allParametersPerformancePerModel[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
-    df_concatProbs = pd.concat([dfKNN, dfLR])
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
+
+    df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
     df_concatProbs = df_concatProbs.reset_index(drop=True)
 
     dfKNN = df_concatProbs.loc[numberIDKNN]
     dfLR = df_concatProbs.loc[numberIDLR]
+    dfMLP = df_concatProbs.loc[numberIDMLP]
+    dfRF = df_concatProbs.loc[numberIDRF]
+    dfGradB = df_concatProbs.loc[numberIDGradB]
 
     df_concatProbs = pd.DataFrame()
     df_concatProbs = df_concatProbs.iloc[0:0]
-    df_concatProbs = pd.concat([dfKNN, dfLR])
+    df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -723,50 +821,95 @@ def PreprocessingPredEnsemble():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsLR.append(el)
 
+    predictionsMLP = []
+    for column, content in dfMLP.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsMLP.append(el)
+
+    predictionsRF = []
+    for column, content in dfRF.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsRF.append(el)
+
+    predictionsGradB = []
+    for column, content in dfGradB.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsGradB.append(el)
+
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
-    return [predictionsKNN, predictionsLR, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 def PreprocessingParam():
     dicKNN = allParametersPerformancePerModel[1]
     dicLR = allParametersPerformancePerModel[5]
+    dicMLP = allParametersPerformancePerModel[9]
+    dicRF = allParametersPerformancePerModel[13]
+    dicGradB = allParametersPerformancePerModel[17]
 
     dicKNN = dicKNN['params']
     dicLR = dicLR['params']
+    dicMLP = dicMLP['params']
+    dicRF = dicRF['params']
+    dicGradB = dicGradB['params']
     
     dicKNN = {int(k):v for k,v in dicKNN.items()}
     dicLR = {int(k):v for k,v in dicLR.items()}
+    dicMLP = {int(k):v for k,v in dicMLP.items()}
+    dicRF = {int(k):v for k,v in dicRF.items()}
+    dicGradB = {int(k):v for k,v in dicGradB.items()}
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
 
     dfKNN = dfKNN.T
     dfLR = dfLR.T
+    dfMLP = dfMLP.T
+    dfRF = dfRF.T
+    dfGradB = dfGradB.T
 
-    df_params = pd.concat([dfKNN, dfLR])
+    df_params = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
     df_params = df_params.reset_index(drop=True)
     return df_params
 
 def PreprocessingParamSep():
     dicKNN = allParametersPerformancePerModel[1]
     dicLR = allParametersPerformancePerModel[5]
+    dicMLP = allParametersPerformancePerModel[9]
+    dicRF = allParametersPerformancePerModel[13]
+    dicGradB = allParametersPerformancePerModel[17]
 
     dicKNN = dicKNN['params']
     dicLR = dicLR['params']
-
+    dicMLP = dicMLP['params']
+    dicRF = dicRF['params']
+    dicGradB = dicGradB['params']
+    
     dicKNN = {int(k):v for k,v in dicKNN.items()}
     dicLR = {int(k):v for k,v in dicLR.items()}
+    dicMLP = {int(k):v for k,v in dicMLP.items()}
+    dicRF = {int(k):v for k,v in dicRF.items()}
+    dicGradB = {int(k):v for k,v in dicGradB.items()}
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
 
     dfKNN = dfKNN.T
     dfLR = dfLR.T
+    dfMLP = dfMLP.T
+    dfRF = dfRF.T
+    dfGradB = dfGradB.T
 
-    return [dfKNN, dfLR]
+    return [dfKNN, dfLR, dfMLP, dfRF, dfGradB]
 
 # remove that maybe!
 def preProcsumPerMetric(factors):
@@ -1463,28 +1606,61 @@ def PreprocessingPredSel(SelectedIDs):
 
     global addKNN
     global addLR
+    global addMLP
+    global addRF
+    global addGradB
 
     numberIDKNN = []
     numberIDLR = []
+    numberIDMLP = []
+    numberIDRF = []
+    numberIDGradB = []
+
     for el in SelectedIDs:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
             if (items[0] == 'KNN'):
-                numberIDKNN.append(int(items[1]) -addKNN)
-            else:
+                numberIDKNN.append(int(items[1]) - addKNN)
+            elif (items[0] == 'LR'):
                 numberIDLR.append(int(items[1]) - addLR)
+            elif (items[0] == 'MLP'):
+                numberIDMLP.append(int(items[1]) - addMLP)
+            elif (items[0] == 'RF'):
+                numberIDRF.append(int(items[1]) - addRF)
+            else:
+                numberIDGradB.append(int(items[1]) - addGradB)
 
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
+    dicMLP = allParametersPerformancePerModel[11]
+    dicRF = allParametersPerformancePerModel[15]
+    dicGradB = allParametersPerformancePerModel[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
-
     dfKNN = dfKNN.loc[numberIDKNN]
+
     dfLR = pd.DataFrame.from_dict(dicLR)
     dfLR = dfLR.loc[numberIDLR]
+
     dfLR.index += addKNN
-    df_concatProbs = pd.concat([dfKNN, dfLR])
+
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfMLP = dfMLP.loc[numberIDMLP]
+
+    dfMLP.index += addKNN + addLR
+
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfRF = dfRF.loc[numberIDRF]
+
+    dfRF.index += addKNN + addLR + addMLP
+
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
+    dfGradB = dfGradB.loc[numberIDGradB]
+
+    dfGradB.index += addKNN + addLR + addMLP + addRF
+
+    df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -1496,12 +1672,27 @@ def PreprocessingPredSel(SelectedIDs):
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsLR.append(el)
 
+    predictionsMLP = []
+    for column, content in dfMLP.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsMLP.append(el)
+
+    predictionsRF = []
+    for column, content in dfRF.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsRF.append(el)
+
+    predictionsGradB = []
+    for column, content in dfGradB.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsGradB.append(el)
+
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
-    return [predictionsKNN, predictionsLR, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 @app.route('/data/SendtoSeverSelIDs', methods=["GET", "POST"])
@@ -1528,30 +1719,49 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
 
     numberIDKNN = []
     numberIDLR = []
+    numberIDMLP = []
+    numberIDRF = []
+    numberIDGradB = []
+
     for el in SelectedIDsEnsem:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
             if (items[0] == 'KNN'):
                 numberIDKNN.append(int(items[1]))
+            elif (items[0] == 'LR'):
+                numberIDLR.append(int(items[1]))
+            elif (items[0] == 'MLP'):
+                numberIDLR.append(int(items[1]))
+            elif (items[0] == 'RF'):
+                numberIDLR.append(int(items[1]))
             else:
                 numberIDLR.append(int(items[1]))
 
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
+    dicMLP = allParametersPerformancePerModel[11]
+    dicRF = allParametersPerformancePerModel[15]
+    dicGradB = allParametersPerformancePerModel[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
-    df_concatProbs = pd.concat([dfKNN, dfLR])
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
+
+    df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
     df_concatProbs = df_concatProbs.reset_index(drop=True)
 
     dfKNN = df_concatProbs.loc[numberIDKNN]
-
     dfLR = df_concatProbs.loc[numberIDLR]
+    dfMLP = df_concatProbs.loc[numberIDMLP]
+    dfRF = df_concatProbs.loc[numberIDRF]
+    dfGradB = df_concatProbs.loc[numberIDGradB]
 
     df_concatProbs = pd.DataFrame()
     df_concatProbs = df_concatProbs.iloc[0:0]
-    df_concatProbs = pd.concat([dfKNN, dfLR])
+    df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -1563,12 +1773,27 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsLR.append(el)
 
+    predictionsMLP = []
+    for column, content in dfMLP.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsMLP.append(el)
+
+    predictionsRF = []
+    for column, content in dfRF.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsRF.append(el)
+
+    predictionsGradB = []
+    for column, content in dfGradB.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsGradB.append(el)
+
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
-    return [predictionsKNN, predictionsLR, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 @app.route('/data/SendtoSeverSelIDsEnsem', methods=["GET", "POST"])

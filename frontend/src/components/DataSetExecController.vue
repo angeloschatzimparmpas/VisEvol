@@ -1,10 +1,9 @@
 <template>
-  <div>
+  <div class="text-center">
     <label id="data" for="param-dataset" data-toggle="tooltip" data-placement="right" title="Tip: use one of the data sets already provided or upload a new file.">{{ dataset }}</label>
     <select id="selectFile" @change="selectDataSet()">
         <option value="HeartC.csv" selected>Heart Disease</option>
-        <option value="IrisC.csv">Iris</option>
-        <option value="local">Upload New File</option>
+        <option value="local">Upload File</option>
     </select>
     <button class="btn-outline-success"
     id="initializeID"
@@ -37,7 +36,7 @@ export default {
       defaultDataSet: 'HeartC', // default value for the first data set
       searchText: 'Hyper-parameter search',
       resetText: 'Reset',
-      dataset: 'Data set'
+      dataset: 'Data set:'
     }
   },
   methods: {
@@ -46,7 +45,7 @@ export default {
       this.defaultDataSet = fileName.options[fileName.selectedIndex].value
       this.defaultDataSet = this.defaultDataSet.split('.')[0]
 
-      if (this.defaultDataSet == "DiabetesC" || this.defaultDataSet == "HeartC" || this.defaultDataSet == "IrisC" || this.defaultDataSet == "StanceC") { // This is a function that handles a new file, which users can upload.
+      if (this.defaultDataSet == "HeartC") { // This is a function that handles a new file, which users can upload.
         this.dataset = "Data set"
         d3.select("#data").select("input").remove(); // Remove the selection field.
         EventBus.$emit('SendToServerDataSetConfirmation', this.defaultDataSet)

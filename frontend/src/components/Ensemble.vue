@@ -40,6 +40,8 @@ export default {
   },
   methods: {
     reset () {
+      this.ScatterPlotResults = ''
+      this.storeEnsembleLoc = []
       Plotly.purge('OverviewPlotlyCM')
     },
     selectVisualRepresentationCM () {

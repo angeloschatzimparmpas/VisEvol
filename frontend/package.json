@@ -43,6 +43,7 @@
     "d3-loom": "^1.0.2",
     "d3-selection": "^1.4.1",
     "d3-selection-multi": "^1.0.1",
+    "d3-simple-slider": "^1.9.0",
     "d3-svg-legend": "^1.13.0",
     "d3_exploding_boxplot": "^0.2.1",
     "file-saver": "^2.0.2",

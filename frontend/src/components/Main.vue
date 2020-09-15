@@ -10,6 +10,7 @@
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px;">
                   <PerformanceMetrics/>
+                  <GlobalParamController/>
                   <DataSetExecController/>
                 </mdb-card-text>
               </mdb-card-body>
@@ -19,7 +20,7 @@
           <mdb-card>
             <mdb-card-header color="primary-color" tag="h5" class="text-center">Provenance</mdb-card-header>
             <mdb-card-body>
-              <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 230px">
+              <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
               </mdb-card-text>
             </mdb-card-body>
           </mdb-card>
@@ -28,7 +29,7 @@
             <mdb-card >
               <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble's Results</mdb-card-header>
               <mdb-card-body>
-                <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 230px">
+                <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
                 </mdb-card-text>
               </mdb-card-body>
             </mdb-card>
@@ -119,7 +120,7 @@
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
                   <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Space
-                    [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small>
+                    [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
                   </mdb-card-header>
                   <mdb-card-body>
                     <mdb-card-text class="text-center"  style="min-height: 600px">
@@ -130,8 +131,8 @@
               </b-col>
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Models Included in the Majority-Voting Ensemble
-                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small>
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble
+                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 600px">
@@ -144,7 +145,7 @@
             <b-row class="md-3">
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Manipulation of Algorithms
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Manipulation of Algorithms<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -155,7 +156,7 @@
               </b-col>
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Each Data Instance
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Each Data Instance<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_A}}</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -166,7 +167,7 @@
               </b-col>
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">   
@@ -189,6 +190,7 @@ import Algorithms from './Algorithms.vue'
 import AlgorithmsController from './AlgorithmsController.vue'
 import AlgorithmHyperParam from './AlgorithmHyperParam.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
+import GlobalParamController from './GlobalParamController'
 import Ensemble from './Ensemble.vue'
 import VotingResults from './VotingResults.vue'
 import Parameters from './Parameters.vue'
@@ -216,6 +218,7 @@ export default Vue.extend({
     AlgorithmsController,
     AlgorithmHyperParam,
     HyperParameterSpace,
+    GlobalParamController,
     Ensemble,
     Parameters,
     Predictions,
@@ -227,6 +230,8 @@ export default Vue.extend({
   },
   data () {
     return {
+      projectionID_A: 1,
+      projectionID_B: 1,
       storeEnsemble: [],
       PredictSelEnsem: [],
       firstTimeExec: true,
@@ -281,6 +286,8 @@ export default Vue.extend({
       ClassifierIDsListRemaining: [],
       PredictSel: [],
       storeBothEnsCM: [],
+      crossVal: '5',
+      RandomSear: '100',
     }
   },
   methods: {
@@ -673,8 +680,12 @@ export default Vue.extend({
     },
     fileNameSend () {
       const path = `http://127.0.0.1:5000/data/ServerRequest`
+      
       const postData = {
         fileName: this.RetrieveValueFile,
+        RandomSearch: this.RandomSear,
+        CrossValidation: this.crossVal,
+        Factors: this.basicValuesFact
       }
       const axiosConfig = {
         headers: {
@@ -773,6 +784,11 @@ export default Vue.extend({
     Reset () {
       const path = `http://127.0.0.1:5000/data/Reset`
       this.reset = true
+      this.firstTimeExec = true
+      this.OverSelLength = 0
+      this.OverAllLength = 0
+      this.OverSelLengthCM = 0
+      this.OverAllLengthCM = 0
       const postData = {
         ClassifiersList: this.reset
       }
@@ -909,6 +925,14 @@ export default Vue.extend({
         .catch(error => {
           console.log(error)
         })
+    },
+    changeActiveTo1 () {
+      this.projectionID_A = 1 
+      this.projectionID_B = 1
+    },
+    changeActiveTo2 () {
+      this.projectionID_A = 2 
+      this.projectionID_B = 2
     }
   },
   created () {
@@ -948,13 +972,17 @@ export default Vue.extend({
     EventBus.$on('ReturningBrushedPointsIDs',  data => { this.modelsUpdate = data })
     //EventBus.$on('ReturningBrushedPointsIDs',  this.UpdateBarChartFeatures )
     EventBus.$on('ConfirmDataSet', this.fileNameSend)
+    EventBus.$on('reset', this.changeActiveTo1)
     EventBus.$on('reset', this.Reset)
     EventBus.$on('ReturningAlgorithms', data => { this.selectedAlgorithms = data })
     EventBus.$on('ReturningBrushedPointsParams', data => { this.parametersofModels = data; })
 
+    EventBus.$on('RemainingPoints', this.changeActiveTo1)
     EventBus.$on('RemainingPoints', data => { this.unselectedRemainingPoints = data })
+    EventBus.$on('InitializeCrossoverMutation', this.changeActiveTo2)
     EventBus.$on('InitializeCrossoverMutation', this.sendPointsCrossMutat)
 
+    EventBus.$on('RemainingPointsCM', this.changeActiveTo2)
     EventBus.$on('RemainingPointsCM', data => { this.unselectedRemainingPointsEnsem = data })
 
     EventBus.$on('ChangeKey', data => { this.keyNow = data })
@@ -1014,6 +1042,10 @@ export default Vue.extend({
     EventBus.$on('SendProvenance', this.ProvenanceControlFun)
 
     EventBus.$on('toggleDeep', data => {this.toggleDeepMain = data})
+
+    EventBus.$on('SendtheChangeinRangePos', data => { this.RandomSear = data })
+    EventBus.$on('SendtheChangeinRangeNeg', data => { this.crossVal = data })
+    EventBus.$on('factorsChanged', data => { this.basicValuesFact = data })
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {

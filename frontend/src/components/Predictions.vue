@@ -32,6 +32,10 @@ export default {
       svg.selectAll("*").remove();
       var svg = d3.select("#containerSelection");
       svg.selectAll("*").remove();
+      this.GetResultsAll = []
+      this.GetResultsSelection = []
+      this.predictSelection = []
+      this.StoreIndices = []
     },
     Grid () {
 
@@ -60,13 +64,22 @@ export default {
       var predictions = JSON.parse(this.GetResultsAll[12])
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
-      var PredAver = predictions[2]
+      var MLPPred = predictions[2]
+      var RFPred = predictions[3]
+      var GradBPred = predictions[4]
+      var PredAver = predictions[5]
       var dataAver = []
       var dataAverGetResults = []
       var dataKNN = []
       var dataKNNResults = []
       var dataLR = []
       var dataLRResults = []
+      var dataMLP = []
+      var dataMLPResults = []
+      var dataRF = []
+      var dataRFResults = []
+      var dataGradB = []
+      var dataGradBResults = []
 
       var max = 0
       for (let i = 0; i < targetNames.length; i++) {
@@ -79,26 +92,41 @@ export default {
       var size = sqrtSize * sqrtSize
 
       for (let i = 0; i < targetNames.length; i++) {
-        dataAver = [];
+        dataAver = []
         dataKNN = []
         dataLR = []
+        dataMLP = []
+        dataRF = []
+        dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
           dataAver.push({ id: element, value: PredAver[element][targetNames[i]] })
           dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] })
           dataLR.push({ id: element, value: LRPred[element][targetNames[i]] })
+          dataMLP.push({ id: element, value: MLPPred[element][targetNames[i]] })
+          dataRF.push({ id: element, value: RFPred[element][targetNames[i]] })
+          dataGradB.push({ id: element, value: GradBPred[element][targetNames[i]] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
           dataAver.push({ id: null, value: 1.0 })
           dataKNN.push({ id: null, value: 1.0 })
           dataLR.push({ id: null, value: 1.0 })
+          dataMLP.push({ id: null, value: 1.0 })
+          dataRF.push({ id: null, value: 1.0 })
+          dataGradB.push({ id: null, value: 1.0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
         dataLRResults.push(dataLR)
+        dataMLPResults.push(dataMLP)
+        dataRFResults.push(dataRF)
+        dataGradBResults.push(dataGradB)
       }
     dataAverGetResults.reverse()
     dataKNNResults.reverse()
     dataLRResults.reverse()
+    dataMLPResults.reverse()
+    dataRFResults.reverse()
+    dataGradBResults.reverse()
     
     var classArray = []
     this.StoreIndices = []
@@ -119,15 +147,27 @@ export default {
         return indices.indexOf(a.id) - indices.indexOf(b.id)
       });
 
-      classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i]));
+      dataMLPResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
+      dataRFResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
+      dataGradBResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
+      classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i],dataMLPResults[i],dataRFResults[i],dataGradBResults[i]));
     }
-    
+
     var classStore = [].concat.apply([], classArray);
 
 		// === Set up canvas === //
 
 		var width = 1200,
-				height = 125;
+				height = 85;
 		var colourScale;
 
 
@@ -144,9 +184,9 @@ export default {
 		var custom = d3.select(customBase); // this is our svg replacement
 
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
-		var groupSpacing = 60;
+		var groupSpacing = 40;
 		var cellSpacing = 2;
-    var cellSize = Math.floor((width - 1 * groupSpacing) / (10 * sqrtSize)) - cellSpacing;
+    var cellSize = Math.floor((width - 1 * groupSpacing) / (13 * sqrtSize)) - cellSpacing;
 
 		// === First call === //
 		databind(classStore, size, sqrtSize); // ...then update the databind function
@@ -187,6 +227,13 @@ export default {
 				.attr('width', cellSize)
 				.attr('height', cellSize)
         .attr('fillStyle', function(d) { return colourScale(d.value); })
+        .attr('fill-opacity', function(d) { 
+          if (d.id == null) {
+            return "0.0";
+          } else {
+            return "1.0"; 
+          } 
+        });
 
 			var exitSel = join.exit()
 				.transition()
@@ -240,21 +287,29 @@ export default {
       svg.selectAll("*").remove();
 
       var predictionsAll = JSON.parse(this.GetResultsAll[12])
-      console.log(predictionsAll)
 
       if (this.predictSelection.length != 0) {
         var predictions = this.predictSelection
         var KNNPred = predictions[0]
         var LRPred = predictions[1]
-        var PredAver = predictions[2]
+        var MLPPred = predictions[2]
+        var RFPred = predictions[3]
+        var GradBPred = predictions[4]
+        var PredAver = predictions[5]
       } else {
         var KNNPred = predictionsAll[0]
         var LRPred = predictionsAll[1]
-        var PredAver = predictionsAll[2]
+        var MLPPred = predictionsAll[2]
+        var RFPred = predictionsAll[3]
+        var GradBPred = predictionsAll[4]
+        var PredAver = predictionsAll[5]
       }
       var KNNPredAll = predictionsAll[0]
       var LRPredAll = predictionsAll[1]
-      var PredAverAll = predictionsAll[2]
+      var MLPPredAll = predictionsAll[2]
+      var RFPredAll = predictionsAll[3]
+      var GradBPredAll = predictionsAll[4]
+      var PredAverAll = predictionsAll[5]
 
       var yValues = JSON.parse(this.GetResultsSelection[6])
       var targetNames = JSON.parse(this.GetResultsSelection[7])
@@ -271,6 +326,12 @@ export default {
       var dataKNNResults = []
       var dataLR = []
       var dataLRResults = []
+      var dataMLP = []
+      var dataMLPResults = []
+      var dataRF = []
+      var dataRFResults = []
+      var dataGradB = []
+      var dataGradBResults = []
 
       var max = 0
       for (let i = 0; i < targetNames.length; i++) {
@@ -283,27 +344,42 @@ export default {
       var size = sqrtSize * sqrtSize
 
       for (let i = 0; i < targetNames.length; i++) {
-        dataAver = [];
+        dataAver = []
         dataKNN = []
         dataLR = []
+        dataMLP = []
+        dataRF = []
+        dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
           dataAver.push({ id: element, value: PredAver[element][targetNames[i]] - PredAverAll[element][targetNames[i]] })
           dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] - KNNPredAll[element][targetNames[i]] })
           dataLR.push({ id: element, value: LRPred[element][targetNames[i]] - LRPredAll[element][targetNames[i]] })
+          dataMLP.push({ id: element, value: MLPPred[element][targetNames[i]] - MLPPredAll[element][targetNames[i]] })
+          dataRF.push({ id: element, value: RFPred[element][targetNames[i]] - RFPredAll[element][targetNames[i]] })
+          dataGradB.push({ id: element, value: GradBPred[element][targetNames[i]] - GradBPredAll[element][targetNames[i]] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
           dataAver.push({ id: null, value: 0 })
           dataKNN.push({ id: null, value: 0 })
           dataLR.push({ id: null, value: 0 })
+          dataMLP.push({ id: null, value: 0 })
+          dataRF.push({ id: null, value: 0 })
+          dataGradB.push({ id: null, value: 0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
         dataLRResults.push(dataLR)
+        dataMLPResults.push(dataMLP)
+        dataRFResults.push(dataRF)
+        dataGradBResults.push(dataGradB)
       }
     dataAverGetResults.reverse()
     dataKNNResults.reverse()
     dataLRResults.reverse()
-    
+    dataMLPResults.reverse()
+    dataRFResults.reverse()
+    dataGradBResults.reverse()
+
     var classArray = []
 
     for (let i = 0; i < dataAverGetResults.length; i++) {
@@ -321,14 +397,27 @@ export default {
         return indices.indexOf(a.id) - indices.indexOf(b.id)
       });
 
-      classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i]));
+      dataMLPResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
+      dataRFResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
+      dataGradBResults[i].sort(function(a, b){
+        return indices.indexOf(a.id) - indices.indexOf(b.id)
+      });
+
+      classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i], dataMLPResults[i], dataRFResults[i], dataGradBResults[i]));
     }
     
     var classStore = [].concat.apply([], classArray);
+
 		// === Set up canvas === //
 
 		var width = 1200,
-				height = 125;
+				height = 85;
 		var colourScale;
 
 
@@ -345,9 +434,9 @@ export default {
 		var custom = d3.select(customBase); // this is our svg replacement
 
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
-		var groupSpacing = 60;
+		var groupSpacing = 40;
 		var cellSpacing = 2;
-    var cellSize = Math.floor((width - 1 * groupSpacing) / (10 * sqrtSize)) - cellSpacing;
+    var cellSize = Math.floor((width - 1 * groupSpacing) / (13 * sqrtSize)) - cellSpacing;
 
 		// === First call === //
 		databind(classStore, size, sqrtSize); // ...then update the databind function
@@ -388,6 +477,13 @@ export default {
 				.attr('width', cellSize)
 				.attr('height', cellSize)
         .attr('fillStyle', function(d) { return colourScale(d.value); })
+        .attr('fill-opacity', function(d) { 
+          if (d.id == null) {
+            return "0.0";
+          } else {
+            return "1.0"; 
+          } 
+        });
 
 			var exitSel = join.exit()
 				.transition()

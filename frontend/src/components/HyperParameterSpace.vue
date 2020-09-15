@@ -39,6 +39,7 @@ export default {
   },
   methods: {
     reset () {
+      this.ScatterPlotResults = ''
       Plotly.purge('OverviewPlotly')
     },
     clean(obj) {
@@ -59,6 +60,7 @@ export default {
       Plotly.purge('OverviewPlotly')
 
       var modelId = JSON.parse(this.ScatterPlotResults[0])
+
       var colorsforScatterPlot = JSON.parse(this.ScatterPlotResults[1])
       var parametersLoc = JSON.parse(this.ScatterPlotResults[2])
       var parameters = JSON.parse(parametersLoc)
