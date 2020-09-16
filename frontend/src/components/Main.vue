@@ -18,7 +18,7 @@
         </b-col>
         <b-col cols="6">
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Provenance</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">History and Algorithms/Models Selector</mdb-card-header>
             <mdb-card-body>
               <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
               </mdb-card-text>
@@ -27,7 +27,7 @@
         </b-col>
         <b-col cols="3">
             <mdb-card >
-              <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble's Results</mdb-card-header>
+              <mdb-card-header color="primary-color" tag="h5" class="text-center">Final Results of Majority-Voting Ensemble </mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
                 </mdb-card-text>
@@ -119,7 +119,7 @@
           <b-row class="md-3">
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Space
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Solution Space of Hyper-Parameters
                     [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
                   </mdb-card-header>
                   <mdb-card-body>
@@ -145,7 +145,7 @@
             <b-row class="md-3">
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Manipulation of Algorithms<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span>
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Algorithm/Model<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -921,6 +921,7 @@ export default Vue.extend({
           console.log('Sent the unselected points for crossover and mutation.')
           this.getDatafromtheBackEnd()
           this.getCMComputedData()
+          this.changeActiveTo2()
         })
         .catch(error => {
           console.log(error)
@@ -979,7 +980,7 @@ export default Vue.extend({
 
     EventBus.$on('RemainingPoints', this.changeActiveTo1)
     EventBus.$on('RemainingPoints', data => { this.unselectedRemainingPoints = data })
-    EventBus.$on('InitializeCrossoverMutation', this.changeActiveTo2)
+
     EventBus.$on('InitializeCrossoverMutation', this.sendPointsCrossMutat)
 
     EventBus.$on('RemainingPointsCM', this.changeActiveTo2)
