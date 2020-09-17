@@ -41,6 +41,7 @@
     "d3-heatmap": "^1.2.1",
     "d3-lasso": "0.0.5",
     "d3-loom": "^1.0.2",
+    "d3-sankey": "^0.4.2",
     "d3-selection": "^1.4.1",
     "d3-selection-multi": "^1.0.1",
     "d3-simple-slider": "^1.9.0",

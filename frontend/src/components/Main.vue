@@ -21,6 +21,7 @@
             <mdb-card-header color="primary-color" tag="h5" class="text-center">History and Algorithms/Models Selector</mdb-card-header>
             <mdb-card-body>
               <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
+                <History/>
               </mdb-card-text>
             </mdb-card-body>
           </mdb-card>
@@ -193,6 +194,7 @@ import HyperParameterSpace from './HyperParameterSpace.vue'
 import GlobalParamController from './GlobalParamController'
 import Ensemble from './Ensemble.vue'
 import VotingResults from './VotingResults.vue'
+import History from './History.vue'
 import Parameters from './Parameters.vue'
 import Predictions from './Predictions.vue'
 import axios from 'axios'
@@ -223,6 +225,7 @@ export default Vue.extend({
     Parameters,
     Predictions,
     VotingResults,
+    History,
     mdbCard,
     mdbCardBody,
     mdbCardHeader,
@@ -340,6 +343,7 @@ export default Vue.extend({
             EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingSankey', this.OverviewResults)
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
           } else {   
