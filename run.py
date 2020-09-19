@@ -12,22 +12,27 @@ import pandas as pd
 import numpy as np
 import multiprocessing
 
-from joblib import Memory
+from joblib import Parallel, delayed, Memory
 
+from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.model_selection import GridSearchCV
+from sklearn import model_selection
+from sklearn.model_selection import cross_val_predict
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-from sklearn.model_selection import cross_val_predict
+from mlxtend.classifier import EnsembleVoteClassifier
+from mlxtend.feature_selection import ColumnSelector
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import log_loss
 from imblearn.metrics import geometric_mean_score
 from sklearn.manifold import MDS
 from sklearn.manifold import TSNE
 import umap
+
 
 # this block of code is for the connection between the server, the database, and the client (plus routing)
 
@@ -156,10 +161,7 @@ def reset():
     RFModels = []
 
     global scoring
-    scoring = {'accuracy': 'accuracy', 'precision_micro': 'precision_micro', 'precision_macro': 'precision_macro', 'precision_weighted': 'precision_weighted', 'recall_micro': 'recall_micro', 'recall_macro': 'recall_macro', 'recall_weighted': 'recall_weighted', 'roc_auc_ovo_weighted': 'roc_auc_ovo_weighted'}
-
-    global loopFeatures
-    loopFeatures = 2
+    scoring = {'accuracy': 'accuracy', 'precision_macro': 'precision_macro', 'recall_macro': 'recall_macro', 'f1_macro': 'f1_macro', 'roc_auc_ovo': 'roc_auc_ovo'}
 
     global results
     results = []
@@ -294,10 +296,7 @@ def retrieveFileName():
     all_classifiers = []
 
     global scoring
-    scoring = {'accuracy': 'accuracy', 'precision_weighted': 'precision_weighted', 'recall_weighted': 'recall_weighted', 'f1_weighted': 'f1_weighted', 'roc_auc_ovo_weighted': 'roc_auc_ovo_weighted'}
-
-    global loopFeatures
-    loopFeatures = 2
+    scoring = {'accuracy': 'accuracy', 'precision_macro': 'precision_macro', 'recall_macro': 'recall_macro', 'f1_macro': 'f1_macro', 'roc_auc_ovo': 'roc_auc_ovo'}
 
     # models
     global KNNModels
@@ -620,8 +619,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
 
     # copy and filter in order to get only the metrics
     metrics = df_cv_results_classifiers.copy()
-    metrics = metrics.filter(['mean_test_accuracy','mean_test_precision_weighted','mean_test_recall_weighted','mean_test_f1_weighted','mean_test_roc_auc_ovo_weighted']) 
-
+    metrics = metrics.filter(['mean_test_accuracy','mean_test_precision_macro','mean_test_recall_macro','mean_test_f1_macro','mean_test_roc_auc_ovo']) 
     # concat parameters and performance
     parametersPerformancePerModel = pd.DataFrame(df_cv_results_classifiers['params'])
     parametersLocal = parametersPerformancePerModel['params'].copy()
@@ -651,7 +649,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
         yPredictProb = np.nan_to_num(yPredictProb)
         perModelProb.append(yPredictProb.tolist())
 
-        resultsWeighted.append(geometric_mean_score(yData, yPredict, average='weighted'))
+        resultsWeighted.append(geometric_mean_score(yData, yPredict, average='macro'))
         resultsCorrCoef.append(matthews_corrcoef(yData, yPredict))
         resultsLogLoss.append(log_loss(yData, yPredictProb, normalize=True))
 
@@ -660,7 +658,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
     for each in resultsLogLoss:
         resultsLogLossFinal.append((each-minLog)/(maxLog-minLog))
 
-    metrics.insert(5,'geometric_mean_score_weighted',resultsWeighted)
+    metrics.insert(5,'geometric_mean_score_macro',resultsWeighted)
     metrics.insert(6,'matthews_corrcoef',resultsCorrCoef)
     metrics.insert(7,'log_loss',resultsLogLossFinal)
 
@@ -748,6 +746,38 @@ def PreprocessingPred():
         predictions.append(el)
 
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+
+def EnsembleIDs():
+    global EnsembleActive
+    global numberIDKNNGlob
+    global numberIDLRGlob
+    global numberIDMLPGlob
+    global numberIDRFGlob
+    global numberIDGradBGlob
+    
+    numberIDKNNGlob = []
+    numberIDLRGlob = []
+    numberIDMLPGlob = []
+    numberIDRFGlob = []
+    numberIDGradBGlob = []
+
+    for el in EnsembleActive:
+        match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
+        if match:
+            items = match.groups()
+            if (items[0] == 'KNN'):
+                numberIDKNNGlob.append(int(items[1]))
+            elif (items[0] == 'LR'):
+                numberIDLRGlob.append(int(items[1]))
+            elif (items[0] == 'MLP'):
+                numberIDMLPGlob.append(int(items[1]))
+            elif (items[0] == 'RF'):
+                numberIDRFGlob.append(int(items[1]))
+            else:
+                numberIDGradBGlob.append(int(items[1]))
+    EnsembleIdsAll = numberIDKNNGlob + numberIDLRGlob + numberIDMLPGlob + numberIDRFGlob + numberIDGradBGlob
+
+    return EnsembleIdsAll
 
 def PreprocessingPredEnsemble():
 
@@ -922,12 +952,12 @@ def preProcMetricsAllAndSel():
     global factors
     metricsPerModelColl = []
     metricsPerModelColl.append(loopThroughMetrics['mean_test_accuracy'])
-    metricsPerModelColl.append(loopThroughMetrics['geometric_mean_score_weighted'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_precision_weighted'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_recall_weighted'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_f1_weighted'])
+    metricsPerModelColl.append(loopThroughMetrics['geometric_mean_score_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_precision_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_recall_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_f1_macro'])
     metricsPerModelColl.append(loopThroughMetrics['matthews_corrcoef'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_roc_auc_ovo_weighted'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_roc_auc_ovo'])
     metricsPerModelColl.append(loopThroughMetrics['log_loss'])
 
     f=lambda a: (abs(a)+a)/2
@@ -987,8 +1017,196 @@ def InitializeEnsemble():
         PredictionProbSel = PreprocessingPred()
     else:
         PredictionProbSel = PreprocessingPredEnsemble()
+        ModelsIds = EnsembleIDs()
+        key = 0
+        EnsembleModel(ModelsIds, key)
 
     returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel)
+
+def EnsembleModel (Models, keyRetrieved):
+    global XDataTest, yDataTest
+    global scores
+    global previousState
+    global previousStateActive
+    global keySpec
+    global keySpecInternal
+    global crossValidation
+    global keyData
+    scores = []
+
+    global all_classifiersSelection  
+    all_classifiersSelection = []
+
+    global all_classifiers
+
+    global XData
+    global yData
+    global sclf
+
+    global numberIDKNNGlob
+    global numberIDLRGlob
+    global numberIDMLPGlob
+    global numberIDRFGlob
+    global numberIDGradBGlob
+
+    if (keyRetrieved == 0):
+        all_classifiers = []
+        columnsInit = []
+        columnsInit = [XData.columns.get_loc(c) for c in XData.columns if c in XData]
+
+        temp = allParametersPerformancePerModel[1]
+
+        temp = temp['params']
+        temp = {int(k):v for k,v in temp.items()}
+        tempDic = {    
+            'params': temp
+        }
+        dfParamKNN = pd.DataFrame.from_dict(tempDic)
+        dfParamKNNFilt = dfParamKNN.iloc[:,0]
+        for eachelem in numberIDKNNGlob:
+            arg = dfParamKNNFilt[eachelem]
+            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), KNeighborsClassifier().set_params(**arg)))
+        temp = allParametersPerformancePerModel[5]
+        temp = temp['params']
+        temp = {int(k):v for k,v in temp.items()}
+        tempDic = {    
+            'params': temp
+        }
+        dfParamLR = pd.DataFrame.from_dict(tempDic)
+        dfParamLRFilt = dfParamLR.iloc[:,0]
+        for eachelem in numberIDLRGlob:
+            arg = dfParamLRFilt[eachelem-LRModelsCount]
+            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), LogisticRegression(random_state=RANDOM_SEED).set_params(**arg)))
+
+        temp = allParametersPerformancePerModel[9]
+        temp = temp['params']
+        temp = {int(k):v for k,v in temp.items()}
+        tempDic = {    
+            'params': temp
+        }
+        dfParamMLP = pd.DataFrame.from_dict(tempDic)
+        dfParamMLPFilt = dfParamMLP.iloc[:,0]
+        for eachelem in numberIDMLPGlob:
+            arg = dfParamMLPFilt[eachelem-MLPModelsCount]
+            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), MLPClassifier(random_state=RANDOM_SEED).set_params(**arg)))
+
+        temp = allParametersPerformancePerModel[13]
+        temp = temp['params']
+        temp = {int(k):v for k,v in temp.items()}
+        tempDic = {    
+            'params': temp
+        } 
+        dfParamRF = pd.DataFrame.from_dict(tempDic)
+        dfParamRFFilt = dfParamRF.iloc[:,0]
+        for eachelem in numberIDRFGlob:
+            arg = dfParamRFFilt[eachelem-RFModelsCount]
+            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), RandomForestClassifier(random_state=RANDOM_SEED).set_params(**arg)))
+
+        temp = allParametersPerformancePerModel[17]
+        temp = temp['params']
+        temp = {int(k):v for k,v in temp.items()}
+        tempDic = {    
+            'params': temp
+        }
+        dfParamGradB = pd.DataFrame.from_dict(tempDic)
+        dfParamGradBFilt = dfParamGradB.iloc[:,0]
+        for eachelem in numberIDGradBGlob:
+            arg = dfParamGradBFilt[eachelem-GradBModelsCount]
+            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), GradientBoostingClassifier(random_state=RANDOM_SEED).set_params(**arg)))
+
+        global sclf 
+        sclf = 0
+        sclf = EnsembleVoteClassifier(clfs=all_classifiers,
+                            voting='soft')
+        keySpec = 0
+
+    if (keySpec == 0 or keySpec == 1):
+        num_cores = multiprocessing.cpu_count()
+        inputsSc = ['accuracy','precision','recall','f1']
+        flat_results = Parallel(n_jobs=num_cores)(delayed(solve)(sclf,keyData,keySpec,keySpecInternal,previousState,previousStateActive,XData,yData,crossValidation,item,index) for index, item in enumerate(inputsSc))
+        scores = [item for sublist in flat_results for item in sublist]
+    
+    if (keySpec == 0):
+        previousState = []
+        previousState.append(scores[1])
+        previousState.append(scores[3])
+        previousState.append(scores[5])
+        previousState.append(scores[7])
+        previousStateActive = []
+        previousStateActive.append(scores[0])
+        previousStateActive.append(scores[2])
+        previousStateActive.append(scores[4])
+        previousStateActive.append(scores[6])
+    elif (keySpec == 1):
+        if (keySpecInternal == 1):
+            previousStateActive = []
+            previousStateActive.append(scores[0])
+            previousStateActive.append(scores[2])
+            previousStateActive.append(scores[4])
+            previousStateActive.append(scores[6])
+        else:
+            previousStateActive = []
+            previousStateActive.append(scores[0])
+            previousStateActive.append(scores[2])
+            previousStateActive.append(scores[4])
+            previousStateActive.append(scores[6])
+            previousState = []
+            previousState.append(scores[1])
+            previousState.append(scores[3])
+            previousState.append(scores[5])
+            previousState.append(scores[7])
+    else:
+        scores = []
+        previousState = []
+        scores.append(previousStateActive[0])
+        scores.append(previousStateActive[0])
+        previousState.append(previousStateActive[0])
+        scores.append(previousStateActive[2])
+        scores.append(previousStateActive[2])
+        previousState.append(previousStateActive[2])
+        scores.append(previousStateActive[4])
+        scores.append(previousStateActive[4])
+        previousState.append(previousStateActive[4])
+        scores.append(previousStateActive[6])
+        scores.append(previousStateActive[6])
+        previousState.append(previousStateActive[6])
+    print(scores)
+
+    return 'Okay'
+
+def solve(sclf,keyData,keySpec,keySpecInternal,previousStateLoc,previousStateActiveLoc,XData,yData,crossValidation,scoringIn,loop):
+    scoresLoc = []
+    if (keySpec == 0):
+        temp = model_selection.cross_val_score(sclf, XData, yData, cv=crossValidation, scoring=scoringIn, n_jobs=-1)
+        scoresLoc.append(temp.mean())
+        if (keyData == 1):
+            if (loop == 0):
+                scoresLoc.append(previousStateLoc[0])
+            elif (loop == 1):
+                scoresLoc.append(previousStateLoc[1])
+            elif (loop == 2):
+                scoresLoc.append(previousStateLoc[2])
+            else:
+                scoresLoc.append(previousStateLoc[3])
+        else:
+            scoresLoc.append(temp.mean())
+    else:
+        if (keySpecInternal == 1):
+            temp = model_selection.cross_val_score(sclf, XData, yData, cv=crossValidation, scoring=scoringIn, n_jobs=-1)
+            scoresLoc.append(temp.mean())
+            if (loop == 0):
+                scoresLoc.append(previousStateLoc[0])
+            elif (loop == 1):
+                scoresLoc.append(previousStateLoc[1])
+            elif (loop == 2):
+                scoresLoc.append(previousStateLoc[2])
+            else:
+                scoresLoc.append(previousStateLoc[3])
+        else:
+            temp = model_selection.cross_val_score(sclf, XData, yData, cv=crossValidation, scoring=scoringIn, n_jobs=-1)
+            scoresLoc.append(temp.mean())
+            scoresLoc.append(temp.mean())
+    return scoresLoc
 
 def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel):
 
@@ -1053,7 +1271,6 @@ def CrossoverMutateFun():
     # loop through the algorithms
     global allParametersPerfCrossMutr
     global HistoryPreservation
-    global allParametersPerformancePerModel
 
     KNNIDs = list(filter(lambda k: 'KNN' in k, RemainingIds))
     LRIDs = list(filter(lambda k: 'LR' in k, RemainingIds))
@@ -1615,7 +1832,7 @@ def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
 
     # copy and filter in order to get only the metrics
     metrics = df_cv_results_classifiers.copy()
-    metrics = metrics.filter(['mean_test_accuracy','mean_test_precision_weighted','mean_test_recall_weighted','mean_test_f1_weighted','mean_test_roc_auc_ovo_weighted']) 
+    metrics = metrics.filter(['mean_test_accuracy','mean_test_precision_macro','mean_test_recall_macro','mean_test_f1_macro','mean_test_roc_auc_ovo']) 
 
     # concat parameters and performance
     parametersPerformancePerModel = pd.DataFrame(df_cv_results_classifiers['params'])
@@ -1647,7 +1864,7 @@ def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
         yPredictProb = np.nan_to_num(yPredictProb)
         perModelProb.append(yPredictProb.tolist())
 
-        resultsWeighted.append(geometric_mean_score(yData, yPredict, average='weighted'))
+        resultsWeighted.append(geometric_mean_score(yData, yPredict, average='macro'))
         resultsCorrCoef.append(matthews_corrcoef(yData, yPredict))
         resultsLogLoss.append(log_loss(yData, yPredictProb, normalize=True))
 
@@ -1656,7 +1873,7 @@ def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
     for each in resultsLogLoss:
         resultsLogLossFinal.append((each-minLog)/(maxLog-minLog))
 
-    metrics.insert(5,'geometric_mean_score_weighted',resultsWeighted)
+    metrics.insert(5,'geometric_mean_score_macro',resultsWeighted)
     metrics.insert(6,'matthews_corrcoef',resultsCorrCoef)
     metrics.insert(7,'log_loss',resultsLogLossFinal)
 
@@ -1921,12 +2138,12 @@ def preProcMetricsAllAndSelCM():
     global factors
     metricsPerModelColl = []
     metricsPerModelColl.append(loopThroughMetrics['mean_test_accuracy'])
-    metricsPerModelColl.append(loopThroughMetrics['geometric_mean_score_weighted'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_precision_weighted'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_recall_weighted'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_f1_weighted'])
+    metricsPerModelColl.append(loopThroughMetrics['geometric_mean_score_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_precision_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_recall_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_f1_macro'])
     metricsPerModelColl.append(loopThroughMetrics['matthews_corrcoef'])
-    metricsPerModelColl.append(loopThroughMetrics['mean_test_roc_auc_ovo_weighted'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_roc_auc_ovo'])
     metricsPerModelColl.append(loopThroughMetrics['log_loss'])
 
     f=lambda a: (abs(a)+a)/2

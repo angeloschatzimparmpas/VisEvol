@@ -81,7 +81,7 @@ export default {
   methods: {
     reset () {
       setTimeout(() => {
-          var svg = d3.select("#overview");
+        var svg = d3.select("#overview");
         svg.selectAll("*").remove();
       }, 50);
     },

@@ -215,7 +215,6 @@ export default {
       node.append("text")
           .attr("x", -6)
           .attr("y", function(d) {
-            console.log(d)
             if (d.node <= 5) {
               return d.dy - 70; 
             } else {

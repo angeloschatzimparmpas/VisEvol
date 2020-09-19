@@ -1,4 +1,4 @@
-# first line: 548
+# first line: 581
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
 
@@ -37,8 +37,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
 
     # copy and filter in order to get only the metrics
     metrics = df_cv_results_classifiers.copy()
-    metrics = metrics.filter(['mean_test_accuracy','mean_test_precision_weighted','mean_test_recall_weighted','mean_test_f1_weighted','mean_test_roc_auc_ovo_weighted']) 
-
+    metrics = metrics.filter(['mean_test_accuracy','mean_test_precision_macro','mean_test_recall_macro','mean_test_f1_macro','mean_test_roc_auc_ovo']) 
     # concat parameters and performance
     parametersPerformancePerModel = pd.DataFrame(df_cv_results_classifiers['params'])
     parametersLocal = parametersPerformancePerModel['params'].copy()
@@ -68,7 +67,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
         yPredictProb = np.nan_to_num(yPredictProb)
         perModelProb.append(yPredictProb.tolist())
 
-        resultsWeighted.append(geometric_mean_score(yData, yPredict, average='weighted'))
+        resultsWeighted.append(geometric_mean_score(yData, yPredict, average='macro'))
         resultsCorrCoef.append(matthews_corrcoef(yData, yPredict))
         resultsLogLoss.append(log_loss(yData, yPredictProb, normalize=True))
 
@@ -77,7 +76,7 @@ def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
     for each in resultsLogLoss:
         resultsLogLossFinal.append((each-minLog)/(maxLog-minLog))
 
-    metrics.insert(5,'geometric_mean_score_weighted',resultsWeighted)
+    metrics.insert(5,'geometric_mean_score_macro',resultsWeighted)
     metrics.insert(6,'matthews_corrcoef',resultsCorrCoef)
     metrics.insert(7,'log_loss',resultsLogLossFinal)
 

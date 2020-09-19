@@ -6,7 +6,7 @@
       <b-row class="md-3">
         <b-col cols="3" >
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Performance Metrics Manager</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Validation Metrics Manager</mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px;">
                   <PerformanceMetrics/>
@@ -28,9 +28,10 @@
         </b-col>
         <b-col cols="3">
             <mdb-card >
-              <mdb-card-header color="primary-color" tag="h5" class="text-center">Final Results of Majority-Voting Ensemble </mdb-card-header>
+              <mdb-card-header color="primary-color" tag="h5" class="text-center">Results of Majority-Voting Ensemble </mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
+                  <VotingResults/>
                 </mdb-card-text>
               </mdb-card-body>
             </mdb-card>
