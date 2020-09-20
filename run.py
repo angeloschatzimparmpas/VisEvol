@@ -29,9 +29,11 @@ from mlxtend.feature_selection import ColumnSelector
 from sklearn.metrics import matthews_corrcoef
 from sklearn.metrics import log_loss
 from imblearn.metrics import geometric_mean_score
+from sklearn.metrics import classification_report, accuracy_score, make_scorer, confusion_matrix
 from sklearn.manifold import MDS
 from sklearn.manifold import TSNE
 import umap
+
 
 
 # this block of code is for the connection between the server, the database, and the client (plus routing)
@@ -48,6 +50,11 @@ cors = CORS(app, resources={r"/data/*": {"origins": "*"}})
 @app.route('/data/Reset', methods=["GET", "POST"])
 def reset():
 
+    global PerClassResultsClass0
+    PerClassResultsClass0 = []
+    global PerClassResultsClass1
+    PerClassResultsClass1 = []
+
     global Results
     Results = []
     global ResultsCM
@@ -61,14 +68,8 @@ def reset():
     global filterActionFinal
     filterActionFinal = ''
 
-    global keySpecInternal
-    keySpecInternal = 1
-
     global dataSpacePointsIDs
     dataSpacePointsIDs = []
-
-    global previousStateActive
-    previousStateActive = []
 
     global RANDOM_SEED
     RANDOM_SEED = 42
@@ -177,6 +178,10 @@ def reset():
 
     global target_namesLoc
     target_namesLoc = []
+
+    global names_labels
+    names_labels = []
+
     return 'The reset was done!'
 
 # retrieve data from client and select the correct data set
@@ -190,9 +195,6 @@ def retrieveFileName():
 
     fileName = request.get_data().decode('utf8').replace("'", '"')
     data = json.loads(fileName)  
-
-    global keySpecInternal
-    keySpecInternal = 1
 
     global filterActionFinal
     filterActionFinal = ''
@@ -232,9 +234,6 @@ def retrieveFileName():
 
     global previousState
     previousState = []
-
-    global previousStateActive
-    previousStateActive = []
 
     global yData
     yData = []
@@ -331,11 +330,16 @@ def retrieveFileName():
     
     target_namesLoc = []
 
+    global names_labels
+    names_labels = []
+
     DataRawLength = -1
     DataRawLengthTest = -1
 
     if data['fileName'] == 'HeartC':
         CollectionDB = mongo.db.HeartC.find()
+        names_labels.append('Healthy')
+        names_labels.append('Diseased')
     elif data['fileName'] == 'StanceC':
         StanceTest = True
         CollectionDB = mongo.db.StanceC.find()
@@ -1027,9 +1031,6 @@ def EnsembleModel (Models, keyRetrieved):
     global XDataTest, yDataTest
     global scores
     global previousState
-    global previousStateActive
-    global keySpec
-    global keySpecInternal
     global crossValidation
     global keyData
     scores = []
@@ -1049,169 +1050,193 @@ def EnsembleModel (Models, keyRetrieved):
     global numberIDRFGlob
     global numberIDGradBGlob
 
+    all_classifiers = []
+    columnsInit = []
+    columnsInit = [XData.columns.get_loc(c) for c in XData.columns if c in XData]
+
+    temp = allParametersPerformancePerModel[1]
+
+    temp = temp['params']
+    temp = {int(k):v for k,v in temp.items()}
+    tempDic = {    
+        'params': temp
+    }
+    dfParamKNN = pd.DataFrame.from_dict(tempDic)
+    dfParamKNNFilt = dfParamKNN.iloc[:,0]
+    for eachelem in numberIDKNNGlob:
+        arg = dfParamKNNFilt[eachelem]
+        all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), KNeighborsClassifier().set_params(**arg)))
+    temp = allParametersPerformancePerModel[5]
+    temp = temp['params']
+    temp = {int(k):v for k,v in temp.items()}
+    tempDic = {    
+        'params': temp
+    }
+    dfParamLR = pd.DataFrame.from_dict(tempDic)
+    dfParamLRFilt = dfParamLR.iloc[:,0]
+    for eachelem in numberIDLRGlob:
+        arg = dfParamLRFilt[eachelem-LRModelsCount]
+        all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), LogisticRegression(random_state=RANDOM_SEED).set_params(**arg)))
+
+    temp = allParametersPerformancePerModel[9]
+    temp = temp['params']
+    temp = {int(k):v for k,v in temp.items()}
+    tempDic = {    
+        'params': temp
+    }
+    dfParamMLP = pd.DataFrame.from_dict(tempDic)
+    dfParamMLPFilt = dfParamMLP.iloc[:,0]
+    for eachelem in numberIDMLPGlob:
+        arg = dfParamMLPFilt[eachelem-MLPModelsCount]
+        all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), MLPClassifier(random_state=RANDOM_SEED).set_params(**arg)))
+
+    temp = allParametersPerformancePerModel[13]
+    temp = temp['params']
+    temp = {int(k):v for k,v in temp.items()}
+    tempDic = {    
+        'params': temp
+    } 
+    dfParamRF = pd.DataFrame.from_dict(tempDic)
+    dfParamRFFilt = dfParamRF.iloc[:,0]
+    for eachelem in numberIDRFGlob:
+        arg = dfParamRFFilt[eachelem-RFModelsCount]
+        all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), RandomForestClassifier(random_state=RANDOM_SEED).set_params(**arg)))
+
+    temp = allParametersPerformancePerModel[17]
+    temp = temp['params']
+    temp = {int(k):v for k,v in temp.items()}
+    tempDic = {    
+        'params': temp
+    }
+    dfParamGradB = pd.DataFrame.from_dict(tempDic)
+    dfParamGradBFilt = dfParamGradB.iloc[:,0]
+    for eachelem in numberIDGradBGlob:
+        arg = dfParamGradBFilt[eachelem-GradBModelsCount]
+        all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), GradientBoostingClassifier(random_state=RANDOM_SEED).set_params(**arg)))
+
+    global sclf 
+    sclf = 0
+    sclf = EnsembleVoteClassifier(clfs=all_classifiers,
+                        voting='soft')
+
+    global PerClassResultsClass0
+    PerClassResultsClass0 = []
+    global PerClassResultsClass1
+    PerClassResultsClass1 = []
+
+    nested_score = model_selection.cross_val_score(sclf, X=XData, y=yData, cv=crossValidation, scoring=make_scorer(classification_report_with_accuracy_score))
+    PerClassResultsClass0Con = pd.concat(PerClassResultsClass0, axis=1, sort=False)
+    PerClassResultsClass1Con = pd.concat(PerClassResultsClass1, axis=1, sort=False)
+    averageClass0 = PerClassResultsClass0Con.mean(axis=1)
+    averageClass1 = PerClassResultsClass1Con.mean(axis=1)
+    y_pred = cross_val_predict(sclf, XData, yData, cv=crossValidation)
+    conf_mat = confusion_matrix(yData, y_pred)
+    cm = conf_mat.astype('float') / conf_mat.sum(axis=1)[:, np.newaxis]
+    cm.diagonal()
+
     if (keyRetrieved == 0):
-        all_classifiers = []
-        columnsInit = []
-        columnsInit = [XData.columns.get_loc(c) for c in XData.columns if c in XData]
-
-        temp = allParametersPerformancePerModel[1]
-
-        temp = temp['params']
-        temp = {int(k):v for k,v in temp.items()}
-        tempDic = {    
-            'params': temp
-        }
-        dfParamKNN = pd.DataFrame.from_dict(tempDic)
-        dfParamKNNFilt = dfParamKNN.iloc[:,0]
-        for eachelem in numberIDKNNGlob:
-            arg = dfParamKNNFilt[eachelem]
-            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), KNeighborsClassifier().set_params(**arg)))
-        temp = allParametersPerformancePerModel[5]
-        temp = temp['params']
-        temp = {int(k):v for k,v in temp.items()}
-        tempDic = {    
-            'params': temp
-        }
-        dfParamLR = pd.DataFrame.from_dict(tempDic)
-        dfParamLRFilt = dfParamLR.iloc[:,0]
-        for eachelem in numberIDLRGlob:
-            arg = dfParamLRFilt[eachelem-LRModelsCount]
-            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), LogisticRegression(random_state=RANDOM_SEED).set_params(**arg)))
-
-        temp = allParametersPerformancePerModel[9]
-        temp = temp['params']
-        temp = {int(k):v for k,v in temp.items()}
-        tempDic = {    
-            'params': temp
-        }
-        dfParamMLP = pd.DataFrame.from_dict(tempDic)
-        dfParamMLPFilt = dfParamMLP.iloc[:,0]
-        for eachelem in numberIDMLPGlob:
-            arg = dfParamMLPFilt[eachelem-MLPModelsCount]
-            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), MLPClassifier(random_state=RANDOM_SEED).set_params(**arg)))
-
-        temp = allParametersPerformancePerModel[13]
-        temp = temp['params']
-        temp = {int(k):v for k,v in temp.items()}
-        tempDic = {    
-            'params': temp
-        } 
-        dfParamRF = pd.DataFrame.from_dict(tempDic)
-        dfParamRFFilt = dfParamRF.iloc[:,0]
-        for eachelem in numberIDRFGlob:
-            arg = dfParamRFFilt[eachelem-RFModelsCount]
-            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), RandomForestClassifier(random_state=RANDOM_SEED).set_params(**arg)))
-
-        temp = allParametersPerformancePerModel[17]
-        temp = temp['params']
-        temp = {int(k):v for k,v in temp.items()}
-        tempDic = {    
-            'params': temp
-        }
-        dfParamGradB = pd.DataFrame.from_dict(tempDic)
-        dfParamGradBFilt = dfParamGradB.iloc[:,0]
-        for eachelem in numberIDGradBGlob:
-            arg = dfParamGradBFilt[eachelem-GradBModelsCount]
-            all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), GradientBoostingClassifier(random_state=RANDOM_SEED).set_params(**arg)))
-
-        global sclf 
-        sclf = 0
-        sclf = EnsembleVoteClassifier(clfs=all_classifiers,
-                            voting='soft')
-        keySpec = 0
-
-    if (keySpec == 0 or keySpec == 1):
-        num_cores = multiprocessing.cpu_count()
-        inputsSc = ['accuracy','precision','recall','f1']
-        flat_results = Parallel(n_jobs=num_cores)(delayed(solve)(sclf,keyData,keySpec,keySpecInternal,previousState,previousStateActive,XData,yData,crossValidation,item,index) for index, item in enumerate(inputsSc))
-        scores = [item for sublist in flat_results for item in sublist]
-    
-    if (keySpec == 0):
-        previousState = []
+        scores.append(cm[0][0])
+        scores.append(cm[1][1])
+        scores.append(cm[0][0])
+        scores.append(cm[1][1])
+        scores.append(averageClass0.precision)
+        scores.append(averageClass1.precision)
+        scores.append(averageClass0.precision)
+        scores.append(averageClass1.precision)
+        scores.append(averageClass0.recall)
+        scores.append(averageClass1.recall)
+        scores.append(averageClass0.recall)
+        scores.append(averageClass1.recall)
+        scores.append(averageClass0['f1-score'])
+        scores.append(averageClass1['f1-score'])
+        scores.append(averageClass0['f1-score'])
+        scores.append(averageClass1['f1-score'])
+        previousState.append(scores[0])
         previousState.append(scores[1])
-        previousState.append(scores[3])
+        previousState.append(scores[4])
         previousState.append(scores[5])
-        previousState.append(scores[7])
-        previousStateActive = []
-        previousStateActive.append(scores[0])
-        previousStateActive.append(scores[2])
-        previousStateActive.append(scores[4])
-        previousStateActive.append(scores[6])
-    elif (keySpec == 1):
-        if (keySpecInternal == 1):
-            previousStateActive = []
-            previousStateActive.append(scores[0])
-            previousStateActive.append(scores[2])
-            previousStateActive.append(scores[4])
-            previousStateActive.append(scores[6])
-        else:
-            previousStateActive = []
-            previousStateActive.append(scores[0])
-            previousStateActive.append(scores[2])
-            previousStateActive.append(scores[4])
-            previousStateActive.append(scores[6])
-            previousState = []
-            previousState.append(scores[1])
-            previousState.append(scores[3])
-            previousState.append(scores[5])
-            previousState.append(scores[7])
+        previousState.append(scores[8])
+        previousState.append(scores[9])
+        previousState.append(scores[12])
+        previousState.append(scores[13])
     else:
-        scores = []
-        previousState = []
-        scores.append(previousStateActive[0])
-        scores.append(previousStateActive[0])
-        previousState.append(previousStateActive[0])
-        scores.append(previousStateActive[2])
-        scores.append(previousStateActive[2])
-        previousState.append(previousStateActive[2])
-        scores.append(previousStateActive[4])
-        scores.append(previousStateActive[4])
-        previousState.append(previousStateActive[4])
-        scores.append(previousStateActive[6])
-        scores.append(previousStateActive[6])
-        previousState.append(previousStateActive[6])
-    print(scores)
+        scores.append(cm[0][0])
+        scores.append(cm[1][1])
+        if (cm[0][0] > previousState[0]):
+            scores.append(cm[0][0])
+            previousState[0] = cm[0][0]
+        else:
+            scores.append(previousState[0])
+        if (cm[1][1] > previousState[1]):
+            scores.append(cm[1][1])
+            previousState[1] = cm[1][1]
+        else:
+            scores.append(previousState[1])
+        scores.append(averageClass0.precision)
+        scores.append(averageClass1.precision)
+        if (averageClass0.precision > previousState[2]):
+            scores.append(averageClass0.precision)
+            previousState[2] = averageClass0.precision
+        else:
+            scores.append(previousState[2])
+        if (averageClass1.precision > previousState[3]):
+            scores.append(averageClass1.precision)
+            previousState[3] = averageClass1.precision
+        else:
+            scores.append(previousState[3])
+        scores.append(averageClass0.recall)
+        scores.append(averageClass1.recall)
+        if (averageClass0.recall > previousState[4]):
+            scores.append(averageClass0.recall)
+            previousState[4] = averageClass0.recall
+        else:
+            scores.append(previousState[4])
+        if (averageClass1.recall > previousState[5]):
+            scores.append(averageClass1.recall)
+            previousState[5] = averageClass1.recall
+        else:
+            scores.append(previousState[5])
+        scores.append(averageClass0['f1-score'])
+        scores.append(averageClass1['f1-score'])
+        if (averageClass0['f1-score'] > previousState[6]):
+            scores.append(averageClass0['f1-score'])
+            previousState[6] = averageClass0['f1-score']
+        else:
+            scores.append(previousState[6])
+        if (averageClass1['f1-score'] > previousState[7]):
+            scores.append(averageClass1['f1-score'])
+            previousState[7] = averageClass1['f1-score']
+        else:
+            scores.append(previousState[7])
 
     return 'Okay'
 
-def solve(sclf,keyData,keySpec,keySpecInternal,previousStateLoc,previousStateActiveLoc,XData,yData,crossValidation,scoringIn,loop):
-    scoresLoc = []
-    if (keySpec == 0):
-        temp = model_selection.cross_val_score(sclf, XData, yData, cv=crossValidation, scoring=scoringIn, n_jobs=-1)
-        scoresLoc.append(temp.mean())
-        if (keyData == 1):
-            if (loop == 0):
-                scoresLoc.append(previousStateLoc[0])
-            elif (loop == 1):
-                scoresLoc.append(previousStateLoc[1])
-            elif (loop == 2):
-                scoresLoc.append(previousStateLoc[2])
-            else:
-                scoresLoc.append(previousStateLoc[3])
-        else:
-            scoresLoc.append(temp.mean())
-    else:
-        if (keySpecInternal == 1):
-            temp = model_selection.cross_val_score(sclf, XData, yData, cv=crossValidation, scoring=scoringIn, n_jobs=-1)
-            scoresLoc.append(temp.mean())
-            if (loop == 0):
-                scoresLoc.append(previousStateLoc[0])
-            elif (loop == 1):
-                scoresLoc.append(previousStateLoc[1])
-            elif (loop == 2):
-                scoresLoc.append(previousStateLoc[2])
-            else:
-                scoresLoc.append(previousStateLoc[3])
-        else:
-            temp = model_selection.cross_val_score(sclf, XData, yData, cv=crossValidation, scoring=scoringIn, n_jobs=-1)
-            scoresLoc.append(temp.mean())
-            scoresLoc.append(temp.mean())
-    return scoresLoc
+# Sending the final results to be visualized as a line plot
+@app.route('/data/SendFinalResultsBacktoVisualize', methods=["GET", "POST"])
+def SendToPlotFinalResults():
+    global scores
+    response = {    
+        'FinalResults': scores
+    }
+    return jsonify(response)
+
+def classification_report_with_accuracy_score(y_true, y_pred):
+    global PerClassResultsClass0
+    global PerClassResultsClass1
+    PerClassResultsLocal = pd.DataFrame.from_dict(classification_report(y_true, y_pred, output_dict=True))
+    Filter_PerClassResultsLocal0 = PerClassResultsLocal['0']
+    Filter_PerClassResultsLocal0 = Filter_PerClassResultsLocal0[:-1]
+    Filter_PerClassResultsLocal1 = PerClassResultsLocal['1']
+    Filter_PerClassResultsLocal1 = Filter_PerClassResultsLocal1[:-1]
+    PerClassResultsClass0.append(Filter_PerClassResultsLocal0)
+    PerClassResultsClass1.append(Filter_PerClassResultsLocal1)
+    return accuracy_score(y_true, y_pred) # return accuracy score
 
 def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel):
 
     global Results
     global AllTargets
+    global names_labels
     Results = []
 
     parametersGen = PreprocessingParam()
@@ -1237,6 +1262,7 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel)
     Results.append(json.dumps(ModelSpaceTSNE))
     Results.append(json.dumps(ModelSpaceUMAP))
     Results.append(json.dumps(PredictionProbSel))
+    Results.append(json.dumps(names_labels))
 
     return Results
 
@@ -2212,6 +2238,7 @@ def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,Predict
     ResultsCM.append(json.dumps(ModelSpaceTSNECM))
     ResultsCM.append(json.dumps(ModelSpaceUMAPCM))
     ResultsCM.append(json.dumps(PredictionProbSel))
+    ResultsCM.append(json.dumps(names_labels))
 
     return ResultsCM
 
@@ -2428,3 +2455,14 @@ def SendPredictSelEnsem():
         'PredictSelEnsem': ResultsSelPredEnsem
     }
     return jsonify(response)
+
+@cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
+@app.route('/data/ServerRequestSelPoin', methods=["GET", "POST"])
+def RetrieveSelClassifiersID():
+    ClassifierIDsList = request.get_data().decode('utf8').replace("'", '"')
+    #ComputeMetricsForSel(ClassifierIDsList)
+    ClassifierIDCleaned = json.loads(ClassifierIDsList)
+
+    EnsembleModel(ClassifierIDsList, 1)
+
+    return 'Everything Okay'

@@ -18,9 +18,9 @@
         </b-col>
         <b-col cols="6">
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">History and Algorithms/Models Selector</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">History and Algorithms/Models Selector<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
             <mdb-card-body>
-              <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
+              <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 357px">
                 <History/>
               </mdb-card-text>
             </mdb-card-body>
@@ -28,10 +28,10 @@
         </b-col>
         <b-col cols="3">
             <mdb-card >
-              <mdb-card-header color="primary-color" tag="h5" class="text-center">Results of Majority-Voting Ensemble </mdb-card-header>
+              <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Algorithm/Model<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
               <mdb-card-body>
-                <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 359px">
-                  <VotingResults/>
+                <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 357px">
+
                 </mdb-card-text>
               </mdb-card-body>
             </mdb-card>
@@ -125,7 +125,7 @@
                     [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
                   </mdb-card-header>
                   <mdb-card-body>
-                    <mdb-card-text class="text-center"  style="min-height: 600px">
+                    <mdb-card-text class="text-center"  style="min-height: 434px">
                       <HyperParameterSpace/>
                     </mdb-card-text>
                   </mdb-card-body>
@@ -137,7 +137,7 @@
                     [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 600px">
+                      <mdb-card-text class="text-center"  style="min-height: 434px">
                         <Ensemble/>
                       </mdb-card-text>
                     </mdb-card-body>
@@ -147,7 +147,7 @@
             <b-row class="md-3">
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Algorithm/Model<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span>
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -169,11 +169,11 @@
               </b-col>
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">   
-        
+                        <VotingResults/>
                       </mdb-card-text>
                     </mdb-card-body>
                 </mdb-card>
@@ -354,7 +354,8 @@ export default Vue.extend({
             EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
             this.storeBothEnsCM[1] = this.OverviewResults
             //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
-            //this.getFinalResults()
+            EventBus.$emit('emittedEventCallingInfo', this.OverviewResults)
+            this.getFinalResults()
           }
         })
         .catch(error => {
@@ -506,15 +507,14 @@ export default Vue.extend({
       this.SendSelectedIDsEnsemble()
     },
     SendSelectedPointsToServer () {
-      if (this.ClassifierIDsList === ''){
-        this.OverSelLength = 0
+      if (this.ClassifierIDsListCM === ''){
+        this.OverSelLengthCM = 0
         EventBus.$emit('resetViews')
       } else {
-        this.OverSelLength = this.ClassifierIDsList.length
+        this.OverSelLengthCM = this.ClassifierIDsListCM.length
         const path = `http://127.0.0.1:5000/data/ServerRequestSelPoin`
         const postData = {
-          ClassifiersList: this.ClassifierIDsList,
-          keyNow: this.keyNow,
+          ClassifiersList: this.ClassifierIDsListCM,
         }
         const axiosConfig = {
           headers: {
@@ -527,10 +527,10 @@ export default Vue.extend({
         axios.post(path, postData, axiosConfig)
           .then(response => {
             console.log('Sent the selected points to the server (scatterplot)!')
-            if (this.keyNow == 0) {
-              this.OverAllLength = this.ClassifierIDsList.length
-              EventBus.$emit('GrayOutPoints', this.ClassifierIDsList)
-            } 
+            // if (this.keyNow == 0) {
+            //   this.OverAllLength = this.ClassifierIDsList.length
+            //   EventBus.$emit('GrayOutPoints', this.ClassifierIDsList)
+            // } 
             //this.getSelectedModelsMetrics()
             this.getFinalResults()
           })
@@ -677,7 +677,7 @@ export default Vue.extend({
       axios.get(path, axiosConfig)
         .then(response => {
           this.FinalResults = response.data.FinalResults
-          EventBus.$emit('emittedEventCallingLinePlot', this.FinalResults)
+          EventBus.$emit('emittedEventCallingResultsPlot', this.FinalResults)
         })
         .catch(error => {
           console.log(error)

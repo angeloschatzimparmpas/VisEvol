@@ -31,7 +31,7 @@ export default {
   name: 'HyperParameterSpace',
   data () {
     return {
-      CrossoverMutateText: 'Crossover and mutate unselected points',
+      CrossoverMutateText: 'Crossover and mutate unselected models',
       WH: [],
       ScatterPlotResults: '',
       representationDef: 'mds',
@@ -88,8 +88,8 @@ export default {
 
       var DataGeneral, maxX, minX, maxY, minY, layout
 
-      var width = this.WH[0]*8 // interactive visualization
-      var height = this.WH[1]*4 // interactive visualization
+      var width = this.WH[0]*6.5 // interactive visualization
+      var height = this.WH[1]*0.9 // interactive visualization
 
       if (this.representationDef == 'mds') {
         maxX = Math.max(MDSData[0])
@@ -137,10 +137,10 @@ export default {
           hoverlabel: { bgcolor: "#FFF" },
           legend: {orientation: 'h', y: -0.3},
           margin: {
-            l: 50,
+            l: 0,
             r: 0,
-            b: 30,
-            t: 40,
+            b: 0,
+            t: 30,
             pad: 0
           },
         }
@@ -199,10 +199,10 @@ export default {
           hoverlabel: { bgcolor: "#FFF" },
           legend: {orientation: 'h', y: -0.3},
           margin: {
-            l: 50,
+            l: 0,
             r: 0,
-            b: 30,
-            t: 40,
+            b: 0,
+            t: 30,
             pad: 0
           },
         }
@@ -252,10 +252,10 @@ export default {
           hoverlabel: { bgcolor: "#FFF" },
           legend: {orientation: 'h', y: -0.3},
           margin: {
-            l: 50,
+            l: 0,
             r: 0,
-            b: 30,
-            t: 40,
+            b: 0,
+            t: 30,
             pad: 0
           },
         }
@@ -306,6 +306,11 @@ export default {
 
     EventBus.$on('RepresentationSelection', data => {this.representationDef = data})
     EventBus.$on('RepresentationSelection', this.ScatterPlotView)
+
+    EventBus.$on('Responsive', data => {
+    this.WH = data})
+    EventBus.$on('ResponsiveandChange', data => {
+    this.WH = data})
 
     // reset view
     EventBus.$on('resetViews', this.reset)

@@ -1,5 +1,5 @@
 <template>
-  <div id="doubleBarChart" style="min-height: 363px;"></div>
+  <div id="doubleBarChart" style="min-height: 270px;"></div>
 </template>
 
 <script>
@@ -9,7 +9,8 @@ export default {
   name: 'VotingResults',
   data () {
     return {
-      FinalResultsforLinePlot: 0,
+      FinalResultsforPlot: [],
+      Info: [],
       NumberofExecutions: 0,
       scoresMean: [],
       scoresSTD: [],
@@ -55,22 +56,45 @@ export default {
     },
     VotingResultsFun () {
 
+      var svg = d3.select("#doubleBarChart");
+      svg.selectAll("*").remove();
+      
+      var info = JSON.parse(this.Info[13])
+
+      var dataLoc = []
+      dataLoc[0] = Math.floor(JSON.parse(this.FinalResultsforPlot[0])*100)
+      dataLoc[1] = Math.floor(JSON.parse(this.FinalResultsforPlot[1])*100)
+      dataLoc[2] = Math.floor(JSON.parse(this.FinalResultsforPlot[2])*100)
+      dataLoc[3] = Math.floor(JSON.parse(this.FinalResultsforPlot[3])*100)
+      dataLoc[4] = Math.floor(JSON.parse(this.FinalResultsforPlot[4])*100)
+      dataLoc[5] = Math.floor(JSON.parse(this.FinalResultsforPlot[5])*100)
+      dataLoc[6] = Math.floor(JSON.parse(this.FinalResultsforPlot[6])*100)
+      dataLoc[7] = Math.floor(JSON.parse(this.FinalResultsforPlot[7])*100)
+      dataLoc[8] = Math.floor(JSON.parse(this.FinalResultsforPlot[8])*100)
+      dataLoc[9] = Math.floor(JSON.parse(this.FinalResultsforPlot[9])*100)
+      dataLoc[10] = Math.floor(JSON.parse(this.FinalResultsforPlot[10])*100)
+      dataLoc[11] = Math.floor(JSON.parse(this.FinalResultsforPlot[11])*100)
+      dataLoc[12] = Math.floor(JSON.parse(this.FinalResultsforPlot[12])*100)
+      dataLoc[13] = Math.floor(JSON.parse(this.FinalResultsforPlot[13])*100)
+      dataLoc[14] = Math.floor(JSON.parse(this.FinalResultsforPlot[14])*100)
+      dataLoc[15] = Math.floor(JSON.parse(this.FinalResultsforPlot[15])*100)
+
       var data = [
-        {'countries': 'Active Accuracy', 'infant.mortality': 60, 'gdp': 100, 'group': 1, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best Accuracy', 'infant.mortality': 60, 'gdp': 100, 'group': 1, 'color': 'LIGHTCORAL'},
-        {'countries': 'Active Precision', 'infant.mortality': 0, 'gdp': 33, 'group': 2, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best Precision', 'infant.mortality': 60, 'gdp': 100, 'group': 2, 'color': 'LIGHTCORAL'},
-        {'countries': 'Active Recall', 'infant.mortality': 34, 'gdp': 53, 'group': 3, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best Recall', 'infant.mortality': 60, 'gdp': 100, 'group': 3, 'color': 'LIGHTCORAL'},
-        {'countries': 'Active F1-score', 'infant.mortality': 50, 'gdp': 43, 'group': 4, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best F1-score', 'infant.mortality': 60, 'gdp': 100, 'group': 4, 'color': 'LIGHTCORAL'}
+        {'countries': 'Active Accuracy', 'infant.mortality': dataLoc[0], 'gdp': dataLoc[1], 'group': 1, 'color': 'LIGHTSKYBLUE'},
+        {'countries': 'Best Accuracy', 'infant.mortality': dataLoc[2], 'gdp': dataLoc[3], 'group': 1, 'color': 'LIGHTCORAL'},
+        {'countries': 'Active Precision', 'infant.mortality': dataLoc[4], 'gdp': dataLoc[5], 'group': 2, 'color': 'LIGHTSKYBLUE'},
+        {'countries': 'Best Precision', 'infant.mortality': dataLoc[6], 'gdp': dataLoc[7], 'group': 2, 'color': 'LIGHTCORAL'},
+        {'countries': 'Active Recall', 'infant.mortality': dataLoc[8], 'gdp': dataLoc[9], 'group': 3, 'color': 'LIGHTSKYBLUE'},
+        {'countries': 'Best Recall', 'infant.mortality': dataLoc[10], 'gdp': dataLoc[11], 'group': 3, 'color': 'LIGHTCORAL'},
+        {'countries': 'Active F1-score', 'infant.mortality': dataLoc[12], 'gdp': dataLoc[13], 'group': 4, 'color': 'LIGHTSKYBLUE'},
+        {'countries': 'Best F1-score', 'infant.mortality': dataLoc[14], 'gdp': dataLoc[15], 'group': 4, 'color': 'LIGHTCORAL'}
       ]
 
       var labelArea = 160;
       var chart,
               width = 214,
               bar_height = 15,
-              height = bar_height * 22;
+              height = bar_height * 18;
       var rightOffset = width + labelArea;
 
       var lCol = "infant.mortality";
@@ -169,13 +193,15 @@ export default {
               .attr('class', 'score')
               .text(function(d){return d[rCol];});
 
-      chart.append("text").attr("x",width/3).attr("y", 15).attr("class","title").text("Healthy");
-      chart.append("text").attr("x",width/3+rightOffset).attr("y", 15).attr("class","title").text("Diseased");
+      chart.append("text").attr("x",width/3).attr("y", 15).attr("class","title").text(info[0]);
+      chart.append("text").attr("x",width/3+rightOffset).attr("y", 15).attr("class","title").text(info[1]);
       chart.append("text").attr("x",width+labelArea/3).attr("y", 15).attr("class","title").text("Metrics");
     }
   },
   mounted() {
-    this.VotingResultsFun()
+    EventBus.$on('emittedEventCallingInfo', data => { this.Info = data }) 
+    EventBus.$on('emittedEventCallingResultsPlot', data => { this.FinalResultsforPlot = data }) 
+    EventBus.$on('emittedEventCallingResultsPlot', this.VotingResultsFun) 
 
     EventBus.$on('Responsive', data => {
     this.WH = data})

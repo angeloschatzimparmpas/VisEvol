@@ -7,11 +7,18 @@
               <option value="umapCM">UMAP</option>
             </select>
             &nbsp;&nbsp;
-            Action: <button
+            Actions: <button
             id="Remove"
             v-on:click="Remove">
             <font-awesome-icon icon="eraser" />
             {{ CrossoverMutateText }}
+            </button>
+            &nbsp;&nbsp;
+            <button 
+            id="updateActiveScatter"
+            v-on:click="sendUpdateActiveScatter">
+            <font-awesome-icon icon="calculator" />
+            {{ valueActive }}
             </button>
   </div>
   <div id="OverviewPlotlyCM" class="OverviewPlotlyCM"></div>
@@ -31,11 +38,12 @@ export default {
   name: 'Ensemble',
   data () {
     return {
-      CrossoverMutateText: 'Remove unselected points from ensemble',
+      CrossoverMutateText: 'Remove unselected models from ensemble',
       WH: [],
       ScatterPlotResults: '',
       representationDef: 'mdsCM',
       storeEnsembleLoc: [],
+      valueActive: 'Compute performance for active ensemble'
     }
   },
   methods: {
@@ -104,8 +112,8 @@ export default {
 
       var DataGeneral, maxX, minX, maxY, minY, layout
 
-      var width = this.WH[0]*8 // interactive visualization
-      var height = this.WH[1]*4 // interactive visualization
+      var width = this.WH[0]*6.5 // interactive visualization
+      var height = this.WH[1]*0.9 // interactive visualization
 
       if (this.representationDef == 'mdsCM') {
         maxX = Math.max(MDSData[0])
@@ -153,10 +161,10 @@ export default {
           hoverlabel: { bgcolor: "#FFF" },
           legend: {orientation: 'h', y: -0.3},
           margin: {
-            l: 50,
+            l: 0,
             r: 0,
-            b: 30,
-            t: 40,
+            b: 0,
+            t: 30,
             pad: 0
           },
         }
@@ -215,10 +223,10 @@ export default {
           hoverlabel: { bgcolor: "#FFF" },
           legend: {orientation: 'h', y: -0.3},
           margin: {
-            l: 50,
+            l: 0,
             r: 0,
-            b: 30,
-            t: 40,
+            b: 0,
+            t: 30,
             pad: 0
           },
         }
@@ -268,10 +276,10 @@ export default {
           hoverlabel: { bgcolor: "#FFF" },
           legend: {orientation: 'h', y: -0.3},
           margin: {
-            l: 50,
+            l: 0,
             r: 0,
-            b: 30,
-            t: 40,
+            b: 0,
+            t: 30,
             pad: 0
           },
         }
@@ -311,6 +319,9 @@ export default {
           }
         })
       },
+      sendUpdateActiveScatter () {
+        EventBus.$emit('sendToServerSelectedScatter')
+      }
   },
   mounted() {
     EventBus.$on('SendStoredEnsemble', data => { this.storeEnsembleLoc = data })
@@ -321,6 +332,11 @@ export default {
 
     EventBus.$on('RepresentationSelectionCM', data => {this.representationDef = data})
     EventBus.$on('RepresentationSelectionCM', this.ScatterPlotView)
+
+    EventBus.$on('Responsive', data => {
+    this.WH = data})
+    EventBus.$on('ResponsiveandChange', data => {
+    this.WH = data})
 
     // reset view
     EventBus.$on('resetViews', this.reset)

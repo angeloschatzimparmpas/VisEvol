@@ -1,5 +1,5 @@
 <template>
-  <div id="SankeyInter" style="min-height: 363px;"></div>
+  <div id="SankeyInter" style="min-height: 357px;"></div>
 </template>
 
 <script>
