@@ -60,7 +60,6 @@ export default {
       Plotly.purge('OverviewPlotly')
 
       var modelId = JSON.parse(this.ScatterPlotResults[0])
-
       var colorsforScatterPlot = JSON.parse(this.ScatterPlotResults[1])
       var parametersLoc = JSON.parse(this.ScatterPlotResults[2])
       var parameters = JSON.parse(parametersLoc)
@@ -75,14 +74,24 @@ export default {
         this.clean(parameters[i])
         stringParameters.push(JSON.stringify(parameters[i]).replace(/,/gi, '<br>'))
       }
-      // fix that!
+
       var classifiersInfoProcessing = []
       for (let i = 0; i < modelId.length; i++) {
-        if (i < 100) {
+        let tempSplit = modelId[i].split(/([0-9]+)/)
+        if (tempSplit[0] == 'KNN') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> k-nearest neighbor' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else {
+        else if (tempSplit[0] == 'LR') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> logistic regression' + '<br><b>Parameters:</b> ' + stringParameters[i]
+        }
+        else if (tempSplit[0] == 'MLP') {
+          classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> multilayer perceptron' + '<br><b>Parameters:</b> ' + stringParameters[i]
+        }
+        else if (tempSplit[0] == 'RF') {
+          classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> random forest' + '<br><b>Parameters:</b> ' + stringParameters[i]
+        }
+        else {
+          classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> gradient boosting' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
       }
 

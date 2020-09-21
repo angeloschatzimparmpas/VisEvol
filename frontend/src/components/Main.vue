@@ -188,9 +188,7 @@
 import Vue from 'vue'
 import DataSetExecController from './DataSetExecController.vue'
 import PerformanceMetrics from './PerformanceMetrics.vue'
-import Algorithms from './Algorithms.vue'
 import AlgorithmsController from './AlgorithmsController.vue'
-import AlgorithmHyperParam from './AlgorithmHyperParam.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
 import GlobalParamController from './GlobalParamController'
 import Ensemble from './Ensemble.vue'
@@ -217,9 +215,7 @@ export default Vue.extend({
   components: {
     DataSetExecController,
     PerformanceMetrics,
-    Algorithms,
     AlgorithmsController,
-    AlgorithmHyperParam,
     HyperParameterSpace,
     GlobalParamController,
     Ensemble,
@@ -348,6 +344,7 @@ export default Vue.extend({
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
           } else {   
+            EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
@@ -379,6 +376,7 @@ export default Vue.extend({
           console.log('Server successfully sent all the data related to visualizations!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
+          EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
           //this.PredictSel = []
           //EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
           //EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
@@ -539,8 +537,8 @@ export default Vue.extend({
           })
       }
     },
-    RemoveFromStackModels () {
-      const path = `http://127.0.0.1:5000/data/ServerRemoveFromStack`
+    RemoveFromEnsembleModels () {
+      const path = `http://127.0.0.1:5000/data/ServerRemoveFromEnsemble`
       const postData = {
         ClassifiersList: this.ClassifierIDsListRemaining,
       }
@@ -555,7 +553,7 @@ export default Vue.extend({
       axios.post(path, postData, axiosConfig)
       .then(response => {
       console.log('Sent the selected points to the server (scatterplot)!')
-      this.updatePredictionsSpace()
+      this.getDatafromtheBackEnd()
       })
       .catch(error => {
       console.log(error)
@@ -904,8 +902,6 @@ export default Vue.extend({
     },
     sendPointsCrossMutat () {
       const path = `http://127.0.0.1:5000/data/CrossoverMutation`
-      
-      EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
 
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsemble)
       
@@ -992,11 +988,11 @@ export default Vue.extend({
     EventBus.$on('RemainingPointsCM', data => { this.unselectedRemainingPointsEnsem = data })
 
     EventBus.$on('ChangeKey', data => { this.keyNow = data })
-    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data; this.storeEnsemble.push(this.ClassifierIDsList)})
+    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data; this.storeEnsemble.push(this.ClassifierIDsList) })
     EventBus.$on('SendSelectedPointsUpdateIndicator', this.SelectedPoints)
     EventBus.$on('sendToServerSelectedScatter', this.SendSelectedPointsToServer)
 
-    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', data => { this.ClassifierIDsListCM = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', data => { this.ClassifierIDsListCM = data; this.storeEnsemble = []; this.storeEnsemble.push(this.ClassifierIDsListCM) })
     EventBus.$on('SendSelectedPointsUpdateIndicatorCM', this.SelectedPointsCM)
 
     EventBus.$on('SendSelectedDataPointsToServerEvent', data => { this.DataPointsSel = data })
@@ -1030,8 +1026,8 @@ export default Vue.extend({
   
     EventBus.$on('AllSelModels', data => {this.valueSel = data})
 
-    EventBus.$on('RemoveFromStack', data => { this.ClassifierIDsListRemaining = data })
-    EventBus.$on('RemoveFromStack', this.RemoveFromStackModels)
+    EventBus.$on('RemoveFromEnsemble', data => { this.ClassifierIDsListRemaining = data })
+    EventBus.$on('RemoveFromEnsemble', this.RemoveFromEnsembleModels)
 
     EventBus.$on('OpenModal', this.openModalFun)
 

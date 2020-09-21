@@ -8,8 +8,8 @@
             </select>
             &nbsp;&nbsp;
             Actions: <button
-            id="Remove"
-            v-on:click="Remove">
+            id="RemoveEnsembleID"
+            v-on:click="RemoveEnsemble">
             <font-awesome-icon icon="eraser" />
             {{ CrossoverMutateText }}
             </button>
@@ -43,7 +43,8 @@ export default {
       ScatterPlotResults: '',
       representationDef: 'mdsCM',
       storeEnsembleLoc: [],
-      valueActive: 'Compute performance for active ensemble'
+      valueActive: 'Compute performance for active ensemble',
+      pushModelsTempCMSame: [],
     }
   },
   methods: {
@@ -76,7 +77,7 @@ export default {
       var MDSData= JSON.parse(this.ScatterPlotResults[9])
       var TSNEData = JSON.parse(this.ScatterPlotResults[10])
       var UMAPData = JSON.parse(this.ScatterPlotResults[11])
-
+      console.log(modelId)
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsembleLoc)
       var mergedStoreEnsembleLocFormatted = []
       for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
@@ -99,14 +100,24 @@ export default {
         this.clean(parameters[i])
         stringParameters.push(JSON.stringify(parameters[i]).replace(/,/gi, '<br>'))
       }
-      // fix that!
+
       var classifiersInfoProcessing = []
       for (let i = 0; i < modelId.length; i++) {
-        if (i < 100) {
+        let tempSplit = modelId[i].split(/([0-9]+)/)
+        if (tempSplit[0] == 'KNN') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> k-nearest neighbor' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else {
+        else if (tempSplit[0] == 'LR') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> logistic regression' + '<br><b>Parameters:</b> ' + stringParameters[i]
+        }
+        else if (tempSplit[0] == 'MLP') {
+          classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> multilayer perceptron' + '<br><b>Parameters:</b> ' + stringParameters[i]
+        }
+        else if (tempSplit[0] == 'RF') {
+          classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> random forest' + '<br><b>Parameters:</b> ' + stringParameters[i]
+        }
+        else {
+          classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> gradient boosting' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
       }
 
@@ -133,7 +144,7 @@ export default {
           marker: {
            line: { color: 'rgb(0, 0, 0)', width: 3 },
             color: colorsforScatterPlot,
-            size: 12,
+            size: 16,
             colorscale: 'Viridis',
             colorbar: {
               title: '# Performance (%) #',
@@ -197,7 +208,7 @@ export default {
           marker: {
               line: { color: 'rgb(0, 0, 0)', width: 3 },
               color: colorsforScatterPlot,
-              size: 12,
+              size: 16,
               colorscale: 'Viridis',
               colorbar: {
                 title: '# Performance (%) #',
@@ -249,7 +260,7 @@ export default {
           marker: {
            line: { color: 'rgb(0, 0, 0)', width: 3 },
             color: colorsforScatterPlot,
-            size: 12,
+            size: 16,
             colorscale: 'Viridis',
             colorbar: {
               title: '# Performance (%) #',
@@ -319,11 +330,17 @@ export default {
           }
         })
       },
+      RemoveEnsemble () {
+        EventBus.$emit('RemoveFromEnsemble', this.pushModelsTempCMSame)
+      },
       sendUpdateActiveScatter () {
         EventBus.$emit('sendToServerSelectedScatter')
       }
   },
   mounted() {
+
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', data => { this.pushModelsTempCMSame = data })
+
     EventBus.$on('SendStoredEnsemble', data => { this.storeEnsembleLoc = data })
     
     EventBus.$on('emittedEventCallingCrossoverMutation', data => {
