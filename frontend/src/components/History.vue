@@ -120,7 +120,7 @@ export default {
       //   .attr("y",20)
       //   .attr("transform", 
       //           "translate(" + margin.left + "," + margin.top + ") scale(1,-1) translate(" + 0 + "," + margin.bottom + ")");
-
+// FIX ORDER HERE!
       // load the data
       var graph = {
         "nodes":[
@@ -147,27 +147,27 @@ export default {
         {"name":"MLP","node":20,"month":"Crossover_S2","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":21,"month":"Crossover_S2","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":22,"month":"Crossover_S2","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Mutate stage 2 (M)","node":23,"month":"Crossover_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Mutate stage 2 (C)","node":23,"month":"Crossover_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":24,"month":"Mutate_S2","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":25,"month":"Mutate_S2","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":26,"month":"Mutate_S2","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":27,"month":"Mutate_S2","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":28,"month":"Mutate_S2","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Crossover stage 2 (M)","node":29,"month":"Mutate_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Crossover stage 2 (C)","node":29,"month":"Mutate_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":30,"month":"Crossover_S2_Prime","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":31,"month":"Crossover_S2_Prime","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":32,"month":"Crossover_S2_Prime","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":33,"month":"Crossover_S2_Prime","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":34,"month":"Crossover_S2_Prime","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Mutate stage 2 (C)","node":35,"month":"Crossover_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Mutate stage 2 (M)","node":35,"month":"Crossover_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":36,"month":"Mutate_S2_Prime","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":37,"month":"Mutate_S2_Prime","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":38,"month":"Mutate_S2_Prime","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":39,"month":"Mutate_S2_Prime","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":40,"month":"Mutate_S2_Prime","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Crossover stage 2 (C)","node":41,"month":"Mutate_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Crossover stage 2 (M)","node":41,"month":"Mutate_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         ],
-  // Fix order!!
+
         "links":[
         {"source":5,"target":11,"value":50,"dh":height/(numberofModels*localStep)*(250/(valuesLoc[6]+valuesLoc[7]+valuesLoc[8]+valuesLoc[9]+valuesLoc[10]))},
         {"source":5,"target":17,"value":50,"dh":height/(numberofModels*localStep)*(250/(valuesLoc[12]+valuesLoc[13]+valuesLoc[14]+valuesLoc[15]+valuesLoc[16]))},
@@ -301,7 +301,7 @@ export default {
             .attr("transform", "scale(1,-1)")
             .text(function(d) { return d.name.replace(/-.*/, ""); })
             .style("font-weight", function(d) {
-              if (d.node == 5 || d.node == 11 || d.node == 17 || d.node == 23 || d.node == 29 || d.node == 35 || d.node == 41) {
+              if (d.node == 5 || d.node == 11 || d.node == 17 || d.node == 23 || d.node == 29 || d.node == 35 || d.node == 51) {
                 return "bold";
               }
             })
