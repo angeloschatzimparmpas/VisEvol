@@ -31,7 +31,7 @@
               <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Algorithm/Model<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 357px">
-
+                  <AlgorithmsController/>
                 </mdb-card-text>
               </mdb-card-body>
             </mdb-card>
@@ -122,7 +122,7 @@
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
                   <mdb-card-header color="primary-color" tag="h5" class="text-center">Solution Space of Hyper-Parameters
-                    [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
+                    [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
                   </mdb-card-header>
                   <mdb-card-body>
                     <mdb-card-text class="text-center"  style="min-height: 434px">
@@ -134,7 +134,7 @@
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
                   <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble
-                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"><active-scatter/></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
+                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 434px">
@@ -147,11 +147,11 @@
             <b-row class="md-3">
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">
-
+                        <ValidationController/>
                       </mdb-card-text>
                     </mdb-card-body>
                 </mdb-card>
@@ -189,12 +189,12 @@ import Vue from 'vue'
 import DataSetExecController from './DataSetExecController.vue'
 import PerformanceMetrics from './PerformanceMetrics.vue'
 import AlgorithmsController from './AlgorithmsController.vue'
+import ValidationController from './ValidationController.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
 import GlobalParamController from './GlobalParamController'
 import Ensemble from './Ensemble.vue'
 import VotingResults from './VotingResults.vue'
 import History from './History.vue'
-import Parameters from './Parameters.vue'
 import Predictions from './Predictions.vue'
 import axios from 'axios'
 import { loadProgressBar } from 'axios-progress-bar'
@@ -216,10 +216,10 @@ export default Vue.extend({
     DataSetExecController,
     PerformanceMetrics,
     AlgorithmsController,
+    ValidationController,
     HyperParameterSpace,
     GlobalParamController,
     Ensemble,
-    Parameters,
     Predictions,
     VotingResults,
     History,
@@ -230,6 +230,8 @@ export default Vue.extend({
   },
   data () {
     return {
+      CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
+      CMNumberofModels: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
       projectionID_A: 1,
       projectionID_B: 1,
       storeEnsemble: [],
@@ -252,7 +254,6 @@ export default Vue.extend({
       selectedAlgorithm: '',
       PerformancePerModel: '',
       PerformanceCheck: '',
-      firstTimeFlag: 1,
       selectedModels_Stack: [],
       selectedAlgorithms: ['KNN','LR','MLP','RF','GradB'],
       parametersofModels: [],
@@ -338,15 +339,18 @@ export default Vue.extend({
           console.log('Server successfully sent all the data related to visualizations!')
           if (this.firstTimeExec) {
             EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingSankey')
+            EventBus.$emit('callAlgorithhms', this.OverviewResults)
+            EventBus.$emit('callValidation', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
-            EventBus.$emit('emittedEventCallingSankey', this.OverviewResults)
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
           } else {   
             EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
+            EventBus.$emit('emittedEventCallingSankeyStage2')
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
             this.storeBothEnsCM[1] = this.OverviewResults
@@ -907,7 +911,8 @@ export default Vue.extend({
       
       const postData = {
         RemainingPoints: this.unselectedRemainingPoints,
-        StoreEnsemble: mergedStoreEnsembleLoc
+        StoreEnsemble: mergedStoreEnsembleLoc,
+        loopNumber: this.CMNumberofModels
       }
       const axiosConfig = {
         headers: {
@@ -1048,6 +1053,8 @@ export default Vue.extend({
     EventBus.$on('SendtheChangeinRangePos', data => { this.RandomSear = data })
     EventBus.$on('SendtheChangeinRangeNeg', data => { this.crossVal = data })
     EventBus.$on('factorsChanged', data => { this.basicValuesFact = data })
+
+    EventBus.$on('changeValues', data => { this.CMNumberofModels = data })
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {

@@ -1297,6 +1297,16 @@ def CrossoverMutateFun():
 
     EnsembleActive = EnsembleActive['StoreEnsemble']
 
+    setMaxLoopValue = request.get_data().decode('utf8').replace("'", '"')
+    setMaxLoopValue = json.loads(setMaxLoopValue)
+
+    setMaxLoopValue = setMaxLoopValue['loopNumber']
+
+    InitializeFirstStageCM(RemainingIds, setMaxLoopValue)
+
+    return 'Okay'
+
+def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     random.seed(RANDOM_SEED)
     
     global XData
@@ -1326,7 +1336,6 @@ def CrossoverMutateFun():
     countMLP = 0
     countRF = 0
     countGradB = 0
-    setMaxLoopValue = 5
     paramAllAlgs = PreprocessingParam()
 
     KNNIntIndex = []
@@ -1338,7 +1347,7 @@ def CrossoverMutateFun():
     localCrossMutr = []
     allParametersPerfCrossMutrKNNC = []
 
-    while countKNN < setMaxLoopValue:
+    while countKNN < setMaxLoopValue[16]:
         for dr in KNNIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
@@ -1359,13 +1368,13 @@ def CrossoverMutateFun():
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_C', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[16]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[16] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1383,7 +1392,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrKNNM = []
 
-    while countKNN < setMaxLoopValue:
+    while countKNN < setMaxLoopValue[10]:
         for dr in KNNIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
@@ -1409,13 +1418,13 @@ def CrossoverMutateFun():
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_M', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[10]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[10] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1431,17 +1440,14 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRC = []
 
-    while countLR < setMaxLoopValue:
+    while countLR < setMaxLoopValue[15]:
         for dr in LRIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
             else:
                 LRIntIndex.append(int(re.findall('\d+', dr)[0]))
-        print(LRIntIndex)
         LRPickPair = random.sample(LRIntIndex,2)
-        print(paramAllAlgs)
         pairDF = paramAllAlgs.iloc[LRPickPair]
-        print(pairDF)
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -1455,13 +1461,13 @@ def CrossoverMutateFun():
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_C', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[15]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[15] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1479,7 +1485,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRM = []
 
-    while countLR < setMaxLoopValue:
+    while countLR < setMaxLoopValue[9]:
         for dr in LRIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
@@ -1505,13 +1511,13 @@ def CrossoverMutateFun():
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_M', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[9]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[9] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1527,7 +1533,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPC = []
 
-    while countMLP < setMaxLoopValue:
+    while countMLP < setMaxLoopValue[14]:
         for dr in MLPIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
@@ -1549,13 +1555,13 @@ def CrossoverMutateFun():
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_C', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[14]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[14] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1573,7 +1579,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPM = []
 
-    while countMLP < setMaxLoopValue:
+    while countMLP < setMaxLoopValue[8]:
         for dr in MLPIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
@@ -1599,13 +1605,13 @@ def CrossoverMutateFun():
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_M', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[8]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[8] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1621,7 +1627,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFC = []
 
-    while countRF < setMaxLoopValue:
+    while countRF < setMaxLoopValue[13]:
         for dr in RFIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
@@ -1643,13 +1649,13 @@ def CrossoverMutateFun():
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[13]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[13] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1667,7 +1673,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFM = []
 
-    while countRF < setMaxLoopValue:
+    while countRF < setMaxLoopValue[7]:
         if (int(re.findall('\d+', dr)[0]) >= greater):
             RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
         else:
@@ -1692,13 +1698,13 @@ def CrossoverMutateFun():
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[7]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[7] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1714,7 +1720,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBC = []
 
-    while countGradB < setMaxLoopValue:
+    while countGradB < setMaxLoopValue[12]:
         for dr in GradBIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
@@ -1736,13 +1742,13 @@ def CrossoverMutateFun():
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_C', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[12]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[12] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1760,7 +1766,7 @@ def CrossoverMutateFun():
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBM = []
             
-    while countGradB < setMaxLoopValue:
+    while countGradB < setMaxLoopValue[6]:
         for dr in GradBIDs:
             if (int(re.findall('\d+', dr)[0]) >= greater):
                 GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
@@ -1786,13 +1792,13 @@ def CrossoverMutateFun():
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_M', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
-    countAllModels = countAllModels + setMaxLoopValue
+    countAllModels = countAllModels + setMaxLoopValue[6]
 
-    for loop in range(setMaxLoopValue - 1):
+    for loop in range(setMaxLoopValue[6] - 1):
         localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
@@ -1861,20 +1867,18 @@ def CrossoverMutateFun():
 
     addKNN = addGradB
 
-    addLR = addKNN + setMaxLoopValue*2
+    addLR = addKNN + setMaxLoopValue[16] + setMaxLoopValue[10]
 
-    addMLP = addLR + setMaxLoopValue*2
+    addMLP = addLR + setMaxLoopValue[15] + setMaxLoopValue[9]
 
-    addRF = addMLP + setMaxLoopValue*2
+    addRF = addMLP + setMaxLoopValue[14] + setMaxLoopValue[8]
 
-    addGradB = addRF + setMaxLoopValue*2
+    addGradB = addRF + setMaxLoopValue[13] + setMaxLoopValue[7]
 
     return 'Everything Okay'
 
 def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
-    print(AlgorithmsIDsEnd)
     print(clf)
-    print(params)
     search = GridSearchCV(    
     estimator=clf, param_grid=params, cv=crossValidation, refit='accuracy', 
     scoring=scoring, verbose=0, n_jobs=-1)

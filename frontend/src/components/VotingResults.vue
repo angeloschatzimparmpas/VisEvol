@@ -80,14 +80,14 @@ export default {
       dataLoc[15] = Math.floor(JSON.parse(this.FinalResultsforPlot[15])*100)
 
       var data = [
-        {'countries': 'Active Accuracy', 'infant.mortality': dataLoc[0], 'gdp': dataLoc[1], 'group': 1, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best Accuracy', 'infant.mortality': dataLoc[2], 'gdp': dataLoc[3], 'group': 1, 'color': 'LIGHTCORAL'},
-        {'countries': 'Active Precision', 'infant.mortality': dataLoc[4], 'gdp': dataLoc[5], 'group': 2, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best Precision', 'infant.mortality': dataLoc[6], 'gdp': dataLoc[7], 'group': 2, 'color': 'LIGHTCORAL'},
-        {'countries': 'Active Recall', 'infant.mortality': dataLoc[8], 'gdp': dataLoc[9], 'group': 3, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best Recall', 'infant.mortality': dataLoc[10], 'gdp': dataLoc[11], 'group': 3, 'color': 'LIGHTCORAL'},
-        {'countries': 'Active F1-score', 'infant.mortality': dataLoc[12], 'gdp': dataLoc[13], 'group': 4, 'color': 'LIGHTSKYBLUE'},
-        {'countries': 'Best F1-score', 'infant.mortality': dataLoc[14], 'gdp': dataLoc[15], 'group': 4, 'color': 'LIGHTCORAL'}
+        {'countries': 'Active Accuracy', 'infant.mortality': dataLoc[0], 'gdp': dataLoc[1], 'group': 1, 'color': '#1f78b4'},
+        {'countries': 'Best Accuracy', 'infant.mortality': dataLoc[2], 'gdp': dataLoc[3], 'group': 1, 'color': '#e31a1c'},
+        {'countries': 'Active Precision', 'infant.mortality': dataLoc[4], 'gdp': dataLoc[5], 'group': 2, 'color': '#1f78b4'},
+        {'countries': 'Best Precision', 'infant.mortality': dataLoc[6], 'gdp': dataLoc[7], 'group': 2, 'color': '#e31a1c'},
+        {'countries': 'Active Recall', 'infant.mortality': dataLoc[8], 'gdp': dataLoc[9], 'group': 3, 'color': '#1f78b4'},
+        {'countries': 'Best Recall', 'infant.mortality': dataLoc[10], 'gdp': dataLoc[11], 'group': 3, 'color': '#e31a1c'},
+        {'countries': 'Active F1-score', 'infant.mortality': dataLoc[12], 'gdp': dataLoc[13], 'group': 4, 'color': '#1f78b4'},
+        {'countries': 'Best F1-score', 'infant.mortality': dataLoc[14], 'gdp': dataLoc[15], 'group': 4, 'color': '#e31a1c'}
       ]
 
       var labelArea = 160;

@@ -78,16 +78,16 @@ export default {
       var classifiersInfoProcessing = []
       for (let i = 0; i < modelId.length; i++) {
         let tempSplit = modelId[i].split(/([0-9]+)/)
-        if (tempSplit[0] == 'KNN') {
+        if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNN_C' || tempSplit[0] == 'KNN_M') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> k-nearest neighbor' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else if (tempSplit[0] == 'LR') {
+        else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LR_C' || tempSplit[0] == 'LR_M') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> logistic regression' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else if (tempSplit[0] == 'MLP') {
+        else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLP_C' || tempSplit[0] == 'MLP_M') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> multilayer perceptron' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else if (tempSplit[0] == 'RF') {
+        else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RF_C' || tempSplit[0] == 'RF_M') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> random forest' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
         else {

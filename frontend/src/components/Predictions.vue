@@ -39,16 +39,6 @@ export default {
     },
     Grid () {
 
-      Array.prototype.multiIndexOf = function (el) { 
-          var idxs = [];
-          for (var i = this.length - 1; i >= 0; i--) {
-              if (this[i] === el) {
-                  idxs.unshift(i);
-              }
-          }
-          return idxs;
-      };
-
       var svg = d3.select("#containerAll");
       svg.selectAll("*").remove();
 
@@ -57,7 +47,12 @@ export default {
 
       var getIndices = []
       for (let i = 0; i < targetNames.length; i++) {
-        getIndices.push(yValues.multiIndexOf(targetNames[i]))
+        let clTemp = []
+        let j = -1
+        while((j = yValues.indexOf(targetNames[i], j + 1)) !== -1) {
+          clTemp.push(j);
+        }
+        getIndices.push(clTemp)
       }
       getIndices.reverse()
 
@@ -193,7 +188,7 @@ export default {
 		
 		var t = d3.timer(function(elapsed) {
 			draw();
-			if (elapsed > 300) t.stop();
+			if (elapsed > 1000) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
 
 
@@ -201,7 +196,6 @@ export default {
 
 		function databind(data, size, sqrtSize) {
 
-      
 			colourScale = d3.scaleSequential(d3.interpolateReds).domain([1, 0])
 
 			var join = custom.selectAll('custom.rect')
@@ -273,16 +267,6 @@ export default {
   },
   GridSelection () {
 
-      Array.prototype.multiIndexOf = function (el) { 
-          var idxs = [];
-          for (var i = this.length - 1; i >= 0; i--) {
-              if (this[i] === el) {
-                  idxs.unshift(i);
-              }
-          }
-          return idxs;
-      };
-
       var svg = d3.select("#containerSelection");
       svg.selectAll("*").remove();
 
@@ -296,6 +280,7 @@ export default {
         var RFPred = predictions[3]
         var GradBPred = predictions[4]
         var PredAver = predictions[5]
+        console.log(predictions)
       } else {
         var KNNPred = predictionsAll[0]
         var LRPred = predictionsAll[1]
@@ -310,13 +295,18 @@ export default {
       var RFPredAll = predictionsAll[3]
       var GradBPredAll = predictionsAll[4]
       var PredAverAll = predictionsAll[5]
-
+      
       var yValues = JSON.parse(this.GetResultsSelection[6])
       var targetNames = JSON.parse(this.GetResultsSelection[7])
 
       var getIndices = []
       for (let i = 0; i < targetNames.length; i++) {
-        getIndices.push(yValues.multiIndexOf(targetNames[i]))
+        let clTemp = []
+        let j = -1
+        while((j = yValues.indexOf(targetNames[i], j + 1)) !== -1) {
+          clTemp.push(j);
+        }
+        getIndices.push(clTemp)
       }
       getIndices.reverse()
 
@@ -443,7 +433,7 @@ export default {
 		
 		var t = d3.timer(function(elapsed) {
 			draw();
-			if (elapsed > 300) t.stop();
+			if (elapsed > 1000) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
 
 
