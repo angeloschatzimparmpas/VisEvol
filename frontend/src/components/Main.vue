@@ -232,6 +232,9 @@ export default Vue.extend({
     return {
       CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       CMNumberofModels: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
+      CMNumberofModelsOFFICIALS2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
+      CMNumberofModelsS2: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
+      CurrentStage: 1,
       projectionID_A: 1,
       projectionID_B: 1,
       storeEnsemble: [],
@@ -347,6 +350,11 @@ export default Vue.extend({
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
           } else {   
+            var IDsLocal = JSON.parse(this.OverviewResults[0])
+            var Performance = JSON.parse(this.OverviewResults[1])
+            EventBus.$emit('SendIDs', IDsLocal)
+            EventBus.$emit('SendPerformance', Performance)
+            EventBus.$emit('SendStoredEnsembleHist', this.ModelsLocal)
             EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
@@ -377,6 +385,10 @@ export default Vue.extend({
       axios.get(path, axiosConfig)
         .then(response => {
           this.OverviewResultsCM = response.data.OverviewResultsCM
+          var ModelsLocal = JSON.parse(this.OverviewResultsCM[0])
+          EventBus.$emit('SendStoredCMHist', ModelsLocal)
+          var PerformanceCM = JSON.parse(this.OverviewResultsCM[1])
+          EventBus.$emit('SendPerformanceCM', PerformanceCM)
           console.log('Server successfully sent all the data related to visualizations!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
@@ -908,12 +920,23 @@ export default Vue.extend({
       const path = `http://127.0.0.1:5000/data/CrossoverMutation`
 
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsemble)
-      
-      const postData = {
-        RemainingPoints: this.unselectedRemainingPoints,
-        StoreEnsemble: mergedStoreEnsembleLoc,
-        loopNumber: this.CMNumberofModels
+
+      if (this.CurrentStage == 1) {
+        var postData = {
+          RemainingPoints: this.unselectedRemainingPoints,
+          StoreEnsemble: mergedStoreEnsembleLoc,
+          loopNumber: this.CMNumberofModels,
+          Stage: this.CurrentStage
+        }
+      } else {
+        var postData = {
+          RemainingPoints: this.unselectedRemainingPoints,
+          StoreEnsemble: mergedStoreEnsembleLoc,
+          loopNumber: this.CMNumberofModelsS2,
+          Stage: this.CurrentStage
+        }
       }
+
       const axiosConfig = {
         headers: {
           'Content-Type': 'application/json',
@@ -925,6 +948,7 @@ export default Vue.extend({
       axios.post(path, postData, axiosConfig)
         .then(response => {
           console.log('Sent the unselected points for crossover and mutation.')
+          this.CurrentStage = this.CurrentStage + 1
           this.getDatafromtheBackEnd()
           this.getCMComputedData()
           this.changeActiveTo2()
@@ -1054,7 +1078,8 @@ export default Vue.extend({
     EventBus.$on('SendtheChangeinRangeNeg', data => { this.crossVal = data })
     EventBus.$on('factorsChanged', data => { this.basicValuesFact = data })
 
-    EventBus.$on('changeValues', data => { this.CMNumberofModels = data })
+    EventBus.$on('changeValues', data => { this.CMNumberofModelsOFFICIAL = data })
+    EventBus.$on('changeValuesS2', data => { this.CMNumberofModelsOFFICIALS2 = data })
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {

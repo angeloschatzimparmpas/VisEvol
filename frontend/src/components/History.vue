@@ -19,6 +19,12 @@ export default {
     return {
       WH: [],
       RandomSearLoc : 100,
+      SendIDLocs: [],
+      PerF: [],
+      PerFCM: [],
+      storedEnsem: [],
+      storedCM: [],
+      percentageOverall: [],
       values: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       valuesStage2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
       loop: 0
@@ -28,6 +34,159 @@ export default {
     reset () {
       var svg = d3.select("#SankeyInter");
       svg.selectAll("*").remove();
+    },
+    computePerformanceDiff () {
+      Array.prototype.max = function() {
+        return Math.max.apply(null, this);
+      };
+
+      Array.prototype.min = function() {
+        return Math.min.apply(null, this);
+      };
+
+      var colorsforScatterPlot = this.PerF
+
+      var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
+      var mergedStoreEnsembleLocFormatted = []
+      for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
+        mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
+      }
+
+      colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
+      console.log(colorsforScatterPlot)
+      var min = Math.min.apply(null, colorsforScatterPlot),
+        max = Math.max.apply(null, colorsforScatterPlot);
+      console.log(max)
+      var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      console.log(this.storedEnsem)
+      console.log(this.storedCM)
+      console.log(this.PerFCM)
+      for (let i = 0; i < this.storedCM.length; i++) {
+        let tempSplit = this.storedCM[i].split(/([0-9]+)/)
+        console.log(tempSplit[0])
+        if (tempSplit[0] == 'KNN_C') {
+          console.log(this.PerFCM[i])
+          console.log(max)
+          if (this.PerFCM[i] > max) {
+            countMax[0]++
+          } else if (this.PerFCM[i] < min) {
+            countMin[0]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'KNN_M') {
+          if (this.PerFCM[i] > max) {
+            countMax[1]++
+          } else if (this.PerFCM[i] < min) {
+            countMin[1]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'LR_C') {
+          if (this.PerFCM[i] > max) {
+            countMax[2]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[2]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'LR_M') {
+          if (this.PerFCM[i] > max) {
+            countMax[3]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[3]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'MLP_C') {
+          if (this.PerFCM[i] > max) {
+            countMax[4]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[4]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'MLP_M') {
+          if (this.PerFCM[i] > max) {
+            countMax[5]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[5]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'RF_C') {
+          if (this.PerFCM[i] > max) {
+            countMax[6]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[6]++
+          }
+        }
+        else if (tempSplit[0] == 'RF_M') {
+          if (this.PerFCM[i] > max) {
+            countMax[7]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[7]++
+          } else {
+            continue
+          }
+        }
+        else if (tempSplit[0] == 'GradB_C') {
+          if (this.PerFCM[i] > max) {
+            countMax[8]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[8]++
+          } else {
+            continue
+          }
+        }
+        else {
+          if (this.PerFCM[i] > max) {
+            countMax[9]++
+          }
+          else if (this.PerFCM[i] < min) {
+            countMin[9]++
+          } else {
+            continue
+          }
+        }
+      }
+
+      console.log(countMax)
+      console.log(countMin)
+
+      var percentage = []
+      for (let j = 0; j < countMax.length; j++) {
+        if (j >= 5) {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.values[15-j])*(-1)*100)
+          } else {
+            percentage.push(countMax[j]/this.values[15-j] * 100)
+          }  
+        } else {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.values[16-j])*(-1) * 100)
+          } else {
+            percentage.push(countMax[j]/this.values[16-j] * 100)
+          }
+        }
+      }
+
+      this.percentageOverall = percentage
+      
     },
     SankeyViewStage2 () {
       var valuesLoc = this.valuesStage2
@@ -120,7 +279,7 @@ export default {
       //   .attr("y",20)
       //   .attr("transform", 
       //           "translate(" + margin.left + "," + margin.top + ") scale(1,-1) translate(" + 0 + "," + margin.bottom + ")");
-// FIX ORDER HERE!
+
       // load the data
       var graph = {
         "nodes":[
@@ -135,37 +294,37 @@ export default {
         {"name":"MLP","node":8,"month":"Crossover_S1","color":"#fb9a99","dh":height/(numberofModels*localStep)},
         {"name":"LR","node":9,"month":"Crossover_S1","color":"#fdbf6f","dh":height/(numberofModels*localStep)},
         {"name":"KNN","node":10,"month":"Crossover_S1","color":"#ff7f00","dh":height/(numberofModels*localStep)},
-        {"name":"Mutate (M) stage 1","node":11,"month":"Crossover_S1","color":"#ffffff","dh":height/(numberofModels*localStep)},
+        {"name":"Mutate (M) S1","node":11,"month":"Crossover_S1","color":"#ffffff","dh":height/(numberofModels*localStep)},
         {"name":"GradB","node":12,"month":"Mutate_S1","color":"#a6cee3","dh":height/(numberofModels*localStep)},
         {"name":"RF","node":13,"month":"Mutate_S1","color":"#b15928","dh":height/(numberofModels*localStep)},
         {"name":"MLP","node":14,"month":"Mutate_S1","color":"#fb9a99","dh":height/(numberofModels*localStep)},
         {"name":"LR","node":15,"month":"Mutate_S1","color":"#fdbf6f","dh":height/(numberofModels*localStep)},
         {"name":"KNN","node":16,"month":"Mutate_S1","color":"#ff7f00","dh":height/(numberofModels*localStep)},
-        {"name":"Crossover (C) stage 1","node":17,"month":"Mutate_S1","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Crossover (C) S1","node":17,"month":"Mutate_S1","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":18,"month":"Crossover_S2","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":19,"month":"Crossover_S2","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":20,"month":"Crossover_S2","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":21,"month":"Crossover_S2","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":22,"month":"Crossover_S2","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Mutate stage 2 (C)","node":23,"month":"Crossover_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Mutate S2 (M)","node":23,"month":"Crossover_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":24,"month":"Mutate_S2","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":25,"month":"Mutate_S2","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":26,"month":"Mutate_S2","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":27,"month":"Mutate_S2","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":28,"month":"Mutate_S2","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Crossover stage 2 (C)","node":29,"month":"Mutate_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Crossover S2 (M)","node":29,"month":"Mutate_S2","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":30,"month":"Crossover_S2_Prime","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":31,"month":"Crossover_S2_Prime","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":32,"month":"Crossover_S2_Prime","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":33,"month":"Crossover_S2_Prime","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":34,"month":"Crossover_S2_Prime","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Mutate stage 2 (M)","node":35,"month":"Crossover_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Mutate S2 (C)","node":35,"month":"Crossover_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         {"name":"GradB","node":36,"month":"Mutate_S2_Prime","color":"#a6cee3","dh":height/(numberofModels*(localStep*2))},
         {"name":"RF","node":37,"month":"Mutate_S2_Prime","color":"#b15928","dh":height/(numberofModels*(localStep*2))},
         {"name":"MLP","node":38,"month":"Mutate_S2_Prime","color":"#fb9a99","dh":height/(numberofModels*(localStep*2))},
         {"name":"LR","node":39,"month":"Mutate_S2_Prime","color":"#fdbf6f","dh":height/(numberofModels*(localStep*2))},
         {"name":"KNN","node":40,"month":"Mutate_S2_Prime","color":"#ff7f00","dh":height/(numberofModels*(localStep*2))},
-        {"name":"Crossover stage 2 (M)","node":41,"month":"Mutate_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
+        {"name":"Crossover S2 (C)","node":41,"month":"Mutate_S2_Prime","color":"#ffffff","dh":height/(numberofModels*(localStep*2))},
         ],
 
         "links":[
@@ -184,26 +343,26 @@ export default {
         {"source":11,"target":23,"value":25,"dh":height/(numberofModels*(localStep*2))*(125/(valuesLoc[18]+valuesLoc[19]+valuesLoc[20]+valuesLoc[21]+valuesLoc[22]))},
         {"source":11,"target":35,"value":25,"dh":height/(numberofModels*(localStep*2))*(125/(valuesLoc[30]+valuesLoc[31]+valuesLoc[32]+valuesLoc[33]+valuesLoc[34]))},
         {"source":6,"target":18,"value":valuesLoc[18],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[18]/25)},
-        {"source":6,"target":30,"value":valuesLoc[30],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[30]/25)},
+        {"source":6,"target":24,"value":valuesLoc[24],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[24]/25)},
         {"source":7,"target":19,"value":valuesLoc[19],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[19]/25)},
-        {"source":7,"target":31,"value":valuesLoc[31],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[31]/25)},
+        {"source":7,"target":25,"value":valuesLoc[25],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[25]/25)},
         {"source":8,"target":20,"value":valuesLoc[20],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[20]/25)},
-        {"source":8,"target":32,"value":valuesLoc[32],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[32]/25)},
+        {"source":8,"target":26,"value":valuesLoc[26],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[26]/25)},
         {"source":9,"target":21,"value":valuesLoc[21],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[21]/25)},
-        {"source":9,"target":33,"value":valuesLoc[33],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[33]/25)},
+        {"source":9,"target":27,"value":valuesLoc[27],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[27]/25)},
         {"source":10,"target":22,"value":valuesLoc[22],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[22]/25)},
-        {"source":10,"target":34,"value":valuesLoc[34],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[34]/25)},
+        {"source":10,"target":28,"value":valuesLoc[28],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[28]/25)},
         {"source":17,"target":29,"value":25,"dh":height/(numberofModels*(localStep*2))*(125/(valuesLoc[24]+valuesLoc[25]+valuesLoc[26]+valuesLoc[27]+valuesLoc[28]))},
         {"source":17,"target":41,"value":25,"dh":height/(numberofModels*(localStep*2))*(125/(valuesLoc[36]+valuesLoc[37]+valuesLoc[38]+valuesLoc[39]+valuesLoc[40]))},
-        {"source":12,"target":24,"value":valuesLoc[24],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[24]/25)},
+        {"source":12,"target":30,"value":valuesLoc[30],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[30]/25)},
         {"source":12,"target":36,"value":valuesLoc[36],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[36]/25)},
-        {"source":13,"target":25,"value":valuesLoc[25],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[25]/25)},
+        {"source":13,"target":31,"value":valuesLoc[31],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[31]/25)},
         {"source":13,"target":37,"value":valuesLoc[37],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[37]/25)},
-        {"source":14,"target":26,"value":valuesLoc[26],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[26]/25)},
+        {"source":14,"target":32,"value":valuesLoc[32],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[32]/25)},
         {"source":14,"target":38,"value":valuesLoc[38],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[38]/25)},
-        {"source":15,"target":27,"value":valuesLoc[27],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[27]/25)},
+        {"source":15,"target":33,"value":valuesLoc[33],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[33]/25)},
         {"source":15,"target":39,"value":valuesLoc[39],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[39]/25)},
-        {"source":16,"target":28,"value":valuesLoc[28],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[28]/25)},
+        {"source":16,"target":34,"value":valuesLoc[34],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[34]/25)},
         {"source":16,"target":40,"value":valuesLoc[40],"dh":height/(numberofModels*(localStep*2))*(valuesLoc[40]/25)},
       ]}
 
@@ -211,6 +370,9 @@ export default {
           .links(graph.links)
           .layout(0);
 
+      var colorDiff = d3v5.scaleLinear().domain([-100,100]).range(['#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b'])
+      var percentage = this.percentageOverall
+      console.log(percentage)
       // add in the links
         var link = svg.append("g").selectAll(".link")
             .data(graph.links)
@@ -226,7 +388,31 @@ export default {
             }
             if(d.source.node == 17){
               return "transparent";
-            }})
+            }
+            if(d.source.target == 16){
+                return colorDiff(percentage[0]);
+              } else if(d.source.target == 15){
+                return colorDiff(percentage[1]);
+              } else if(d.source.target == 14){
+                return colorDiff(percentage[2]);
+              } else if(d.source.target == 13){
+                return colorDiff(percentage[3]);
+              } else if(d.source.target == 12){
+                return colorDiff(percentage[4]);
+              } else if(d.source.target == 10){
+                return colorDiff(percentage[5]);
+              } else if(d.source.target == 9){
+                return colorDiff(percentage[6]);
+              } else if(d.source.target == 8){
+                return colorDiff(percentage[7]);
+              } else if(d.source.target == 7){
+                return colorDiff(percentage[8]);
+              } else if(d.source.target == 6){
+                return colorDiff(percentage[9]);
+              } else {
+                return "#000000"
+              }
+            }) 
             .style("stroke-width", function(d) { return Math.max(.5, d.dh); })   //setting the stroke length by the data . d.dh is defined in sankey.js
             .sort(function(a, b) { return b.dh - a.dh; })
             .on("mouseover",linkmouseover)
@@ -301,8 +487,13 @@ export default {
             .attr("transform", "scale(1,-1)")
             .text(function(d) { return d.name.replace(/-.*/, ""); })
             .style("font-weight", function(d) {
-              if (d.node == 5 || d.node == 11 || d.node == 17 || d.node == 23 || d.node == 29 || d.node == 35 || d.node == 51) {
+              if (d.node == 5 || d.node == 11 || d.node == 17 || d.node == 23 || d.node == 29 || d.node == 35 || d.node == 41) {
                 return "bold";
+              }
+            })
+            .style("font-size", function(d) {
+              if (d.node > 17) {
+                return "14.5px";
               }
             })
           .filter(function(d) { return d.x < width / 2; })//positioning left or right of node
@@ -473,13 +664,13 @@ export default {
         {"name":"MLP","node":8,"month":"Crossover_S1","color":"#fb9a99","dh":height/(numberofModels*localStep)},
         {"name":"LR","node":9,"month":"Crossover_S1","color":"#fdbf6f","dh":height/(numberofModels*localStep)},
         {"name":"KNN","node":10,"month":"Crossover_S1","color":"#ff7f00","dh":height/(numberofModels*localStep)},
-        {"name":"Mutate (M) stage 1","node":11,"month":"Crossover_S1","color":"#ffffff","dh":height/(numberofModels*localStep)},
+        {"name":"Mutate (M) S1","node":11,"month":"Crossover_S1","color":"#ffffff","dh":height/(numberofModels*localStep)},
         {"name":"GradB","node":12,"month":"Mutate_S1","color":"#a6cee3","dh":height/(numberofModels*localStep)},
         {"name":"RF","node":13,"month":"Mutate_S1","color":"#b15928","dh":height/(numberofModels*localStep)},
         {"name":"MLP","node":14,"month":"Mutate_S1","color":"#fb9a99","dh":height/(numberofModels*localStep)},
         {"name":"LR","node":15,"month":"Mutate_S1","color":"#fdbf6f","dh":height/(numberofModels*localStep)},
         {"name":"KNN","node":16,"month":"Mutate_S1","color":"#ff7f00","dh":height/(numberofModels*localStep)},
-        {"name":"Crossover (C) stage 1","node":17,"month":"Mutate_S1","color":"#ffffff","dh":height/(numberofModels*localStep)},
+        {"name":"Crossover (C) S1","node":17,"month":"Mutate_S1","color":"#ffffff","dh":height/(numberofModels*localStep)},
         ],
 
         "links":[
@@ -510,7 +701,10 @@ export default {
             .style("stroke",function(d){
             if(d.source.node == 5){
               return "transparent";
-            }})
+            } else {
+              return "#000000 !important"
+            }
+            })
             .style("stroke-width", function(d) { return Math.max(.5, d.dh); })   //setting the stroke length by the data . d.dh is defined in sankey.js
             .sort(function(a, b) { return b.dh - a.dh; })
             .on("mouseover",linkmouseover)
@@ -672,6 +866,16 @@ export default {
     EventBus.$on('ResponsiveandChange', data => {
     this.WH = data})
 
+    EventBus.$on('SendIDs', data => {
+    this.SendIDLocs = data})
+    EventBus.$on('SendPerformance', data => {
+    this.PerF = data})
+    EventBus.$on('SendPerformanceCM', data => {
+    this.PerFCM = data})
+    EventBus.$on('SendPerformance', this.computePerformanceDiff)
+    EventBus.$on('SendStoredEnsembleHist', data => { this.storedEnsem = data })
+    EventBus.$on('SendStoredCMHist', data => { this.storedCM = data })
+
     // reset the views
     EventBus.$on('resetViews', this.reset)
   }
@@ -692,22 +896,6 @@ export default {
 
 .link {
 	fill: none;
-	stroke: #000;
-	stroke-opacity: .05;
-	}
-
-.link:hover {
-	stroke-opacity: .5;
-	}
-
-.node text {
-	pointer-events: none;
-	text-shadow: 0 1px 0 #fff;
-	}
-
-.link {
-	fill: none;
-	stroke: #000;
 	stroke-opacity: .05;
 	}
 

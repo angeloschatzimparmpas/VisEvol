@@ -564,12 +564,12 @@ def retrieveModel():
             AlgorithmsIDsEnd = countAllModels
         elif (eachAlgor) == 'RF':
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': list(range(20, 100)), 'criterion': ['gini', 'entropy']}
+            params = {'n_estimators': list(range(20, 100)), 'max_depth': list(range(2, 20)), 'criterion': ['gini', 'entropy']}
             countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
         else: 
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': list(range(20, 100)), 'learning_rate': list(np.arange(0.01,0.23,0.11)), 'criterion': ['friedman_mse', 'mse', 'mae']}
+            params = {'n_estimators': list(range(20, 100)), 'learning_rate': list(np.arange(0.01,0.56,0.11)), 'criterion': ['friedman_mse', 'mse', 'mae']}
             countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
             countAllModels = countAllModels + randomSearchVar
@@ -584,7 +584,7 @@ memory = Memory(location, verbose=0)
 
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
-
+    print(clf)
     search = RandomizedSearchCV(    
         estimator=clf, param_distributions=params, n_iter=100,
         cv=crossValidation, refit='accuracy', scoring=scoring,
@@ -1302,9 +1302,1124 @@ def CrossoverMutateFun():
 
     setMaxLoopValue = setMaxLoopValue['loopNumber']
 
-    InitializeFirstStageCM(RemainingIds, setMaxLoopValue)
+    CurStage = request.get_data().decode('utf8').replace("'", '"')
+    CurStage = json.loads(CurStage)
 
+    CurStage = CurStage['Stage']
+
+    if (CurStage == 1):
+        InitializeFirstStageCM(RemainingIds, setMaxLoopValue)
+    else:
+        InitializeSecondStageCM(RemainingIds, setMaxLoopValue)
     return 'Okay'
+
+def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
+    random.seed(RANDOM_SEED)
+    
+    global XData
+    global yData
+    global addKNN
+    global addLR
+    global addMLP
+    global addRF
+    global addGradB
+    global countAllModels
+
+    # loop through the algorithms
+    global allParametersPerfCrossMutr
+    global HistoryPreservation
+
+    global randomSearchVar
+    greater = randomSearchVar*5
+
+    KNNIDsC = list(filter(lambda k: 'KNN_C' in k, RemainingIds))
+    LRIDsC = list(filter(lambda k: 'LR_C' in k, RemainingIds))
+    MLPIDsC = list(filter(lambda k: 'MLP_C' in k, RemainingIds))
+    RFIDsC = list(filter(lambda k: 'RF_C' in k, RemainingIds))
+    GradBIDsC = list(filter(lambda k: 'GradB_C' in k, RemainingIds))
+    KNNIDsM = list(filter(lambda k: 'KNN_M' in k, RemainingIds))
+    LRIDsM = list(filter(lambda k: 'LR_M' in k, RemainingIds))
+    MLPIDsM = list(filter(lambda k: 'MLP_M' in k, RemainingIds))
+    RFIDsM = list(filter(lambda k: 'RF_M' in k, RemainingIds))
+    GradBIDsM = list(filter(lambda k: 'GradB_M' in k, RemainingIds))
+
+    countKNN = 0
+    countLR = 0
+    countMLP = 0
+    countRF = 0
+    countGradB = 0
+    paramAllAlgs = PreprocessingParam()
+
+    KNNIntIndex = []
+    LRIntIndex = []
+    MLPIntIndex = []
+    RFIntIndex = []
+    GradBIntIndex = []
+    
+    localCrossMutr = []
+    allParametersPerfCrossMutrKNNCC = []
+
+    while countKNN < setMaxLoopValue[40]:
+        for dr in KNNIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+            else:
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+        KNNPickPair = random.sample(KNNIntIndex,2)
+        pairDF = paramAllAlgs.iloc[KNNPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = KNeighborsClassifier()
+            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countKNN
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_C_C', AlgorithmsIDsEnd)
+            countKNN += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[40]
+
+    for loop in range(setMaxLoopValue[40] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrKNNCC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrKNNCC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrKNNCC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrKNNCC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNCC
+
+    countKNN = 0
+    KNNIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrKNNCM = []
+
+    while countKNN < setMaxLoopValue[34]:
+        for dr in KNNIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+            else:
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+        KNNPickPair = random.sample(KNNIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[KNNPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_neighbors'):
+                randomNumber = random.randint(101, math.floor(((len(yData)/crossValidation)*(crossValidation-1)))-1)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = KNeighborsClassifier()
+            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countKNN
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_C_M', AlgorithmsIDsEnd)
+            countKNN += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[34]
+
+    for loop in range(setMaxLoopValue[34] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrKNNCM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrKNNCM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrKNNCM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrKNNCM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNCM
+
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrLRCC = []
+
+    while countLR < setMaxLoopValue[39]:
+        for dr in LRIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+            else:
+                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+        LRPickPair = random.sample(LRIntIndex,2)
+        pairDF = paramAllAlgs.iloc[LRPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = LogisticRegression(random_state=RANDOM_SEED)
+            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countLR
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_C_C', AlgorithmsIDsEnd)
+            countLR += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[39]
+
+    for loop in range(setMaxLoopValue[39] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrLRCC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrLRCC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrLRCC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrLRCC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRCC
+
+    countLR = 0
+    LRIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrLRCM = []
+
+    while countLR < setMaxLoopValue[33]:
+        for dr in LRIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+            else:
+                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+        LRPickPair = random.sample(LRIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[LRPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'C'):
+                randomNumber = random.randint(101, 1000)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = LogisticRegression(random_state=RANDOM_SEED)
+            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countLR
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_C_M', AlgorithmsIDsEnd)
+            countLR += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[33]
+
+    for loop in range(setMaxLoopValue[33] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrLRCM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrLRCM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrLRCM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrLRCM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRCM
+    
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrMLPCC = []
+
+    while countMLP < setMaxLoopValue[38]:
+        for dr in MLPIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+            else:
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+        MLPPickPair = random.sample(MLPIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[MLPPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countMLP
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_C_C', AlgorithmsIDsEnd)
+            countMLP += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[38]
+
+    for loop in range(setMaxLoopValue[38] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrMLPCC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrMLPCC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrMLPCC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrMLPCC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPCC
+
+    countMLP = 0
+    MLPIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrMLPCM = []
+
+    while countMLP < setMaxLoopValue[32]:
+        for dr in MLPIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+            else:
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+        MLPPickPair = random.sample(MLPIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[MLPPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'hidden_layer_sizes'):
+                randomNumber = (random.randint(10,60), random.randint(4,10))
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countMLP
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_C_M', AlgorithmsIDsEnd)
+            countMLP += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[32]
+
+    for loop in range(setMaxLoopValue[32] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrMLPCM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrMLPCM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrMLPCM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrMLPCM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPCM
+
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrRFCC = []
+
+    while countRF < setMaxLoopValue[37]:
+        for dr in RFIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+            else:
+                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+        RFPickPair = random.sample(RFIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[RFPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countRF
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C_C', AlgorithmsIDsEnd)
+            countRF += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[37]
+
+    for loop in range(setMaxLoopValue[37] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrRFCC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrRFCC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrRFCC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrRFCC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFCC
+
+    countRF = 0
+    RFIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrRFCM = []
+
+    while countRF < setMaxLoopValue[31]:
+        for dr in RFIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+            else:
+                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+        RFPickPair = random.sample(RFIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[RFPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_estimators'):
+                randomNumber = random.randint(100, 200)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countRF
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C_M', AlgorithmsIDsEnd)
+            countRF += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[31]
+
+    for loop in range(setMaxLoopValue[31] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrRFCM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrRFCM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrRFCM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrRFCM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFCM
+
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrGradBCC = []
+
+    while countGradB < setMaxLoopValue[36]:
+        for dr in GradBIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+            else:
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+        GradBPickPair = random.sample(GradBIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[GradBPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countGradB
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_C_C', AlgorithmsIDsEnd)
+            countGradB += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[36]
+
+    for loop in range(setMaxLoopValue[36] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrGradBCC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrGradBCC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrGradBCC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrGradBCC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBCC
+
+    countGradB = 0
+    GradBIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrGradBCM = []
+            
+    while countGradB < setMaxLoopValue[30]:
+        for dr in GradBIDsC:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+            else:
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+        GradPickPair = random.sample(GradBIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[GradBPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_estimators'):
+                randomNumber = random.randint(100, 200)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countGradB
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_C_M', AlgorithmsIDsEnd)
+            countGradB += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[30]
+
+    for loop in range(setMaxLoopValue[30] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrGradBCM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrGradBCM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrGradBCM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrGradBCM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBCM
+
+    countKNN = 0
+    countLR = 0
+    countMLP = 0
+    countRF = 0
+    countGradB = 0
+    paramAllAlgs = PreprocessingParam()
+
+    KNNIntIndex = []
+    LRIntIndex = []
+    MLPIntIndex = []
+    RFIntIndex = []
+    GradBIntIndex = []
+    
+    localCrossMutr = []
+    allParametersPerfCrossMutrKNNMC = []
+
+    while countKNN < setMaxLoopValue[28]:
+        for dr in KNNIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+            else:
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+        KNNPickPair = random.sample(KNNIntIndex,2)
+        pairDF = paramAllAlgs.iloc[KNNPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = KNeighborsClassifier()
+            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countKNN
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_M_C', AlgorithmsIDsEnd)
+            countKNN += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[28]
+
+    for loop in range(setMaxLoopValue[28] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMC
+
+    countKNN = 0
+    KNNIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrKNNMM = []
+
+    while countKNN < setMaxLoopValue[22]:
+        for dr in KNNIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+            else:
+                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+        KNNPickPair = random.sample(KNNIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[KNNPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_neighbors'):
+                randomNumber = random.randint(101, math.floor(((len(yData)/crossValidation)*(crossValidation-1)))-1)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = KNeighborsClassifier()
+            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countKNN
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_M_M', AlgorithmsIDsEnd)
+            countKNN += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[22]
+
+    for loop in range(setMaxLoopValue[22] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMM
+
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrLRMC = []
+
+    while countLR < setMaxLoopValue[27]:
+        for dr in LRIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+            else:
+                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+        LRPickPair = random.sample(LRIntIndex,2)
+        pairDF = paramAllAlgs.iloc[LRPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = LogisticRegression(random_state=RANDOM_SEED)
+            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countLR
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_M_C', AlgorithmsIDsEnd)
+            countLR += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[27]
+
+    for loop in range(setMaxLoopValue[27] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRMC
+
+    countLR = 0
+    LRIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrLRMM = []
+
+    while countLR < setMaxLoopValue[21]:
+        for dr in LRIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+            else:
+                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+        LRPickPair = random.sample(LRIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[LRPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'C'):
+                randomNumber = random.randint(101, 1000)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = LogisticRegression(random_state=RANDOM_SEED)
+            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countLR
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_M_M', AlgorithmsIDsEnd)
+            countLR += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[21]
+
+    for loop in range(setMaxLoopValue[21] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRMM
+    
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrMLPMC = []
+
+    while countMLP < setMaxLoopValue[26]:
+        for dr in MLPIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+            else:
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+        MLPPickPair = random.sample(MLPIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[MLPPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countMLP
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_M_C', AlgorithmsIDsEnd)
+            countMLP += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[26]
+
+    for loop in range(setMaxLoopValue[26] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMC
+
+    countMLP = 0
+    MLPIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrMLPMM = []
+
+    while countMLP < setMaxLoopValue[20]:
+        for dr in MLPIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+            else:
+                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+        MLPPickPair = random.sample(MLPIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[MLPPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'hidden_layer_sizes'):
+                randomNumber = (random.randint(10,60), random.randint(4,10))
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countMLP
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_M_M', AlgorithmsIDsEnd)
+            countMLP += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[20]
+
+    for loop in range(setMaxLoopValue[20] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMM
+
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrRFMC = []
+
+    while countRF < setMaxLoopValue[25]:
+        for dr in RFIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+            else:
+                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+        RFPickPair = random.sample(RFIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[RFPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countRF
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M_C', AlgorithmsIDsEnd)
+            countRF += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[25]
+
+    for loop in range(setMaxLoopValue[25] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFMC
+
+    countRF = 0
+    RFIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrRFMM = []
+
+    while countRF < setMaxLoopValue[19]:
+        for dr in RFIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+            else:
+                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+        RFPickPair = random.sample(RFIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[RFPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_estimators'):
+                randomNumber = random.randint(100, 200)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countRF
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M_M', AlgorithmsIDsEnd)
+            countRF += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[19]
+
+    for loop in range(setMaxLoopValue[19] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFMM
+
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrGradBMC = []
+
+    while countGradB < setMaxLoopValue[24]:
+        for dr in GradBIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+            else:
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+        GradBPickPair = random.sample(GradBIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[GradBPickPair]
+        print(pairDF)
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countGradB
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_M_C', AlgorithmsIDsEnd)
+            countGradB += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[24]
+
+    for loop in range(setMaxLoopValue[24] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrGradBMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrGradBMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrGradBMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrGradBMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBMC
+
+    countGradB = 0
+    GradBIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrGradBMM = []
+            
+    while countGradB < setMaxLoopValue[18]:
+        for dr in GradBIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+            else:
+                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+        GradPickPair = random.sample(GradBIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[GradBPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_estimators'):
+                randomNumber = random.randint(100, 200)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countGradB
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_M_M', AlgorithmsIDsEnd)
+            countGradB += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[18]
+
+    for loop in range(setMaxLoopValue[18] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrGradBMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrGradBMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrGradBMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrGradBMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBMM
+
+    localCrossMutr.clear()
+
+    allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNCC + allParametersPerfCrossMutrKNNCM + allParametersPerfCrossMutrLRCC + allParametersPerfCrossMutrLRCM + allParametersPerfCrossMutrMLPCC + allParametersPerfCrossMutrMLPCM + allParametersPerfCrossMutrRFCC + allParametersPerfCrossMutrRFCM + allParametersPerfCrossMutrGradBCC + allParametersPerfCrossMutrGradBCM + allParametersPerfCrossMutrKNNMC + allParametersPerfCrossMutrKNNMM + allParametersPerfCrossMutrLRMC + allParametersPerfCrossMutrLRMM + allParametersPerfCrossMutrMLPMC + allParametersPerfCrossMutrMLPMM + allParametersPerfCrossMutrRFMC + allParametersPerfCrossMutrRFMM + allParametersPerfCrossMutrGradBMC + allParametersPerfCrossMutrGradBMM
+    allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNCC[0] + allParametersPerfCrossMutrKNNCM[0]
+
+    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNCC[1]], ignore_index=True)
+    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNCM[1]], ignore_index=True)
+    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNCC[2]], ignore_index=True)
+    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNCC[3]], ignore_index=True)
+    allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNCM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModel[4] = allParametersPerformancePerModel[4] + allParametersPerfCrossMutrLRCC[0] + allParametersPerfCrossMutrLRCM[0]
+    
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRCC[1]], ignore_index=True)
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRCM[1]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRCC[2]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRCC[3]], ignore_index=True)
+    allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[8] = allParametersPerformancePerModel[8] + allParametersPerfCrossMutrMLPCC[0] + allParametersPerfCrossMutrMLPCM[0]
+    
+    allParametersPerformancePerModel[9] = pd.concat([allParametersPerformancePerModel[9], allParametersPerfCrossMutrMLPCC[1]], ignore_index=True)
+    allParametersPerformancePerModel[9] = pd.concat([allParametersPerformancePerModel[9], allParametersPerfCrossMutrMLPCM[1]], ignore_index=True)
+    allParametersPerformancePerModel[10] = pd.concat([allParametersPerformancePerModel[10], allParametersPerfCrossMutrMLPCC[2]], ignore_index=True)
+    allParametersPerformancePerModel[10] = pd.concat([allParametersPerformancePerModel[10], allParametersPerfCrossMutrMLPCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[11] = pd.concat([allParametersPerformancePerModel[11], allParametersPerfCrossMutrMLPCC[3]], ignore_index=True)
+    allParametersPerformancePerModel[11] = pd.concat([allParametersPerformancePerModel[11], allParametersPerfCrossMutrMLPCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[12] = allParametersPerformancePerModel[12] + allParametersPerfCrossMutrRFCC[0] + allParametersPerfCrossMutrRFCM[0]
+    
+    allParametersPerformancePerModel[13] = pd.concat([allParametersPerformancePerModel[13], allParametersPerfCrossMutrRFCC[1]], ignore_index=True)
+    allParametersPerformancePerModel[13] = pd.concat([allParametersPerformancePerModel[13], allParametersPerfCrossMutrRFCM[1]], ignore_index=True)
+    allParametersPerformancePerModel[14] = pd.concat([allParametersPerformancePerModel[14], allParametersPerfCrossMutrRFCC[2]], ignore_index=True)
+    allParametersPerformancePerModel[14] = pd.concat([allParametersPerformancePerModel[14], allParametersPerfCrossMutrRFCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[15] = pd.concat([allParametersPerformancePerModel[15], allParametersPerfCrossMutrRFCC[3]], ignore_index=True)
+    allParametersPerformancePerModel[15] = pd.concat([allParametersPerformancePerModel[15], allParametersPerfCrossMutrRFCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[16] = allParametersPerformancePerModel[16] + allParametersPerfCrossMutrGradBCC[0] + allParametersPerfCrossMutrGradBCM[0]
+    
+    allParametersPerformancePerModel[17] = pd.concat([allParametersPerformancePerModel[17], allParametersPerfCrossMutrGradBCC[1]], ignore_index=True)
+    allParametersPerformancePerModel[17] = pd.concat([allParametersPerformancePerModel[17], allParametersPerfCrossMutrGradBCM[1]], ignore_index=True)
+    allParametersPerformancePerModel[18] = pd.concat([allParametersPerformancePerModel[18], allParametersPerfCrossMutrGradBCC[2]], ignore_index=True)
+    allParametersPerformancePerModel[18] = pd.concat([allParametersPerformancePerModel[18], allParametersPerfCrossMutrGradBCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBCC[3]], ignore_index=True)
+    allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNMC[0] + allParametersPerfCrossMutrKNNMM[0]
+
+    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNMC[1]], ignore_index=True)
+    allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNMM[1]], ignore_index=True)
+    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNMC[2]], ignore_index=True)
+    allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNMC[3]], ignore_index=True)
+    allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNMM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModel[4] = allParametersPerformancePerModel[4] + allParametersPerfCrossMutrLRMC[0] + allParametersPerfCrossMutrLRMM[0]
+    
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRMC[1]], ignore_index=True)
+    allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRMM[1]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRMC[2]], ignore_index=True)
+    allParametersPerformancePerModel[6] = pd.concat([allParametersPerformancePerModel[6], allParametersPerfCrossMutrLRMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRMC[3]], ignore_index=True)
+    allParametersPerformancePerModel[7] = pd.concat([allParametersPerformancePerModel[7], allParametersPerfCrossMutrLRMM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[8] = allParametersPerformancePerModel[8] + allParametersPerfCrossMutrMLPMC[0] + allParametersPerfCrossMutrMLPMM[0]
+    
+    allParametersPerformancePerModel[9] = pd.concat([allParametersPerformancePerModel[9], allParametersPerfCrossMutrMLPMC[1]], ignore_index=True)
+    allParametersPerformancePerModel[9] = pd.concat([allParametersPerformancePerModel[9], allParametersPerfCrossMutrMLPMM[1]], ignore_index=True)
+    allParametersPerformancePerModel[10] = pd.concat([allParametersPerformancePerModel[10], allParametersPerfCrossMutrMLPMC[2]], ignore_index=True)
+    allParametersPerformancePerModel[10] = pd.concat([allParametersPerformancePerModel[10], allParametersPerfCrossMutrMLPMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[11] = pd.concat([allParametersPerformancePerModel[11], allParametersPerfCrossMutrMLPMC[3]], ignore_index=True)
+    allParametersPerformancePerModel[11] = pd.concat([allParametersPerformancePerModel[11], allParametersPerfCrossMutrMLPMM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[12] = allParametersPerformancePerModel[12] + allParametersPerfCrossMutrRFMC[0] + allParametersPerfCrossMutrRFMM[0]
+    
+    allParametersPerformancePerModel[13] = pd.concat([allParametersPerformancePerModel[13], allParametersPerfCrossMutrRFMC[1]], ignore_index=True)
+    allParametersPerformancePerModel[13] = pd.concat([allParametersPerformancePerModel[13], allParametersPerfCrossMutrRFMM[1]], ignore_index=True)
+    allParametersPerformancePerModel[14] = pd.concat([allParametersPerformancePerModel[14], allParametersPerfCrossMutrRFMC[2]], ignore_index=True)
+    allParametersPerformancePerModel[14] = pd.concat([allParametersPerformancePerModel[14], allParametersPerfCrossMutrRFMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[15] = pd.concat([allParametersPerformancePerModel[15], allParametersPerfCrossMutrRFMC[3]], ignore_index=True)
+    allParametersPerformancePerModel[15] = pd.concat([allParametersPerformancePerModel[15], allParametersPerfCrossMutrRFMM[3]], ignore_index=True)
+
+    allParametersPerformancePerModel[16] = allParametersPerformancePerModel[16] + allParametersPerfCrossMutrGradBMC[0] + allParametersPerfCrossMutrGradBMM[0]
+    
+    allParametersPerformancePerModel[17] = pd.concat([allParametersPerformancePerModel[17], allParametersPerfCrossMutrGradBMC[1]], ignore_index=True)
+    allParametersPerformancePerModel[17] = pd.concat([allParametersPerformancePerModel[17], allParametersPerfCrossMutrGradBMM[1]], ignore_index=True)
+    allParametersPerformancePerModel[18] = pd.concat([allParametersPerformancePerModel[18], allParametersPerfCrossMutrGradBMC[2]], ignore_index=True)
+    allParametersPerformancePerModel[18] = pd.concat([allParametersPerformancePerModel[18], allParametersPerfCrossMutrGradBMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBMC[3]], ignore_index=True)
+    allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBMM[3]], ignore_index=True)
+
+    addKNN = addGradB
+
+    addLR = addKNN + setMaxLoopValue[40] + setMaxLoopValue[34] + setMaxLoopValue[28] + setMaxLoopValue[22]
+
+    addMLP = addLR + setMaxLoopValue[39] + setMaxLoopValue[33] + setMaxLoopValue[27] + setMaxLoopValue[21]
+
+    addRF = addMLP + setMaxLoopValue[38] + setMaxLoopValue[32] + setMaxLoopValue[26] + setMaxLoopValue[20]
+
+    addGradB = addRF + setMaxLoopValue[37] + setMaxLoopValue[31] + setMaxLoopValue[25] + setMaxLoopValue[19]
+
+    return 'Everything Okay'
 
 def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     random.seed(RANDOM_SEED)
@@ -1643,11 +2758,11 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             valuePerColumn = pairDF[column].iloc[randomZeroOne]
             listData.append(valuePerColumn)
             crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C', AlgorithmsIDsEnd)
             countRF += 1
@@ -1674,10 +2789,11 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrRFM = []
 
     while countRF < setMaxLoopValue[7]:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-        else:
-            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+        for dr in RFIDs:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+            else:
+                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
         RFPickPair = random.sample(RFIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[RFPickPair]
@@ -1692,11 +2808,11 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
                 valuePerColumn = pairDF[column].iloc[0]
                 listData.append(valuePerColumn)
                 crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
             localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M', AlgorithmsIDsEnd)
             countRF += 1
@@ -1878,7 +2994,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     return 'Everything Okay'
 
 def crossoverMutation(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
-    print(clf)
+    print(eachAlgor)
     search = GridSearchCV(    
     estimator=clf, param_grid=params, cv=crossValidation, refit='accuracy', 
     scoring=scoring, verbose=0, n_jobs=-1)

@@ -44,7 +44,7 @@ export default {
             selector:"#violin",
             constrainExtremes:true});
         chart2.renderBoxPlot({showBox:false});
-        chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,colors:['#000000'],showLines:['median']});
+        chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,colors:['#ff7f00','#fdbf6f','#fb9a99','#b15928','#a6cee3'],showLines:['median']});
         chart2.renderNotchBoxes({showNotchBox:false});
         chart2.renderViolinPlot({reset:true, width:75, clamp:0, resolution:30, bandwidth:50});
 

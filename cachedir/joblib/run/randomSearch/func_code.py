@@ -1,7 +1,7 @@
-# first line: 595
+# first line: 585
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
-
+    print(clf)
     search = RandomizedSearchCV(    
         estimator=clf, param_distributions=params, n_iter=100,
         cv=crossValidation, refit='accuracy', scoring=scoring,

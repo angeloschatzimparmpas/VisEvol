@@ -280,7 +280,6 @@ export default {
         var RFPred = predictions[3]
         var GradBPred = predictions[4]
         var PredAver = predictions[5]
-        console.log(predictions)
       } else {
         var KNNPred = predictionsAll[0]
         var LRPred = predictionsAll[1]

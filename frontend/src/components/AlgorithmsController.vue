@@ -26,15 +26,15 @@ export default {
       var data = []
         for (let i=0; i<500; i++){
             if (i<100) {
-                data.push({Algorithm:"KNN",value:randomIntFromInterval(40,100)})
+                data.push({Algorithm:"KNN",value:randomIntFromInterval(40,100), size:(Math.floor(Math.random() * 4) + 4)})
             } else if (i<200){
-                data.push({Algorithm:"LR",value:randomIntFromInterval(50,100)})
+                data.push({Algorithm:"LR",value:randomIntFromInterval(50,100), size:(Math.floor(Math.random() * 4) + 4)})
             } else if (i<300){
-                data.push({Algorithm:"MLP",value:randomIntFromInterval(30,100)})
+                data.push({Algorithm:"MLP",value:randomIntFromInterval(30,100), size:(Math.floor(Math.random() * 4) + 4)})
             } else if (i<400){
-                data.push({Algorithm:"RF",value:randomIntFromInterval(10,100)})
+                data.push({Algorithm:"RF",value:randomIntFromInterval(10,100), size:(Math.floor(Math.random() * 4) + 4)})
             } else {
-                data.push({Algorithm:"GradB",value:randomIntFromInterval(0,100)})
+                data.push({Algorithm:"GradB",value:randomIntFromInterval(0,100), size:(Math.floor(Math.random() * 4) + 4)})
             }
         }
         function randomIntFromInterval(min, max) { // min and max included 
@@ -1346,7 +1346,7 @@ export default {
                   show: true,
                   showPlot: false,
                   plotType: 'none',
-                  pointSize: 6,
+                  pointSize: 8,
                   showLines: false,//['median'],
                   showBeanLines: false,
                   beanWidth: 20,
@@ -1444,6 +1444,7 @@ export default {
                             .interpolate(d3.interpolateRound)
                             .domain(chart.yScale.domain());
                         var maxWidth = Math.floor(chart.xScale.rangeBand() / dOpts.pointSize);
+
                         var ptsObj = {};
                         var cYBucket = null;
                         //  Bucket points
@@ -1559,7 +1560,7 @@ export default {
                           for (var pt = 0; pt < chart.groupObjs[cName].values.length; pt++) {
                               cPlot.objs.points.pts.push(cPlot.objs.points.g.append("circle")
                                   .attr("class", "point")
-                                  .attr('r', dOpts.pointSize / 2)// Options is diameter, r takes radius so divide by 2
+                                  .attr('r', function () { return chart.data[pt].size / 2; })// Options is diameter, r takes radius so divide by 2
                                   .style("fill", chart.dataPlots.colorFunct(cName)));
                           }
                       }
