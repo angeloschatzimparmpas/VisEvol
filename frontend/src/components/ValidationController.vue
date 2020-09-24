@@ -25,13 +25,34 @@ export default {
       var chart2
 
       var data = []
-        for (let i=0; i<500; i++){
-            data.push({Algorithm:"Accuracy",value:randomIntFromInterval(40,100)})
-            data.push({Algorithm:"Precision",value:randomIntFromInterval(60,100)})
-            data.push({Algorithm:"Recall",value:randomIntFromInterval(30,100)})
-            data.push({Algorithm:"F1-score",value:randomIntFromInterval(0,100)})
+        for (let i=0; i<400; i++){
+            if (i < 100){
+                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(10,60), category:"#ff7f00"})
+                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(10,30), category:"#fdbf6f"})
+                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(15,25), category:"#fb9a99"})
+                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(35,45), category:"#b15928"})
+                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(55,70), category:"#a6cee3"})            
+            } else if (i < 200){
+                data.push({Algorithm:"Precision",value:randomIntFromInterval(10,60), category:"#ff7f00"})
+                data.push({Algorithm:"Precision",value:randomIntFromInterval(40,70), category:"#fdbf6f"})
+                data.push({Algorithm:"Precision",value:randomIntFromInterval(60,100), category:"#fb9a99"})
+                data.push({Algorithm:"Precision",value:randomIntFromInterval(60,79), category:"#b15928"})
+                data.push({Algorithm:"Precision",value:randomIntFromInterval(40,45), category:"#a6cee3"})           
+            } else if (i < 300){
+                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,40), category:"#ff7f00"})
+                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,40), category:"#fdbf6f"})
+                data.push({Algorithm:"Recall",value:randomIntFromInterval(12,30), category:"#fb9a99"})
+                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,40), category:"#b15928"})    
+                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,70), category:"#a6cee3"})   
+            } else {
+                data.push({Algorithm:"F1-score",value:randomIntFromInterval(20,80), category:"#ff7f00"})
+                data.push({Algorithm:"F1-score",value:randomIntFromInterval(30,40), category:"#fdbf6f"}) 
+                data.push({Algorithm:"F1-score",value:randomIntFromInterval(50,70), category:"#fb9a99"}) 
+                data.push({Algorithm:"F1-score",value:randomIntFromInterval(60,70), category:"#b15928"})  
+                data.push({Algorithm:"F1-score",value:randomIntFromInterval(80,100), category:"#a6cee3"})   
+            }
+            
         }
-
         function randomIntFromInterval(min, max) { // min and max included 
         return Math.floor(Math.random() * (max - min + 1) + min);
         }
@@ -44,7 +65,7 @@ export default {
             selector:"#violin",
             constrainExtremes:true});
         chart2.renderBoxPlot({showBox:false});
-        chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,colors:['#ff7f00','#fdbf6f','#fb9a99','#b15928','#a6cee3'],showLines:['median']});
+        chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,showLines:['median']});
         chart2.renderNotchBoxes({showNotchBox:false});
         chart2.renderViolinPlot({reset:true, width:75, clamp:0, resolution:30, bandwidth:50});
 
@@ -131,7 +152,7 @@ export default {
                       return colorOptions[group];
                   }
               } else {
-                  return d3.scale.ordinal().range(['#555','#555','#555','#555','#ffff99'])
+                  return d3.scale.ordinal().range(['#c0c0c0','#c0c0c0','#c0c0c0','#c0c0c0','#ffff99'])
               }
           }
 
@@ -1288,7 +1309,6 @@ export default {
                       cNotch = chart.groupObjs[cName].notchBox;
 
                       cNotch.objs.g = chart.groupObjs[cName].g.append("g").attr("class", "notch-plot");
-
                       // Plot Box (default show)
                       if (nOpts.showNotchBox) {
                           cNotch.objs.notch = cNotch.objs.g.append("polygon")
@@ -1346,7 +1366,8 @@ export default {
                   showBeanLines: false,
                   beanWidth: 20,
                   colors: null
-              };
+              };   
+
               chart.dataPlots.options = shallowCopy(defaultOptions);
               for (var option in options) {
                   chart.dataPlots.options[option] = options[option]
@@ -1540,6 +1561,8 @@ export default {
 
                   }
 
+                  // mention active models number
+                  var loopValue = 0
 
                   for (cName in chart.groupObjs) {
 
@@ -1567,9 +1590,11 @@ export default {
                               cPlot.objs.bean.lines.push(cPlot.objs.bean.g.append("line")
                                   .attr("class", "bean line")
                                   .style("stroke-width", '1')
-                                  .style("stroke", chart.dataPlots.colorFunct(cName)));
+                                  .style("stroke", function () { return chart.data[pt+loopValue].category; }));
                           }
                       }
+
+                      loopValue = loopValue + 500
                   }
 
               };

@@ -274,6 +274,7 @@ export default {
 
       if (this.predictSelection.length != 0) {
         var predictions = this.predictSelection
+        console.log(predictions)
         var KNNPred = predictions[0]
         var LRPred = predictions[1]
         var MLPPred = predictions[2]
@@ -281,6 +282,7 @@ export default {
         var GradBPred = predictions[4]
         var PredAver = predictions[5]
       } else {
+        console.log(predictionsAll)
         var KNNPred = predictionsAll[0]
         var LRPred = predictionsAll[1]
         var MLPPred = predictionsAll[2]
@@ -294,10 +296,11 @@ export default {
       var RFPredAll = predictionsAll[3]
       var GradBPredAll = predictionsAll[4]
       var PredAverAll = predictionsAll[5]
-      
+      console.log(PredAverAll)
+      console.log(PredAver)
       var yValues = JSON.parse(this.GetResultsSelection[6])
       var targetNames = JSON.parse(this.GetResultsSelection[7])
-
+      console.log(yValues)
       var getIndices = []
       for (let i = 0; i < targetNames.length; i++) {
         let clTemp = []

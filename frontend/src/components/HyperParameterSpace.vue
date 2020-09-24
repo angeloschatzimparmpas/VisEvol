@@ -66,7 +66,7 @@ export default {
       var MDSData= JSON.parse(this.ScatterPlotResults[9])
       var TSNEData = JSON.parse(this.ScatterPlotResults[10])
       var UMAPData = JSON.parse(this.ScatterPlotResults[11])
-
+      
       EventBus.$emit('sendPointsNumber', modelId.length)
 
       var stringParameters = []
@@ -78,16 +78,16 @@ export default {
       var classifiersInfoProcessing = []
       for (let i = 0; i < modelId.length; i++) {
         let tempSplit = modelId[i].split(/([0-9]+)/)
-        if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNN_C' || tempSplit[0] == 'KNN_M') {
+        if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> k-nearest neighbor' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LR_C' || tempSplit[0] == 'LR_M') {
+        else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LRC' || tempSplit[0] == 'LRM') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> logistic regression' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLP_C' || tempSplit[0] == 'MLP_M') {
+        else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLPM') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> multilayer perceptron' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
-        else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RF_C' || tempSplit[0] == 'RF_M') {
+        else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RFC' || tempSplit[0] == 'RFM') {
           classifiersInfoProcessing[i] = '<b>Model ID:</b> ' + modelId[i] + '<br><b>Algorithm:</b> random forest' + '<br><b>Parameters:</b> ' + stringParameters[i]
         }
         else {
@@ -298,7 +298,9 @@ export default {
               pushModelsRemainingTemp.push(allModels[i])
             }
           }
+          console.log(pushModelsRemainingTemp)
           EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
+          console.log(ClassifierIDsList)
           EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
           EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
         }

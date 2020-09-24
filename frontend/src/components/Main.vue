@@ -169,7 +169,7 @@
               </b-col>
               <b-col cols="3">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="calculator" /></span>Predictive Results for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
                       <mdb-card-text class="text-center"  style="min-height: 270px">   
@@ -233,7 +233,7 @@ export default Vue.extend({
       CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       CMNumberofModels: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
       CMNumberofModelsOFFICIALS2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
-      CMNumberofModelsS2: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
+      CMNumberofModelsS2: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0,2,2,2,2,2,0,2,2,2,2,2,0,2,2,2,2,2,0,2,2,2,2,2,0], // Remove that!
       CurrentStage: 1,
       projectionID_A: 1,
       projectionID_B: 1,
@@ -353,9 +353,9 @@ export default Vue.extend({
             var IDsLocal = JSON.parse(this.OverviewResults[0])
             var Performance = JSON.parse(this.OverviewResults[1])
             EventBus.$emit('SendIDs', IDsLocal)
-            EventBus.$emit('SendPerformance', Performance)
-            EventBus.$emit('SendStoredEnsembleHist', this.ModelsLocal)
+            EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemble)
             EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
+            EventBus.$emit('SendPerformance', Performance)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
             EventBus.$emit('emittedEventCallingSankeyStage2')
@@ -527,6 +527,7 @@ export default Vue.extend({
       } else {
         this.OverSelLengthCM = this.ClassifierIDsListCM.length
         const path = `http://127.0.0.1:5000/data/ServerRequestSelPoin`
+        console.log(this.ClassifierIDsListCM)
         const postData = {
           ClassifiersList: this.ClassifierIDsListCM,
         }
@@ -568,7 +569,7 @@ export default Vue.extend({
       }
       axios.post(path, postData, axiosConfig)
       .then(response => {
-      console.log('Sent the selected points to the server (scatterplot)!')
+      console.log('Remove from Ensemble (scatterplot)!')
       this.getDatafromtheBackEnd()
       })
       .catch(error => {

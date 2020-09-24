@@ -542,7 +542,6 @@ def retrieveModel():
     global HistoryPreservation
 
     for eachAlgor in algorithms:
-        print(eachAlgor)
         if (eachAlgor) == 'KNN':
             clf = KNeighborsClassifier()
             params = {'n_neighbors': list(range(1, 100)), 'metric': ['chebyshev', 'manhattan', 'euclidean', 'minkowski'], 'algorithm': ['brute', 'kd_tree', 'ball_tree'], 'weights': ['uniform', 'distance']}
@@ -569,7 +568,7 @@ def retrieveModel():
             AlgorithmsIDsEnd = countAllModels
         else: 
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': list(range(20, 100)), 'learning_rate': list(np.arange(0.01,0.56,0.11)), 'criterion': ['friedman_mse', 'mse', 'mae']}
+            params = {'n_estimators': list(range(20, 100)), 'loss': ['deviance', 'exponential'], 'learning_rate': list(np.arange(0.01,0.56,0.11)), 'subsample': list(np.arange(0.1,1,0.1)), 'criterion': ['friedman_mse', 'mse', 'mae']}
             countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
             countAllModels = countAllModels + randomSearchVar
@@ -684,11 +683,30 @@ def PreprocessingIDs():
     return df_concatIDs
 
 def PreprocessingMetrics():
+    global allParametersPerformancePerModel
     dicKNN = allParametersPerformancePerModel[2]
     dicLR = allParametersPerformancePerModel[6]
     dicMLP = allParametersPerformancePerModel[10]
     dicRF = allParametersPerformancePerModel[14]
     dicGradB = allParametersPerformancePerModel[18]
+
+    dfKNN = pd.DataFrame.from_dict(dicKNN)
+    dfLR = pd.DataFrame.from_dict(dicLR)
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
+
+    df_concatMetrics = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
+    df_concatMetrics = df_concatMetrics.reset_index(drop=True)
+    return df_concatMetrics
+
+def PreprocessingMetricsEnsem():
+    global allParametersPerformancePerModelEnsem
+    dicKNN = allParametersPerformancePerModelEnsem[2]
+    dicLR = allParametersPerformancePerModelEnsem[6]
+    dicMLP = allParametersPerformancePerModelEnsem[10]
+    dicRF = allParametersPerformancePerModelEnsem[14]
+    dicGradB = allParametersPerformancePerModelEnsem[18]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
@@ -765,23 +783,23 @@ def EnsembleIDs():
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if (items[0] == 'KNN'):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
                 numberIDKNNGlob.append(int(items[1]))
-            elif (items[0] == 'LR'):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
                 numberIDLRGlob.append(int(items[1]))
-            elif (items[0] == 'MLP'):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
                 numberIDMLPGlob.append(int(items[1]))
-            elif (items[0] == 'RF'):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
                 numberIDRFGlob.append(int(items[1]))
             else:
                 numberIDGradBGlob.append(int(items[1]))
     EnsembleIdsAll = numberIDKNNGlob + numberIDLRGlob + numberIDMLPGlob + numberIDRFGlob + numberIDGradBGlob
-
     return EnsembleIdsAll
 
 def PreprocessingPredEnsemble():
 
     global EnsembleActive
+    global allParametersPerformancePerModelEnsem
     numberIDKNN = []
     numberIDLR = []
     numberIDMLP = []
@@ -792,22 +810,22 @@ def PreprocessingPredEnsemble():
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if (items[0] == 'KNN'):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
                 numberIDKNN.append(int(items[1]))
-            elif (items[0] == 'LR'):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
                 numberIDLR.append(int(items[1]))
-            elif (items[0] == 'MLP'):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
                 numberIDMLP.append(int(items[1]))
-            elif (items[0] == 'RF'):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
                 numberIDRF.append(int(items[1]))
             else:
                 numberIDGradB.append(int(items[1]))
 
-    dicKNN = allParametersPerformancePerModel[3]
-    dicLR = allParametersPerformancePerModel[7]
-    dicMLP = allParametersPerformancePerModel[11]
-    dicRF = allParametersPerformancePerModel[15]
-    dicGradB = allParametersPerformancePerModel[19]
+    dicKNN = allParametersPerformancePerModelEnsem[3]
+    dicLR = allParametersPerformancePerModelEnsem[7]
+    dicMLP = allParametersPerformancePerModelEnsem[11]
+    dicRF = allParametersPerformancePerModelEnsem[15]
+    dicGradB = allParametersPerformancePerModelEnsem[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
@@ -895,6 +913,41 @@ def PreprocessingParam():
     df_params = df_params.reset_index(drop=True)
     return df_params
 
+def PreprocessingParamEnsem():
+    dicKNN = allParametersPerformancePerModelEnsem[1]
+    dicLR = allParametersPerformancePerModelEnsem[5]
+    dicMLP = allParametersPerformancePerModelEnsem[9]
+    dicRF = allParametersPerformancePerModelEnsem[13]
+    dicGradB = allParametersPerformancePerModelEnsem[17]
+
+    dicKNN = dicKNN['params']
+    dicLR = dicLR['params']
+    dicMLP = dicMLP['params']
+    dicRF = dicRF['params']
+    dicGradB = dicGradB['params']
+    
+    dicKNN = {int(k):v for k,v in dicKNN.items()}
+    dicLR = {int(k):v for k,v in dicLR.items()}
+    dicMLP = {int(k):v for k,v in dicMLP.items()}
+    dicRF = {int(k):v for k,v in dicRF.items()}
+    dicGradB = {int(k):v for k,v in dicGradB.items()}
+
+    dfKNN = pd.DataFrame.from_dict(dicKNN)
+    dfLR = pd.DataFrame.from_dict(dicLR)
+    dfMLP = pd.DataFrame.from_dict(dicMLP)
+    dfRF = pd.DataFrame.from_dict(dicRF)
+    dfGradB = pd.DataFrame.from_dict(dicGradB)
+
+    dfKNN = dfKNN.T
+    dfLR = dfLR.T
+    dfMLP = dfMLP.T
+    dfRF = dfRF.T
+    dfGradB = dfGradB.T
+
+    df_params = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
+    df_params = df_params.reset_index(drop=True)
+    return df_params
+
 def PreprocessingParamSep():
     dicKNN = allParametersPerformancePerModel[1]
     dicLR = allParametersPerformancePerModel[5]
@@ -928,10 +981,25 @@ def PreprocessingParamSep():
 
     return [dfKNN, dfLR, dfMLP, dfRF, dfGradB]
 
-# remove that maybe!
 def preProcsumPerMetric(factors):
     sumPerClassifier = []
     loopThroughMetrics = PreprocessingMetrics()
+    loopThroughMetrics = loopThroughMetrics.fillna(0)
+    loopThroughMetrics.loc[:, 'log_loss'] = 1 - loopThroughMetrics.loc[:, 'log_loss']
+    for row in loopThroughMetrics.iterrows():
+        rowSum = 0
+        name, values = row
+        for loop, elements in enumerate(values):
+            rowSum = elements*factors[loop] + rowSum
+        if sum(factors) is 0:
+            sumPerClassifier = 0
+        else:
+            sumPerClassifier.append(rowSum/sum(factors) * 100)
+    return sumPerClassifier
+
+def preProcsumPerMetricEnsem(factors):
+    sumPerClassifier = []
+    loopThroughMetrics = PreprocessingMetricsEnsem()
     loopThroughMetrics = loopThroughMetrics.fillna(0)
     loopThroughMetrics.loc[:, 'log_loss'] = 1 - loopThroughMetrics.loc[:, 'log_loss']
     for row in loopThroughMetrics.iterrows():
@@ -1004,6 +1072,7 @@ def InitializeEnsemble():
     global ModelSpaceTSNE
     global allParametersPerformancePerModel
     global EnsembleActive
+    global ModelsIDs
     global keySend
 
     XModels = XModels.fillna(0)
@@ -1014,16 +1083,24 @@ def InitializeEnsemble():
     ModelSpaceUMAP = FunUMAP(XModels)
 
     if (len(EnsembleActive) == 0):
+        parametersGen = PreprocessingParam()
         PredictionProbSel = PreprocessingPred()
+        ModelsIDs = PreprocessingIDs()
+        sumPerClassifier = preProcsumPerMetric(factors)
+
     else:
+        parametersGen = PreprocessingParamEnsem()
         PredictionProbSel = PreprocessingPredEnsemble()
-        ModelsIds = EnsembleIDs()
-        EnsembleModel(ModelsIds, keySend)
+        ModelsIDs = EnsembleActive
+        modelsIdsCuts = EnsembleIDs()
+        sumPerClassifier = preProcsumPerMetricEnsem(factors)
+        EnsembleModel(modelsIdsCuts, keySend)
         keySend=1
 
-    returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel)
+    returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumPerClassifier,PredictionProbSel)
 
 def EnsembleModel (Models, keyRetrieved):
+
     global XDataTest, yDataTest
     global scores
     global previousState
@@ -1105,6 +1182,7 @@ def EnsembleModel (Models, keyRetrieved):
     } 
     dfParamRF = pd.DataFrame.from_dict(tempDic)
     dfParamRFFilt = dfParamRF.iloc[:,0]
+
     for eachelem in numberIDRFGlob:
         if (eachelem >= greater):
             arg = dfParamRFFilt[eachelem-addRF]
@@ -1245,23 +1323,20 @@ def classification_report_with_accuracy_score(y_true, y_pred):
     PerClassResultsClass1.append(Filter_PerClassResultsLocal1)
     return accuracy_score(y_true, y_pred) # return accuracy score
 
-def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,PredictionProbSel):
+def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumPerClassifier,PredictionProbSel):
 
     global Results
     global AllTargets
     global names_labels
+    global EnsembleActive
+    global ModelsIDs
     Results = []
 
-    parametersGen = PreprocessingParam()
     metricsPerModel = preProcMetricsAllAndSel()
-    sumPerClassifier = preProcsumPerMetric(factors)
-    ModelsIDs = PreprocessingIDs()
-    
-
     parametersGenPD = parametersGen.to_json(orient='records')
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
-
+    
     Results.append(json.dumps(ModelsIDs))
     Results.append(json.dumps(sumPerClassifier))
     Results.append(json.dumps(parametersGenPD))
@@ -1332,16 +1407,16 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     global randomSearchVar
     greater = randomSearchVar*5
 
-    KNNIDsC = list(filter(lambda k: 'KNN_C' in k, RemainingIds))
-    LRIDsC = list(filter(lambda k: 'LR_C' in k, RemainingIds))
-    MLPIDsC = list(filter(lambda k: 'MLP_C' in k, RemainingIds))
-    RFIDsC = list(filter(lambda k: 'RF_C' in k, RemainingIds))
-    GradBIDsC = list(filter(lambda k: 'GradB_C' in k, RemainingIds))
-    KNNIDsM = list(filter(lambda k: 'KNN_M' in k, RemainingIds))
-    LRIDsM = list(filter(lambda k: 'LR_M' in k, RemainingIds))
-    MLPIDsM = list(filter(lambda k: 'MLP_M' in k, RemainingIds))
-    RFIDsM = list(filter(lambda k: 'RF_M' in k, RemainingIds))
-    GradBIDsM = list(filter(lambda k: 'GradB_M' in k, RemainingIds))
+    KNNIDsC = list(filter(lambda k: 'KNNC' in k, RemainingIds))
+    LRIDsC = list(filter(lambda k: 'LRC' in k, RemainingIds))
+    MLPIDsC = list(filter(lambda k: 'MLPC' in k, RemainingIds))
+    RFIDsC = list(filter(lambda k: 'RFC' in k, RemainingIds))
+    GradBIDsC = list(filter(lambda k: 'GradBC' in k, RemainingIds))
+    KNNIDsM = list(filter(lambda k: 'KNNM' in k, RemainingIds))
+    LRIDsM = list(filter(lambda k: 'LRM' in k, RemainingIds))
+    MLPIDsM = list(filter(lambda k: 'MLPM' in k, RemainingIds))
+    RFIDsM = list(filter(lambda k: 'RFM' in k, RemainingIds))
+    GradBIDsM = list(filter(lambda k: 'GradBM' in k, RemainingIds))
 
     countKNN = 0
     countLR = 0
@@ -1380,7 +1455,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_C_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNCC', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
@@ -1396,7 +1471,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrKNNCC.append(localCrossMutr[1])
     allParametersPerfCrossMutrKNNCC.append(localCrossMutr[2])
     allParametersPerfCrossMutrKNNCC.append(localCrossMutr[3])
-
+    
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNCC
 
     countKNN = 0
@@ -1430,7 +1505,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_C_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNCM', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
@@ -1473,7 +1548,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_C_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRCC', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
@@ -1523,7 +1598,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_C_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRCM', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
@@ -1567,7 +1642,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_C_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPCC', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
@@ -1617,7 +1692,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_C_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPCM', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
@@ -1661,7 +1736,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFCC', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
@@ -1711,7 +1786,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFCM', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
@@ -1749,13 +1824,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             valuePerColumn = pairDF[column].iloc[randomZeroOne]
             listData.append(valuePerColumn)
             crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['loss'] == crossoverDF['loss'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['subsample'] == crossoverDF['subsample'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'loss': [crossoverDF['loss'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'subsample': [crossoverDF['subsample'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_C_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradBCC', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
@@ -1799,13 +1874,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
                 valuePerColumn = pairDF[column].iloc[0]
                 listData.append(valuePerColumn)
                 crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['loss'] == crossoverDF['loss'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['subsample'] == crossoverDF['subsample'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'loss': [crossoverDF['loss'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'subsample': [crossoverDF['subsample'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_C_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradBCM', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
@@ -1861,7 +1936,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_M_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNMC', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
@@ -1911,7 +1986,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_M_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNMM', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
@@ -1954,7 +2029,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_M_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRMC', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
@@ -2004,7 +2079,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_M_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRMM', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
@@ -2048,7 +2123,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_M_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPMC', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
@@ -2098,7 +2173,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_M_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPMM', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
@@ -2142,7 +2217,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFMC', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
@@ -2192,7 +2267,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFMM', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
@@ -2223,7 +2298,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         GradBPickPair = random.sample(GradBIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[GradBPickPair]
-        print(pairDF)
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2231,13 +2306,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
             valuePerColumn = pairDF[column].iloc[randomZeroOne]
             listData.append(valuePerColumn)
             crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['loss'] == crossoverDF['loss'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['subsample'] == crossoverDF['subsample'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'loss': [crossoverDF['loss'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'subsample': [crossoverDF['subsample'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_M_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradBMC', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
@@ -2281,13 +2356,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
                 valuePerColumn = pairDF[column].iloc[0]
                 listData.append(valuePerColumn)
                 crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['loss'] == crossoverDF['loss'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['subsample'] == crossoverDF['subsample'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'loss': [crossoverDF['loss'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'subsample': [crossoverDF['subsample'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_M_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradBMM', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
@@ -2315,7 +2390,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNCM[1]], ignore_index=True)
     allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNCC[2]], ignore_index=True)
     allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNCM[2]], ignore_index=True)
-    
+
     allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNCC[3]], ignore_index=True)
     allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNCM[3]], ignore_index=True)
     
@@ -2437,6 +2512,8 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     global allParametersPerfCrossMutr
     global HistoryPreservation
 
+    global allParametersPerformancePerModel
+
     global randomSearchVar
     greater = randomSearchVar*5
 
@@ -2483,7 +2560,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNC', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
@@ -2533,7 +2610,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = KNeighborsClassifier()
             params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNN_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNM', AlgorithmsIDsEnd)
             countKNN += 1
             crossoverDF = pd.DataFrame()
 
@@ -2576,7 +2653,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRC', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
@@ -2626,7 +2703,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = LogisticRegression(random_state=RANDOM_SEED)
             params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LR_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRM', AlgorithmsIDsEnd)
             countLR += 1
             crossoverDF = pd.DataFrame()
 
@@ -2670,7 +2747,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPC', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
@@ -2720,7 +2797,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = MLPClassifier(random_state=RANDOM_SEED)
             params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLP_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPM', AlgorithmsIDsEnd)
             countMLP += 1
             crossoverDF = pd.DataFrame()
 
@@ -2764,7 +2841,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFC', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
@@ -2814,7 +2891,7 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             clf = RandomForestClassifier(random_state=RANDOM_SEED)
             params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RF_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFM', AlgorithmsIDsEnd)
             countRF += 1
             crossoverDF = pd.DataFrame()
 
@@ -2852,13 +2929,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
             valuePerColumn = pairDF[column].iloc[randomZeroOne]
             listData.append(valuePerColumn)
             crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['loss'] == crossoverDF['loss'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['subsample'] == crossoverDF['subsample'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'loss': [crossoverDF['loss'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'subsample': [crossoverDF['subsample'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_C', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradBC', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
@@ -2902,13 +2979,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
                 valuePerColumn = pairDF[column].iloc[0]
                 listData.append(valuePerColumn)
                 crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['loss'] == crossoverDF['loss'].iloc[0]) & (paramAllAlgs['learning_rate'] == crossoverDF['learning_rate'].iloc[0]) & (paramAllAlgs['subsample'] == crossoverDF['subsample'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
             crossoverDF = pd.DataFrame()
         else:
             clf = GradientBoostingClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'loss': [crossoverDF['loss'].iloc[0]], 'learning_rate': [crossoverDF['learning_rate'].iloc[0]], 'subsample': [crossoverDF['subsample'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
             AlgorithmsIDsEnd = countAllModels + countGradB
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradB_M', AlgorithmsIDsEnd)
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'GradBM', AlgorithmsIDsEnd)
             countGradB += 1
             crossoverDF = pd.DataFrame()
 
@@ -2929,6 +3006,49 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
 
+    global allParametersPerformancePerModelEnsem
+    allParametersPerformancePerModelEnsem = allParametersPerformancePerModel.copy()
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBM[3]], ignore_index=True)
+
     allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNC + allParametersPerfCrossMutrKNNM + allParametersPerfCrossMutrLRC + allParametersPerfCrossMutrLRM + allParametersPerfCrossMutrMLPC + allParametersPerfCrossMutrMLPM + allParametersPerfCrossMutrRFC + allParametersPerfCrossMutrRFM + allParametersPerfCrossMutrGradBC + allParametersPerfCrossMutrGradBM
     allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNC[0] + allParametersPerfCrossMutrKNNM[0]
 
@@ -2936,11 +3056,10 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNM[1]], ignore_index=True)
     allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNC[2]], ignore_index=True)
     allParametersPerformancePerModel[2] = pd.concat([allParametersPerformancePerModel[2], allParametersPerfCrossMutrKNNM[2]], ignore_index=True)
-    
+
     allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNC[3]], ignore_index=True)
     allParametersPerformancePerModel[3] = pd.concat([allParametersPerformancePerModel[3], allParametersPerfCrossMutrKNNM[3]], ignore_index=True)
     
-
     allParametersPerformancePerModel[4] = allParametersPerformancePerModel[4] + allParametersPerfCrossMutrLRC[0] + allParametersPerfCrossMutrLRM[0]
     
     allParametersPerformancePerModel[5] = pd.concat([allParametersPerformancePerModel[5], allParametersPerfCrossMutrLRC[1]], ignore_index=True)
@@ -2972,12 +3091,12 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModel[15] = pd.concat([allParametersPerformancePerModel[15], allParametersPerfCrossMutrRFM[3]], ignore_index=True)
 
     allParametersPerformancePerModel[16] = allParametersPerformancePerModel[16] + allParametersPerfCrossMutrGradBC[0] + allParametersPerfCrossMutrGradBM[0]
-    
+
     allParametersPerformancePerModel[17] = pd.concat([allParametersPerformancePerModel[17], allParametersPerfCrossMutrGradBC[1]], ignore_index=True)
     allParametersPerformancePerModel[17] = pd.concat([allParametersPerformancePerModel[17], allParametersPerfCrossMutrGradBM[1]], ignore_index=True)
     allParametersPerformancePerModel[18] = pd.concat([allParametersPerformancePerModel[18], allParametersPerfCrossMutrGradBC[2]], ignore_index=True)
     allParametersPerformancePerModel[18] = pd.concat([allParametersPerformancePerModel[18], allParametersPerfCrossMutrGradBM[2]], ignore_index=True)
-    
+
     allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBC[3]], ignore_index=True)
     allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBM[3]], ignore_index=True)
 
@@ -3376,29 +3495,28 @@ def PreProcessingInitial():
     ModelSpaceTSNECM = ModelSpaceTSNECM.tolist()
     ModelSpaceUMAPCM = FunUMAP(XModels)
 
-    PredictionProbSel = PreprocessingPredCM()
+    PredictionProbSelCM = PreprocessingPredCM()
 
-    CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSel)
+    CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM)
 
-def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSel):
+def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM):
 
     global ResultsCM
     global AllTargets
     ResultsCM = []
 
-    parametersGen = PreprocessingParamCM()
-    metricsPerModel = preProcMetricsAllAndSelCM()
-    sumPerClassifier = preProcsumPerMetricCM(factors)
-    ModelsIDs = PreprocessingIDsCM()
-
-    parametersGenPD = parametersGen.to_json(orient='records')
+    parametersGenCM = PreprocessingParamCM()
+    metricsPerModelCM = preProcMetricsAllAndSelCM()
+    sumPerClassifierCM = preProcsumPerMetricCM(factors)
+    ModelsIDsCM = PreprocessingIDsCM()
+    parametersGenPDGM = parametersGenCM.to_json(orient='records')
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
 
-    ResultsCM.append(json.dumps(ModelsIDs))
-    ResultsCM.append(json.dumps(sumPerClassifier))
-    ResultsCM.append(json.dumps(parametersGenPD))
-    ResultsCM.append(json.dumps(metricsPerModel))
+    ResultsCM.append(json.dumps(ModelsIDsCM))
+    ResultsCM.append(json.dumps(sumPerClassifierCM))
+    ResultsCM.append(json.dumps(parametersGenPDGM))
+    ResultsCM.append(json.dumps(metricsPerModelCM))
     ResultsCM.append(json.dumps(XDataJSONEntireSet))
     ResultsCM.append(json.dumps(XDataColumns))
     ResultsCM.append(json.dumps(yData))
@@ -3407,7 +3525,7 @@ def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,Predict
     ResultsCM.append(json.dumps(ModelSpaceMDSCM))
     ResultsCM.append(json.dumps(ModelSpaceTSNECM))
     ResultsCM.append(json.dumps(ModelSpaceUMAPCM))
-    ResultsCM.append(json.dumps(PredictionProbSel))
+    ResultsCM.append(json.dumps(PredictionProbSelCM))
     ResultsCM.append(json.dumps(names_labels))
 
     return ResultsCM
@@ -3425,18 +3543,20 @@ def PreprocessingPredSel(SelectedIDs):
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
-
+    print(SelectedIDs)
     for el in SelectedIDs:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
+        print(match)
         if match:
             items = match.groups()
-            if (items[0] == 'KNN'):
+            print(items)
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
                 numberIDKNN.append(int(items[1]) - addKNN)
-            elif (items[0] == 'LR'):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
                 numberIDLR.append(int(items[1]) - addLR)
-            elif (items[0] == 'MLP'):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
                 numberIDMLP.append(int(items[1]) - addMLP)
-            elif (items[0] == 'RF'):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
                 numberIDRF.append(int(items[1]) - addRF)
             else:
                 numberIDGradB.append(int(items[1]) - addGradB)
@@ -3464,10 +3584,11 @@ def PreprocessingPredSel(SelectedIDs):
     dfRF = dfRF.loc[numberIDRF]
 
     dfRF.index += addKNN + addLR + addMLP
-
+    print(numberIDGradB)
     dfGradB = pd.DataFrame.from_dict(dicGradB)
+    print(dfGradB)
     dfGradB = dfGradB.loc[numberIDGradB]
-
+    print(dfGradB)
     dfGradB.index += addKNN + addLR + addMLP + addRF
 
     df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
@@ -3512,7 +3633,7 @@ def RetrieveSelIDsPredict():
     RetrieveIDsSelection = request.get_data().decode('utf8').replace("'", '"')
     RetrieveIDsSelection = json.loads(RetrieveIDsSelection)
     RetrieveIDsSelection = RetrieveIDsSelection['predictSelectionIDs']
-
+    print(RetrieveIDsSelection)
     ResultsSelPred = PreprocessingPredSel(RetrieveIDsSelection)
 
     return 'Everything Okay'
@@ -3537,13 +3658,13 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if (items[0] == 'KNN'):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
                 numberIDKNN.append(int(items[1]))
-            elif (items[0] == 'LR'):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
                 numberIDLR.append(int(items[1]))
-            elif (items[0] == 'MLP'):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
                 numberIDMLP.append(int(items[1]))
-            elif (items[0] == 'RF'):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
                 numberIDRF.append(int(items[1]))
             else:
                 numberIDGradB.append(int(items[1]))
@@ -3629,10 +3750,15 @@ def SendPredictSelEnsem():
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 @app.route('/data/ServerRequestSelPoin', methods=["GET", "POST"])
 def RetrieveSelClassifiersID():
+    global EnsembleActive
     ClassifierIDsList = request.get_data().decode('utf8').replace("'", '"')
     #ComputeMetricsForSel(ClassifierIDsList)
     ClassifierIDCleaned = json.loads(ClassifierIDsList)
+    ClassifierIDCleaned = ClassifierIDCleaned['ClassifiersList']
 
+    EnsembleActive = []
+    EnsembleActive = ClassifierIDCleaned.copy()
+    EnsembleIDs()
     EnsembleModel(ClassifierIDsList, 1)
 
     return 'Everything Okay'

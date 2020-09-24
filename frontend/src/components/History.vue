@@ -36,14 +36,6 @@ export default {
       svg.selectAll("*").remove();
     },
     computePerformanceDiff () {
-      Array.prototype.max = function() {
-        return Math.max.apply(null, this);
-      };
-
-      Array.prototype.min = function() {
-        return Math.min.apply(null, this);
-      };
-
       var colorsforScatterPlot = this.PerF
 
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
@@ -51,139 +43,149 @@ export default {
       for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
         mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
       }
-
+      
       colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
-      console.log(colorsforScatterPlot)
-      var min = Math.min.apply(null, colorsforScatterPlot),
-        max = Math.max.apply(null, colorsforScatterPlot);
-      console.log(max)
+
+      var max = Math.max.apply(Math, colorsforScatterPlot)
+      var min = Math.min.apply(Math, colorsforScatterPlot)
+
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-      console.log(this.storedEnsem)
-      console.log(this.storedCM)
-      console.log(this.PerFCM)
+
       for (let i = 0; i < this.storedCM.length; i++) {
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
-        console.log(tempSplit[0])
-        if (tempSplit[0] == 'KNN_C') {
-          console.log(this.PerFCM[i])
-          console.log(max)
+
+        if (tempSplit[0] == 'KNNC') {
           if (this.PerFCM[i] > max) {
-            countMax[0]++
+            countMax[0] = countMax[0] + 1
           } else if (this.PerFCM[i] < min) {
-            countMin[0]++
+            countMin[0] = countMin[0] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'KNN_M') {
+        else if (tempSplit[0] == 'KNNM') {
           if (this.PerFCM[i] > max) {
-            countMax[1]++
+            countMax[1] = countMax[1] + 1
           } else if (this.PerFCM[i] < min) {
-            countMin[1]++
+            countMin[1] = countMin[1] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'LR_C') {
+        else if (tempSplit[0] == 'LRC') {
           if (this.PerFCM[i] > max) {
-            countMax[2]++
+            countMax[2] = countMax[2] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[2]++
+            countMin[2] = countMin[2] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'LR_M') {
+        else if (tempSplit[0] == 'LRM') {
           if (this.PerFCM[i] > max) {
-            countMax[3]++
+            countMax[3] = countMax[3] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[3]++
+            countMin[3] = countMin[3] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'MLP_C') {
+        else if (tempSplit[0] == 'MLPC') {
           if (this.PerFCM[i] > max) {
-            countMax[4]++
+            countMax[4] = countMax[4] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[4]++
+            countMin[4] = countMin[4] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'MLP_M') {
+        else if (tempSplit[0] == 'MLPM') {
           if (this.PerFCM[i] > max) {
-            countMax[5]++
+            countMax[5] = countMax[5] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[5]++
+            countMin[5] = countMin[5] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'RF_C') {
+        else if (tempSplit[0] == 'RFC') {
           if (this.PerFCM[i] > max) {
-            countMax[6]++
+            countMax[6] = countMax[6] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[6]++
+            countMin[6] = countMin[6] + 1
           }
         }
-        else if (tempSplit[0] == 'RF_M') {
+        else if (tempSplit[0] == 'RFM') {
           if (this.PerFCM[i] > max) {
-            countMax[7]++
+            countMax[7] = countMax[7] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[7]++
+            countMin[7] = countMin[7] + 1
           } else {
             continue
           }
         }
-        else if (tempSplit[0] == 'GradB_C') {
+        else if (tempSplit[0] == 'GradBC') {
           if (this.PerFCM[i] > max) {
-            countMax[8]++
+            countMax[8] = countMax[8] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[8]++
+            countMin[8] = countMin[8] + 1
           } else {
             continue
           }
         }
         else {
           if (this.PerFCM[i] > max) {
-            countMax[9]++
+            countMax[9] = countMax[9] + 1
           }
           else if (this.PerFCM[i] < min) {
-            countMin[9]++
+            countMin[9] = countMin[9] + 1
           } else {
             continue
           }
         }
       }
 
-      console.log(countMax)
-      console.log(countMin)
-
       var percentage = []
       for (let j = 0; j < countMax.length; j++) {
         if (j >= 5) {
           if (countMax[j] == 0) {
-            percentage.push((countMin[j]/this.values[15-j])*(-1)*100)
+            percentage.push((countMin[j]/5)*(-1)*100)
           } else {
-            percentage.push(countMax[j]/this.values[15-j] * 100)
+            percentage.push(countMax[j]/5 * 100)
           }  
         } else {
           if (countMax[j] == 0) {
-            percentage.push((countMin[j]/this.values[16-j])*(-1) * 100)
+            percentage.push((countMin[j]/5)*(-1) * 100)
           } else {
-            percentage.push(countMax[j]/this.values[16-j] * 100)
+            percentage.push(countMax[j]/5 * 100)
           }
         }
       }
+//CORRECT
+      // var percentage = []
+      // for (let j = 0; j < countMax.length; j++) {
+      //   if (j >= 5) {
+      //     if (countMax[j] == 0) {
+      //       percentage.push((countMin[j]/this.values[15-j])*(-1)*100)
+      //     } else {
+      //       percentage.push(countMax[j]/this.values[15-j] * 100)
+      //     }  
+      //   } else {
+      //     if (countMax[j] == 0) {
+      //       percentage.push((countMin[j]/this.values[16-j])*(-1) * 100)
+      //     } else {
+      //       percentage.push(countMax[j]/this.values[16-j] * 100)
+      //     }
+      //   }
+      // }
 
       this.percentageOverall = percentage
       
@@ -369,8 +371,8 @@ export default {
         sankey.nodes(graph.nodes)
           .links(graph.links)
           .layout(0);
-
-      var colorDiff = d3v5.scaleLinear().domain([-100,100]).range(['#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b'])
+      var colorDiff
+      colorDiff = d3v5.scaleSequential(d3v5.interpolatePRGn).domain([-100, 100])
       var percentage = this.percentageOverall
       console.log(percentage)
       // add in the links
@@ -380,37 +382,37 @@ export default {
             .attr("class", "link")
             .attr("d", path) //d??? look it up later 
             .style("stroke",function(d){
-            if(d.source.node == 5){
-              return "transparent";
-            }
-            if(d.source.node == 11){
-              return "transparent";
-            }
-            if(d.source.node == 17){
-              return "transparent";
-            }
-            if(d.source.target == 16){
+              if(d.source.node == 5){
+                return "transparent";
+              }
+              if(d.source.node == 11){
+                return "transparent";
+              }
+              if(d.source.node == 17){
+                return "transparent";
+              }
+              if(d.target.node == 16){
                 return colorDiff(percentage[0]);
-              } else if(d.source.target == 15){
+              } else if(d.target.node == 15){
                 return colorDiff(percentage[1]);
-              } else if(d.source.target == 14){
+              } else if(d.target.node == 14){
                 return colorDiff(percentage[2]);
-              } else if(d.source.target == 13){
+              } else if(d.target.node == 13){
                 return colorDiff(percentage[3]);
-              } else if(d.source.target == 12){
+              } else if(d.target.node == 12){
                 return colorDiff(percentage[4]);
-              } else if(d.source.target == 10){
+              } else if(d.target.node == 10){
                 return colorDiff(percentage[5]);
-              } else if(d.source.target == 9){
+              } else if(d.target.node == 9){
                 return colorDiff(percentage[6]);
-              } else if(d.source.target == 8){
+              } else if(d.target.node == 8){
                 return colorDiff(percentage[7]);
-              } else if(d.source.target == 7){
+              } else if(d.target.node == 7){
                 return colorDiff(percentage[8]);
-              } else if(d.source.target == 6){
+              } else if(d.target.node == 6){
                 return colorDiff(percentage[9]);
               } else {
-                return "#000000"
+                return "#808080"
               }
             }) 
             .style("stroke-width", function(d) { return Math.max(.5, d.dh); })   //setting the stroke length by the data . d.dh is defined in sankey.js
@@ -530,11 +532,11 @@ export default {
           }
       function linkmouseover(d){
         d3.select(this)
-            .attr("stroke-opacity",.5);
+            .attr("stroke-opacity",.8);
           }
       function linkmouseout(d){
         d3.select(this)
-            .attr("stroke-opacity",.05);
+            .attr("stroke-opacity",.3);
           }
 
       //select all of our links and set a new stroke color on the conditioan that the value is =.01. 
@@ -702,7 +704,7 @@ export default {
             if(d.source.node == 5){
               return "transparent";
             } else {
-              return "#000000 !important"
+              return "#808080"
             }
             })
             .style("stroke-width", function(d) { return Math.max(.5, d.dh); })   //setting the stroke length by the data . d.dh is defined in sankey.js
@@ -755,7 +757,6 @@ export default {
 
             $("input[type='number']").change( function(d) {
               valuesLoc[d.target.id] = parseInt(d.target.value)
-              console.log(valuesLoc)
               EventBus.$emit('changeValues', valuesLoc)
             });
         }
@@ -817,11 +818,11 @@ export default {
           }
       function linkmouseover(d){
         d3.select(this)
-            .attr("stroke-opacity",.5);
+            .attr("stroke-opacity",.8);
           }
       function linkmouseout(d){
         d3.select(this)
-            .attr("stroke-opacity",.05);
+            .attr("stroke-opacity",.3);
           }
 
       //select all of our links and set a new stroke color on the conditioan that the value is =.01. 
@@ -896,28 +897,26 @@ export default {
 
 .link {
 	fill: none;
-	stroke-opacity: .05;
+	stroke-opacity: .3;
 	}
 
 .link:hover {
-	stroke-opacity: .5;
+	stroke-opacity: .8;
 	}
 
 #clicked {
-                    stroke-opacity: .5 !important;
-              }
-/*          #unclicked {
-                    stroke-opacity: .05;
-              }*/
-          .axis path,
-          .axis line {
-              fill: none;
-              stroke: black;
-              shape-rendering: crispEdges;
-              margin-left:60px;
-          }
-          .axis text {
-              font-family: sans-serif;
-              font-size: 11px;
-          }       
+  stroke-opacity: .8;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #808080;
+  shape-rendering: crispEdges;
+  margin-left:60px;
+}
+.axis text {
+  font-family: sans-serif;
+  font-size: 11px;
+}       
 </style>
