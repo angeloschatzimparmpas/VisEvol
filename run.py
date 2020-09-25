@@ -1433,13 +1433,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     
     localCrossMutr = []
     allParametersPerfCrossMutrKNNCC = []
-
+    for dr in KNNIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countKNN < setMaxLoopValue[40]:
-        for dr in KNNIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-            else:
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         KNNPickPair = random.sample(KNNIntIndex,2)
         pairDF = paramAllAlgs.iloc[KNNPickPair]
         crossoverDF = pd.DataFrame()
@@ -1478,13 +1478,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     KNNIntIndex = []
     localCrossMutr.clear()
     allParametersPerfCrossMutrKNNCM = []
-
+    for dr in KNNIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countKNN < setMaxLoopValue[34]:
-        for dr in KNNIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-            else:
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         KNNPickPair = random.sample(KNNIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[KNNPickPair]
@@ -1526,13 +1526,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRCC = []
-
+    for dr in LRIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countLR < setMaxLoopValue[39]:
-        for dr in LRIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-            else:
-                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         LRPickPair = random.sample(LRIntIndex,2)
         pairDF = paramAllAlgs.iloc[LRPickPair]
         crossoverDF = pd.DataFrame()
@@ -1571,13 +1571,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     LRIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRCM = []
-
+    for dr in LRIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countLR < setMaxLoopValue[33]:
-        for dr in LRIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-            else:
-                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         LRPickPair = random.sample(LRIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[LRPickPair]
@@ -1619,13 +1619,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPCC = []
-
+    for dr in MLPIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countMLP < setMaxLoopValue[38]:
-        for dr in MLPIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-            else:
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         MLPPickPair = random.sample(MLPIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[MLPPickPair]
@@ -1665,13 +1665,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     MLPIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPCM = []
-
+    for dr in MLPIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countMLP < setMaxLoopValue[32]:
-        for dr in MLPIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-            else:
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         MLPPickPair = random.sample(MLPIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[MLPPickPair]
@@ -1713,13 +1713,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFCC = []
-
+    for dr in RFIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+        else:
+            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countRF < setMaxLoopValue[37]:
-        for dr in RFIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-            else:
-                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         RFPickPair = random.sample(RFIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[RFPickPair]
@@ -1759,16 +1759,18 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     RFIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFCM = []
+    for dr in RFIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+        else:
+            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
 
     while countRF < setMaxLoopValue[31]:
-        for dr in RFIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-            else:
-                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
-        RFPickPair = random.sample(RFIntIndex,1)
 
+        RFPickPair = random.sample(RFIntIndex,1)
+        
         pairDF = paramAllAlgs.iloc[RFPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -1808,15 +1810,18 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBCC = []
 
-    while countGradB < setMaxLoopValue[36]:
-        for dr in GradBIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
-            else:
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
-        GradBPickPair = random.sample(GradBIntIndex,2)
+    for dr in GradBIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+        else:
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
 
+    while countGradB < setMaxLoopValue[36]:
+
+        GradBPickPair = random.sample(GradBIntIndex,2)
+        
         pairDF = paramAllAlgs.iloc[GradBPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -1850,19 +1855,21 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBCC
 
     countGradB = 0
-    GradBIntIndex = [] 
+    GradBIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBCM = []
-            
-    while countGradB < setMaxLoopValue[30]:
-        for dr in GradBIDsC:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
-            else:
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
-        GradPickPair = random.sample(GradBIntIndex,1)
+    for dr in GradBIDsC:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            GradBIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+        else:
+            GradBIndex.append(int(re.findall('\d+', dr)[0]))
 
+    while countGradB < setMaxLoopValue[30]:
+
+        GradBPickPair = random.sample(GradBIndex,1)
+        
         pairDF = paramAllAlgs.iloc[GradBPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -1914,13 +1921,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     
     localCrossMutr = []
     allParametersPerfCrossMutrKNNMC = []
-
+    for dr in KNNIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countKNN < setMaxLoopValue[28]:
-        for dr in KNNIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-            else:
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         KNNPickPair = random.sample(KNNIntIndex,2)
         pairDF = paramAllAlgs.iloc[KNNPickPair]
         crossoverDF = pd.DataFrame()
@@ -1959,13 +1966,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     KNNIntIndex = []
     localCrossMutr.clear()
     allParametersPerfCrossMutrKNNMM = []
-
+    for dr in KNNIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countKNN < setMaxLoopValue[22]:
-        for dr in KNNIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-            else:
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         KNNPickPair = random.sample(KNNIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[KNNPickPair]
@@ -2007,13 +2014,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRMC = []
-
+    for dr in LRIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countLR < setMaxLoopValue[27]:
-        for dr in LRIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-            else:
-                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         LRPickPair = random.sample(LRIntIndex,2)
         pairDF = paramAllAlgs.iloc[LRPickPair]
         crossoverDF = pd.DataFrame()
@@ -2052,13 +2059,13 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     LRIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRMM = []
-
+    for dr in LRIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countLR < setMaxLoopValue[21]:
-        for dr in LRIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-            else:
-                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         LRPickPair = random.sample(LRIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[LRPickPair]
@@ -2100,16 +2107,17 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPMC = []
-
+    for dr in MLPIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countMLP < setMaxLoopValue[26]:
-        for dr in MLPIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-            else:
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         MLPPickPair = random.sample(MLPIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[MLPPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2146,16 +2154,17 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     MLPIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPMM = []
-
+    for dr in MLPIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countMLP < setMaxLoopValue[20]:
-        for dr in MLPIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-            else:
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         MLPPickPair = random.sample(MLPIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[MLPPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2204,6 +2213,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         RFPickPair = random.sample(RFIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[RFPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2240,16 +2250,17 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     RFIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFMM = []
-
+    for dr in RFIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+        else:
+            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countRF < setMaxLoopValue[19]:
-        for dr in RFIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-            else:
-                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         RFPickPair = random.sample(RFIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[RFPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2289,12 +2300,14 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBMC = []
 
+    for dr in GradBIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+        else:
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+
     while countGradB < setMaxLoopValue[24]:
-        for dr in GradBIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
-            else:
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         GradBPickPair = random.sample(GradBIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[GradBPickPair]
@@ -2335,16 +2348,17 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     GradBIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBMM = []
-            
+    for dr in GradBIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+        else:
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countGradB < setMaxLoopValue[18]:
-        for dr in GradBIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
-            else:
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
-        GradPickPair = random.sample(GradBIntIndex,1)
+
+        GradBPickPair = random.sample(GradBIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[GradBPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2538,13 +2552,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     
     localCrossMutr = []
     allParametersPerfCrossMutrKNNC = []
-
+    for dr in KNNIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countKNN < setMaxLoopValue[16]:
-        for dr in KNNIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-            else:
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         KNNPickPair = random.sample(KNNIntIndex,2)
         pairDF = paramAllAlgs.iloc[KNNPickPair]
         crossoverDF = pd.DataFrame()
@@ -2583,13 +2597,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     KNNIntIndex = []
     localCrossMutr.clear()
     allParametersPerfCrossMutrKNNM = []
-
+    for dr in KNNIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countKNN < setMaxLoopValue[10]:
-        for dr in KNNIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-            else:
-                KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         KNNPickPair = random.sample(KNNIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[KNNPickPair]
@@ -2631,13 +2645,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRC = []
-
+    for dr in LRIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countLR < setMaxLoopValue[15]:
-        for dr in LRIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-            else:
-                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         LRPickPair = random.sample(LRIntIndex,2)
         pairDF = paramAllAlgs.iloc[LRPickPair]
         crossoverDF = pd.DataFrame()
@@ -2676,13 +2690,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     LRIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRM = []
-
+    for dr in LRIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countLR < setMaxLoopValue[9]:
-        for dr in LRIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-            else:
-                LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         LRPickPair = random.sample(LRIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[LRPickPair]
@@ -2724,13 +2738,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPC = []
-
+    for dr in MLPIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countMLP < setMaxLoopValue[14]:
-        for dr in MLPIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-            else:
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         MLPPickPair = random.sample(MLPIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[MLPPickPair]
@@ -2770,13 +2784,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     MLPIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPM = []
-
+    for dr in MLPIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countMLP < setMaxLoopValue[8]:
-        for dr in MLPIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-            else:
-                MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         MLPPickPair = random.sample(MLPIntIndex,1)
 
         pairDF = paramAllAlgs.iloc[MLPPickPair]
@@ -2818,13 +2832,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFC = []
-
+    for dr in RFIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+        else:
+            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countRF < setMaxLoopValue[13]:
-        for dr in RFIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-            else:
-                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         RFPickPair = random.sample(RFIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[RFPickPair]
@@ -2864,16 +2878,16 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     RFIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFM = []
-
+    for dr in RFIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+        else:
+            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countRF < setMaxLoopValue[7]:
-        for dr in RFIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-            else:
-                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
-        RFPickPair = random.sample(RFIntIndex,1)
 
+        RFPickPair = random.sample(RFIntIndex,1)
         pairDF = paramAllAlgs.iloc[RFPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -2912,13 +2926,13 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBC = []
-
+    for dr in GradBIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+        else:
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countGradB < setMaxLoopValue[12]:
-        for dr in GradBIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
-            else:
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
+
         GradBPickPair = random.sample(GradBIntIndex,2)
 
         pairDF = paramAllAlgs.iloc[GradBPickPair]
@@ -2958,16 +2972,16 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     GradBIntIndex = [] 
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBM = []
-            
+    for dr in GradBIDs:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
+        else:
+            GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
     while countGradB < setMaxLoopValue[6]:
-        for dr in GradBIDs:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
-            else:
-                GradBIntIndex.append(int(re.findall('\d+', dr)[0]))
-        GradPickPair = random.sample(GradBIntIndex,1)
 
+        GradBPickPair = random.sample(GradBIntIndex,1)
         pairDF = paramAllAlgs.iloc[GradBPickPair]
+
         crossoverDF = pd.DataFrame()
         for column in pairDF:
             listData = []
@@ -3543,13 +3557,10 @@ def PreprocessingPredSel(SelectedIDs):
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
-    print(SelectedIDs)
     for el in SelectedIDs:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
-        print(match)
         if match:
             items = match.groups()
-            print(items)
             if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
                 numberIDKNN.append(int(items[1]) - addKNN)
             elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
@@ -3584,11 +3595,11 @@ def PreprocessingPredSel(SelectedIDs):
     dfRF = dfRF.loc[numberIDRF]
 
     dfRF.index += addKNN + addLR + addMLP
-    print(numberIDGradB)
+    
     dfGradB = pd.DataFrame.from_dict(dicGradB)
-    print(dfGradB)
+    
     dfGradB = dfGradB.loc[numberIDGradB]
-    print(dfGradB)
+    
     dfGradB.index += addKNN + addLR + addMLP + addRF
 
     df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
@@ -3633,7 +3644,6 @@ def RetrieveSelIDsPredict():
     RetrieveIDsSelection = request.get_data().decode('utf8').replace("'", '"')
     RetrieveIDsSelection = json.loads(RetrieveIDsSelection)
     RetrieveIDsSelection = RetrieveIDsSelection['predictSelectionIDs']
-    print(RetrieveIDsSelection)
     ResultsSelPred = PreprocessingPredSel(RetrieveIDsSelection)
 
     return 'Everything Okay'

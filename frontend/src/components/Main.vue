@@ -230,6 +230,7 @@ export default Vue.extend({
   },
   data () {
     return {
+      sankeyCallS: true,
       CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       CMNumberofModels: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
       CMNumberofModelsOFFICIALS2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
@@ -358,7 +359,15 @@ export default Vue.extend({
             EventBus.$emit('SendPerformance', Performance)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
-            EventBus.$emit('emittedEventCallingSankeyStage2')
+            if (this.sankeyCallS) {
+              EventBus.$emit('SendSank')
+              EventBus.$emit('emittedEventCallingSankeyStage2')
+            } else {
+              EventBus.$emit('SendSankS')
+              EventBus.$emit('emittedEventCallingSankeyStage3')
+              EventBus.$emit('hideCrossMut')
+            }
+
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
             this.storeBothEnsCM[1] = this.OverviewResults
@@ -392,7 +401,7 @@ export default Vue.extend({
           console.log('Server successfully sent all the data related to visualizations!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
-          EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
+          //EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
           //this.PredictSel = []
           //EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
           //EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
@@ -809,6 +818,7 @@ export default Vue.extend({
       this.OverAllLength = 0
       this.OverSelLengthCM = 0
       this.OverAllLengthCM = 0
+      this.sankeyCallS = true
       const postData = {
         ClassifiersList: this.reset
       }
@@ -936,6 +946,7 @@ export default Vue.extend({
           loopNumber: this.CMNumberofModelsS2,
           Stage: this.CurrentStage
         }
+        this.sankeyCallS = false
       }
 
       const axiosConfig = {
