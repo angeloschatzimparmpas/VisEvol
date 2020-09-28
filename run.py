@@ -806,21 +806,23 @@ def PreprocessingPredEnsemble():
     numberIDRF = []
     numberIDGradB = []
 
+    print(EnsembleActive)
+
     for el in EnsembleActive:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]))
-            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
                 numberIDLR.append(int(items[1]))
-            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM") | (items[0] == "MLPCC") | (items[0] == "MLPCM") | (items[0] == "MLPMC") | (items[0] == "MLPMM")):
                 numberIDMLP.append(int(items[1]))
-            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM") | (items[0] == "RFCC") | (items[0] == "RFCM") | (items[0] == "RFMC") | (items[0] == "RFMM")):
                 numberIDRF.append(int(items[1]))
             else:
                 numberIDGradB.append(int(items[1]))
-
+ 
     dicKNN = allParametersPerformancePerModelEnsem[3]
     dicLR = allParametersPerformancePerModelEnsem[7]
     dicMLP = allParametersPerformancePerModelEnsem[11]
@@ -1336,7 +1338,7 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumP
     parametersGenPD = parametersGen.to_json(orient='records')
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
-    
+
     Results.append(json.dumps(ModelsIDs))
     Results.append(json.dumps(sumPerClassifier))
     Results.append(json.dumps(parametersGenPD))
@@ -1366,6 +1368,7 @@ def CrossoverMutateFun():
     RemainingIds = RemainingIds['RemainingPoints']
     
     global EnsembleActive
+    global CurStage
 
     EnsembleActive = request.get_data().decode('utf8').replace("'", '"')
     EnsembleActive = json.loads(EnsembleActive)
@@ -1384,8 +1387,10 @@ def CrossoverMutateFun():
 
     if (CurStage == 1):
         InitializeFirstStageCM(RemainingIds, setMaxLoopValue)
-    else:
+    elif (CurStage == 2):
         InitializeSecondStageCM(RemainingIds, setMaxLoopValue)
+    else:
+        pass
     return 'Okay'
 
 def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
@@ -1799,7 +1804,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrRFCM.append(localCrossMutr[0])
     allParametersPerfCrossMutrRFCM.append(localCrossMutr[1])
     allParametersPerfCrossMutrRFCM.append(localCrossMutr[2])
@@ -1846,7 +1851,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrGradBCC.append(localCrossMutr[0])
     allParametersPerfCrossMutrGradBCC.append(localCrossMutr[1])
     allParametersPerfCrossMutrGradBCC.append(localCrossMutr[2])
@@ -1911,7 +1916,6 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     countMLP = 0
     countRF = 0
     countGradB = 0
-    paramAllAlgs = PreprocessingParam()
 
     KNNIntIndex = []
     LRIntIndex = []
@@ -1919,7 +1923,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     RFIntIndex = []
     GradBIntIndex = []
     
-    localCrossMutr = []
+    localCrossMutr.clear()
     allParametersPerfCrossMutrKNNMC = []
     for dr in KNNIDsM:
         if (int(re.findall('\d+', dr)[0]) >= greater):
@@ -1959,7 +1963,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrKNNMC.append(localCrossMutr[1])
     allParametersPerfCrossMutrKNNMC.append(localCrossMutr[2])
     allParametersPerfCrossMutrKNNMC.append(localCrossMutr[3])
-
+    
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMC
 
     countKNN = 0
@@ -2009,7 +2013,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrKNNMM.append(localCrossMutr[1])
     allParametersPerfCrossMutrKNNMM.append(localCrossMutr[2])
     allParametersPerfCrossMutrKNNMM.append(localCrossMutr[3])
-
+    
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMM
 
     localCrossMutr.clear()
@@ -2047,7 +2051,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrLRMC.append(localCrossMutr[0])
     allParametersPerfCrossMutrLRMC.append(localCrossMutr[1])
     allParametersPerfCrossMutrLRMC.append(localCrossMutr[2])
@@ -2097,7 +2101,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrLRMM.append(localCrossMutr[0])
     allParametersPerfCrossMutrLRMM.append(localCrossMutr[1])
     allParametersPerfCrossMutrLRMM.append(localCrossMutr[2])
@@ -2147,7 +2151,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrMLPMC.append(localCrossMutr[1])
     allParametersPerfCrossMutrMLPMC.append(localCrossMutr[2])
     allParametersPerfCrossMutrMLPMC.append(localCrossMutr[3])
-
+    
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMC
 
     countMLP = 0
@@ -2198,7 +2202,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrMLPMM.append(localCrossMutr[1])
     allParametersPerfCrossMutrMLPMM.append(localCrossMutr[2])
     allParametersPerfCrossMutrMLPMM.append(localCrossMutr[3])
-
+    
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMM
 
     localCrossMutr.clear()
@@ -2238,7 +2242,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrRFMC.append(localCrossMutr[0])
     allParametersPerfCrossMutrRFMC.append(localCrossMutr[1])
     allParametersPerfCrossMutrRFMC.append(localCrossMutr[2])
@@ -2289,7 +2293,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrRFMM.append(localCrossMutr[0])
     allParametersPerfCrossMutrRFMM.append(localCrossMutr[1])
     allParametersPerfCrossMutrRFMM.append(localCrossMutr[2])
@@ -2336,7 +2340,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrGradBMC.append(localCrossMutr[0])
     allParametersPerfCrossMutrGradBMC.append(localCrossMutr[1])
     allParametersPerfCrossMutrGradBMC.append(localCrossMutr[2])
@@ -2387,7 +2391,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
+    
     allParametersPerfCrossMutrGradBMM.append(localCrossMutr[0])
     allParametersPerfCrossMutrGradBMM.append(localCrossMutr[1])
     allParametersPerfCrossMutrGradBMM.append(localCrossMutr[2])
@@ -2396,6 +2400,89 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBMM
 
     localCrossMutr.clear()
+
+    global allParametersPerformancePerModelEnsem
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNCM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNCM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRCM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBCM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBCM[3]], ignore_index=True)
+    
+    # MUTATION
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNMM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNMM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRMM[3]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPMM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFMM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBMM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBMM[3]], ignore_index=True)
 
     allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNCC + allParametersPerfCrossMutrKNNCM + allParametersPerfCrossMutrLRCC + allParametersPerfCrossMutrLRCM + allParametersPerfCrossMutrMLPCC + allParametersPerfCrossMutrMLPCM + allParametersPerfCrossMutrRFCC + allParametersPerfCrossMutrRFCM + allParametersPerfCrossMutrGradBCC + allParametersPerfCrossMutrGradBCM + allParametersPerfCrossMutrKNNMC + allParametersPerfCrossMutrKNNMM + allParametersPerfCrossMutrLRMC + allParametersPerfCrossMutrLRMM + allParametersPerfCrossMutrMLPMC + allParametersPerfCrossMutrMLPMM + allParametersPerfCrossMutrRFMC + allParametersPerfCrossMutrRFMM + allParametersPerfCrossMutrGradBMC + allParametersPerfCrossMutrGradBMM
     allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNCC[0] + allParametersPerfCrossMutrKNNCM[0]
@@ -3227,9 +3314,33 @@ def PreprocessingIDsCM():
     dicRFM = allParametersPerfCrossMutr[28]
     dicGradBC = allParametersPerfCrossMutr[32]
     dicGradBM = allParametersPerfCrossMutr[36]
-    
 
     df_concatIDs = dicKNNC + dicKNNM + dicLRC + dicLRM + dicMLPC + dicMLPM + dicRFC + dicRFM + dicGradBC + dicGradBM
+    return df_concatIDs
+
+def PreprocessingIDsCMSecond():
+    dicKNNCC = allParametersPerfCrossMutr[0]
+    dicKNNCM = allParametersPerfCrossMutr[4]
+    dicLRCC = allParametersPerfCrossMutr[8]
+    dicLRCM = allParametersPerfCrossMutr[12]
+    dicMLPCC = allParametersPerfCrossMutr[16]
+    dicMLPCM = allParametersPerfCrossMutr[20]
+    dicRFCC = allParametersPerfCrossMutr[24]
+    dicRFCM = allParametersPerfCrossMutr[28]
+    dicGradBCC = allParametersPerfCrossMutr[32]
+    dicGradBCM = allParametersPerfCrossMutr[36]
+    dicKNNMC = allParametersPerfCrossMutr[40]
+    dicKNNMM = allParametersPerfCrossMutr[44]
+    dicLRMC = allParametersPerfCrossMutr[48]
+    dicLRMM = allParametersPerfCrossMutr[52]
+    dicMLPMC = allParametersPerfCrossMutr[56]
+    dicMLPMM = allParametersPerfCrossMutr[60]
+    dicRFMC = allParametersPerfCrossMutr[64]
+    dicRFMM = allParametersPerfCrossMutr[68]
+    dicGradBMC = allParametersPerfCrossMutr[72]
+    dicGradBMM = allParametersPerfCrossMutr[76]
+
+    df_concatIDs = dicKNNCC + dicKNNCM + dicLRCC + dicLRCM + dicMLPCC + dicMLPCM + dicRFCC + dicRFCM + dicGradBCC + dicGradBCM + dicKNNMC + dicKNNMM + dicLRMC + dicLRMM + dicMLPMC + dicMLPMM + dicRFMC + dicRFMM + dicGradBMC + dicGradBMM
     return df_concatIDs
 
 def PreprocessingMetricsCM():
@@ -3256,6 +3367,53 @@ def PreprocessingMetricsCM():
     dfGradBM = pd.DataFrame.from_dict(dicGradBM)
 
     df_concatMetrics = pd.concat([dfKNNC, dfKNNM, dfLRC, dfLRM, dfMLPC, dfMLPM, dfRFC, dfRFM, dfGradBC, dfGradBM])
+    df_concatMetrics = df_concatMetrics.reset_index(drop=True)
+    return df_concatMetrics
+
+def PreprocessingMetricsCMSecond():
+    dicKNNCC = allParametersPerfCrossMutr[2]
+    dicKNNCM = allParametersPerfCrossMutr[6]
+    dicLRCC = allParametersPerfCrossMutr[10]
+    dicLRCM = allParametersPerfCrossMutr[14]
+    dicMLPCC = allParametersPerfCrossMutr[18]
+    dicMLPCM = allParametersPerfCrossMutr[22]
+    dicRFCC = allParametersPerfCrossMutr[26]
+    dicRFCM = allParametersPerfCrossMutr[30]
+    dicGradBCC = allParametersPerfCrossMutr[34]
+    dicGradBCM = allParametersPerfCrossMutr[38]
+    dicKNNMC = allParametersPerfCrossMutr[42]
+    dicKNNMM = allParametersPerfCrossMutr[46]
+    dicLRMC = allParametersPerfCrossMutr[50]
+    dicLRMM = allParametersPerfCrossMutr[54]
+    dicMLPMC = allParametersPerfCrossMutr[58]
+    dicMLPMM = allParametersPerfCrossMutr[62]
+    dicRFMC = allParametersPerfCrossMutr[66]
+    dicRFMM = allParametersPerfCrossMutr[70]
+    dicGradBMC = allParametersPerfCrossMutr[74]
+    dicGradBMM = allParametersPerfCrossMutr[78]
+
+    dfKNNCC = pd.DataFrame.from_dict(dicKNNCC)
+    dfKNNCM = pd.DataFrame.from_dict(dicKNNCM)
+    dfLRCC = pd.DataFrame.from_dict(dicLRCC)
+    dfLRCM = pd.DataFrame.from_dict(dicLRCM)
+    dfMLPCC = pd.DataFrame.from_dict(dicMLPCC)
+    dfMLPCM = pd.DataFrame.from_dict(dicMLPCM)
+    dfRFCC = pd.DataFrame.from_dict(dicRFCC)
+    dfRFCM = pd.DataFrame.from_dict(dicRFCM)
+    dfGradBCC = pd.DataFrame.from_dict(dicGradBCC)
+    dfGradBCM = pd.DataFrame.from_dict(dicGradBCM)
+    dfKNNMC = pd.DataFrame.from_dict(dicKNNMC)
+    dfKNNMM = pd.DataFrame.from_dict(dicKNNMM)
+    dfLRMC = pd.DataFrame.from_dict(dicLRMC)
+    dfLRMM = pd.DataFrame.from_dict(dicLRMM)
+    dfMLPMC = pd.DataFrame.from_dict(dicMLPMC)
+    dfMLPMM = pd.DataFrame.from_dict(dicMLPMM)
+    dfRFMC = pd.DataFrame.from_dict(dicRFMC)
+    dfRFMM = pd.DataFrame.from_dict(dicRFMM)
+    dfGradBMC = pd.DataFrame.from_dict(dicGradBMC)
+    dfGradBMM = pd.DataFrame.from_dict(dicGradBMM)
+
+    df_concatMetrics = pd.concat([dfKNNCC, dfKNNCM, dfLRCC, dfLRCM, dfMLPCC, dfMLPCM, dfRFCC, dfRFCM, dfGradBCC, dfGradBCM, dfKNNMC, dfKNNMM, dfLRMC, dfLRMM, dfMLPMC, dfMLPMM, dfRFMC, dfRFMM, dfGradBMC, dfGradBMM])
     df_concatMetrics = df_concatMetrics.reset_index(drop=True)
     return df_concatMetrics
 
@@ -3293,6 +3451,93 @@ def PreprocessingPredCM():
     dfGradB = pd.concat([dfGradBC, dfGradBM])
 
     df_concatProbs = pd.concat([dfKNNC, dfKNNM, dfLRC, dfLRM, dfMLPC, dfMLPM, dfRFC, dfRFM, dfGradBC, dfGradBM])
+
+    predictionsKNN = []
+    for column, content in dfKNN.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsKNN.append(el)
+
+    predictionsLR = []
+    for column, content in dfLR.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsLR.append(el)
+
+    predictionsMLP = []
+    for column, content in dfMLP.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsMLP.append(el)
+
+    predictionsRF = []
+    for column, content in dfRF.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsRF.append(el)
+
+    predictionsGradB = []
+    for column, content in dfGradB.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictionsGradB.append(el)
+    
+    predictions = []
+    for column, content in df_concatProbs.items():
+        el = [sum(x)/len(x) for x in zip(*content)]
+        predictions.append(el)
+
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+
+def PreprocessingPredCMSecond():
+    dicKNNCC = allParametersPerfCrossMutr[3]
+    dicKNNCM = allParametersPerfCrossMutr[7]
+    dicLRCC = allParametersPerfCrossMutr[11]
+    dicLRCM = allParametersPerfCrossMutr[15]
+    dicMLPCC = allParametersPerfCrossMutr[19]
+    dicMLPCM = allParametersPerfCrossMutr[23]
+    dicRFCC = allParametersPerfCrossMutr[27]
+    dicRFCM = allParametersPerfCrossMutr[31]
+    dicGradBCC = allParametersPerfCrossMutr[35]
+    dicGradBCM = allParametersPerfCrossMutr[39]
+    dicKNNMC = allParametersPerfCrossMutr[43]
+    dicKNNMM = allParametersPerfCrossMutr[47]
+    dicLRMC = allParametersPerfCrossMutr[51]
+    dicLRMM = allParametersPerfCrossMutr[55]
+    dicMLPMC = allParametersPerfCrossMutr[59]
+    dicMLPMM = allParametersPerfCrossMutr[63]
+    dicRFMC = allParametersPerfCrossMutr[67]
+    dicRFMM = allParametersPerfCrossMutr[71]
+    dicGradBMC = allParametersPerfCrossMutr[75]
+    dicGradBMM = allParametersPerfCrossMutr[79]
+
+    dfKNNCC = pd.DataFrame.from_dict(dicKNNCC)
+    dfKNNCM = pd.DataFrame.from_dict(dicKNNCM)
+    dfLRCC = pd.DataFrame.from_dict(dicLRCC)
+    dfLRCM = pd.DataFrame.from_dict(dicLRCM)
+    dfMLPCC = pd.DataFrame.from_dict(dicMLPCC)
+    dfMLPCM = pd.DataFrame.from_dict(dicMLPCM)
+    dfRFCC = pd.DataFrame.from_dict(dicRFCC)
+    dfRFCM = pd.DataFrame.from_dict(dicRFCM)
+    dfGradBCC = pd.DataFrame.from_dict(dicGradBCC)
+    dfGradBCM = pd.DataFrame.from_dict(dicGradBCM)
+    dfKNNMC = pd.DataFrame.from_dict(dicKNNMC)
+    dfKNNMM = pd.DataFrame.from_dict(dicKNNMM)
+    dfLRMC = pd.DataFrame.from_dict(dicLRMC)
+    dfLRMM = pd.DataFrame.from_dict(dicLRMM)
+    dfMLPMC = pd.DataFrame.from_dict(dicMLPMC)
+    dfMLPMM = pd.DataFrame.from_dict(dicMLPMM)
+    dfRFMC = pd.DataFrame.from_dict(dicRFMC)
+    dfRFMM = pd.DataFrame.from_dict(dicRFMM)
+    dfGradBMC = pd.DataFrame.from_dict(dicGradBMC)
+    dfGradBMM = pd.DataFrame.from_dict(dicGradBMM)
+
+    dfKNN = pd.concat([dfKNNCC, dfKNNCM, dfKNNMC, dfKNNMM])
+
+    dfLR = pd.concat([dfLRCC, dfLRCM, dfLRMC, dfLRMM])
+
+    dfMLP = pd.concat([dfMLPCC, dfMLPCM, dfMLPMC, dfMLPMM])
+
+    dfRF = pd.concat([dfRFCC, dfRFCM, dfRFMC, dfRFMM])
+
+    dfGradB = pd.concat([dfGradBCC, dfGradBCM, dfGradBMC, dfGradBMM])
+
+    df_concatProbs = pd.concat([dfKNNCC, dfKNNCM, dfLRCC, dfLRCM, dfMLPCC, dfMLPCM, dfRFCC, dfRFCM, dfGradBCC, dfGradBCM, dfKNNMC, dfKNNMM, dfLRMC, dfLRMM, dfMLPMC, dfMLPMM, dfRFMC, dfRFMM, dfGradBMC, dfGradBMM])
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -3387,68 +3632,243 @@ def PreprocessingParamCM():
     df_params = df_params.reset_index(drop=True)
     return df_params
 
+def PreprocessingParamCMSecond():
+    dicKNNCC = allParametersPerfCrossMutr[1]
+    dicKNNCM = allParametersPerfCrossMutr[5]
+    dicLRCC = allParametersPerfCrossMutr[9]
+    dicLRCM = allParametersPerfCrossMutr[13]
+    dicMLPCC = allParametersPerfCrossMutr[17]
+    dicMLPCM = allParametersPerfCrossMutr[21]
+    dicRFCC = allParametersPerfCrossMutr[25]
+    dicRFCM = allParametersPerfCrossMutr[29]
+    dicGradBCC = allParametersPerfCrossMutr[33]
+    dicGradBCM = allParametersPerfCrossMutr[37]
+    dicKNNMC = allParametersPerfCrossMutr[41]
+    dicKNNMM = allParametersPerfCrossMutr[45]
+    dicLRMC = allParametersPerfCrossMutr[49]
+    dicLRMM = allParametersPerfCrossMutr[53]
+    dicMLPMC = allParametersPerfCrossMutr[57]
+    dicMLPMM = allParametersPerfCrossMutr[61]
+    dicRFMC = allParametersPerfCrossMutr[65]
+    dicRFMM = allParametersPerfCrossMutr[69]
+    dicGradBMC = allParametersPerfCrossMutr[73]
+    dicGradBMM = allParametersPerfCrossMutr[77]
+
+    dicKNNCC = dicKNNCC['params']
+    dicKNNCM = dicKNNCM['params']
+    dicLRCC = dicLRCC['params']
+    dicLRCM = dicLRCM['params']
+    dicMLPCC = dicMLPCC['params']
+    dicMLPCM = dicMLPCM['params']
+    dicRFCC = dicRFCC['params']
+    dicRFCM = dicRFCM['params']
+    dicGradBCC = dicGradBCC['params']
+    dicGradBCM = dicGradBCM['params']
+    dicKNNMC = dicKNNMC['params']
+    dicKNNMM = dicKNNMM['params']
+    dicLRMC = dicLRMC['params']
+    dicLRMM = dicLRMM['params']
+    dicMLPMC = dicMLPMC['params']
+    dicMLPMM = dicMLPMM['params']
+    dicRFMC = dicRFMC['params']
+    dicRFMM = dicRFMM['params']
+    dicGradBMC = dicGradBMC['params']
+    dicGradBMM = dicGradBMM['params']
+    
+    dicKNNCC = {int(k):v for k,v in dicKNNCC.items()}
+    dicKNNCM = {int(k):v for k,v in dicKNNCM.items()}
+    dicLRCC = {int(k):v for k,v in dicLRCC.items()}
+    dicLRCM = {int(k):v for k,v in dicLRCM.items()}
+    dicMLPCC = {int(k):v for k,v in dicMLPCC.items()}
+    dicMLPCM = {int(k):v for k,v in dicMLPCM.items()}
+    dicRFCC = {int(k):v for k,v in dicRFCC.items()}
+    dicRFCM = {int(k):v for k,v in dicRFCM.items()}
+    dicGradBCC = {int(k):v for k,v in dicGradBCC.items()}
+    dicGradBCM = {int(k):v for k,v in dicGradBCM.items()}
+    dicKNNMC = {int(k):v for k,v in dicKNNMC.items()}
+    dicKNNMM = {int(k):v for k,v in dicKNNMM.items()}
+    dicLRMC = {int(k):v for k,v in dicLRMC.items()}
+    dicLRMM = {int(k):v for k,v in dicLRMM.items()}
+    dicMLPMC = {int(k):v for k,v in dicMLPMC.items()}
+    dicMLPMM = {int(k):v for k,v in dicMLPMM.items()}
+    dicRFMC = {int(k):v for k,v in dicRFMC.items()}
+    dicRFMM = {int(k):v for k,v in dicRFMM.items()}
+    dicGradBMC = {int(k):v for k,v in dicGradBMC.items()}
+    dicGradBMM = {int(k):v for k,v in dicGradBMM.items()}
+
+    dfKNNCC = pd.DataFrame.from_dict(dicKNNCC)
+    dfKNNCM = pd.DataFrame.from_dict(dicKNNCM)
+    dfLRCC = pd.DataFrame.from_dict(dicLRCC)
+    dfLRCM = pd.DataFrame.from_dict(dicLRCM)
+    dfMLPCC = pd.DataFrame.from_dict(dicMLPCC)
+    dfMLPCM = pd.DataFrame.from_dict(dicMLPCM)
+    dfRFCC = pd.DataFrame.from_dict(dicRFCC)
+    dfRFCM = pd.DataFrame.from_dict(dicRFCM)
+    dfGradBCC = pd.DataFrame.from_dict(dicGradBCC)
+    dfGradBCM = pd.DataFrame.from_dict(dicGradBCM)
+    dfKNNMC = pd.DataFrame.from_dict(dicKNNMC)
+    dfKNNMM = pd.DataFrame.from_dict(dicKNNMM)
+    dfLRMC = pd.DataFrame.from_dict(dicLRMC)
+    dfLRMM = pd.DataFrame.from_dict(dicLRMM)
+    dfMLPMC = pd.DataFrame.from_dict(dicMLPMC)
+    dfMLPMM = pd.DataFrame.from_dict(dicMLPMM)
+    dfRFMC = pd.DataFrame.from_dict(dicRFMC)
+    dfRFMM = pd.DataFrame.from_dict(dicRFMM)
+    dfGradBMC = pd.DataFrame.from_dict(dicGradBMC)
+    dfGradBMM = pd.DataFrame.from_dict(dicGradBMM)
+
+    dfKNNCC = dfKNNCC.T
+    dfKNNCM = dfKNNCM.T
+    dfLRCC = dfLRCC.T
+    dfLRCM = dfLRCM.T
+    dfMLPCC = dfMLPCC.T
+    dfMLPCM = dfMLPCM.T
+    dfRFCC = dfRFCC.T
+    dfRFCM = dfRFCM.T
+    dfGradBCC = dfGradBCC.T
+    dfGradBCM = dfGradBCM.T
+    dfKNNMC = dfKNNMC.T
+    dfKNNMM = dfKNNMM.T
+    dfLRMC = dfLRMC.T
+    dfLRMM = dfLRMM.T
+    dfMLPMC = dfMLPMC.T
+    dfMLPMM = dfMLPMM.T
+    dfRFMC = dfRFMC.T
+    dfRFMM = dfRFMM.T
+    dfGradBMC = dfGradBMC.T
+    dfGradBMM = dfGradBMM.T
+
+    df_params = pd.concat([dfKNNCC, dfKNNCM, dfLRCC, dfLRCM, dfMLPCC, dfMLPCM, dfRFCC, dfRFCM, dfGradBCC, dfGradBCM, dfKNNMC, dfKNNMM, dfLRMC, dfLRMM, dfMLPMC, dfMLPMM, dfRFMC, dfRFMM, dfGradBMC, dfGradBMM])
+    df_params = df_params.reset_index(drop=True)
+    return df_params
+
 def PreprocessingParamSepCM():
-    dicKNNC = allParametersPerfCrossMutr[1]
-    dicKNNM = allParametersPerfCrossMutr[5]
-    dicLRC = allParametersPerfCrossMutr[9]
-    dicLRM = allParametersPerfCrossMutr[13]
-    dicMLPC = allParametersPerfCrossMutr[17]
-    dicMLPM = allParametersPerfCrossMutr[21]
-    dicRFC = allParametersPerfCrossMutr[25]
-    dicRFM = allParametersPerfCrossMutr[29]
-    dicGradBC = allParametersPerfCrossMutr[33]
-    dicGradBM = allParametersPerfCrossMutr[37]
+    dicKNNCC = allParametersPerfCrossMutr[1]
+    dicKNNCM = allParametersPerfCrossMutr[5]
+    dicLRCC = allParametersPerfCrossMutr[9]
+    dicLRCM = allParametersPerfCrossMutr[13]
+    dicMLPCC = allParametersPerfCrossMutr[17]
+    dicMLPCM = allParametersPerfCrossMutr[21]
+    dicRFCC = allParametersPerfCrossMutr[25]
+    dicRFCM = allParametersPerfCrossMutr[29]
+    dicGradBCC = allParametersPerfCrossMutr[33]
+    dicGradBCM = allParametersPerfCrossMutr[37]
+    dicKNNMC = allParametersPerfCrossMutr[41]
+    dicKNNMM = allParametersPerfCrossMutr[45]
+    dicLRMC = allParametersPerfCrossMutr[49]
+    dicLRMM = allParametersPerfCrossMutr[53]
+    dicMLPMC = allParametersPerfCrossMutr[57]
+    dicMLPMM = allParametersPerfCrossMutr[61]
+    dicRFMC = allParametersPerfCrossMutr[65]
+    dicRFMM = allParametersPerfCrossMutr[69]
+    dicGradBMC = allParametersPerfCrossMutr[73]
+    dicGradBMM = allParametersPerfCrossMutr[77]
 
-    dicKNNC = dicKNNC['params']
-    dicKNNM = dicKNNM['params']
-    dicLRC = dicLRC['params']
-    dicLRM = dicLRM['params']
-    dicMLPC = dicMLPC['params']
-    dicMLPM = dicMLPM['params']
-    dicRFC = dicRFC['params']
-    dicRFM = dicRFM['params']
-    dicGradBC = dicGradBC['params']
-    dicGradBM = dicGradBM['params']
+    dicKNNCC = dicKNNCC['params']
+    dicKNNCM = dicKNNCM['params']
+    dicLRCC = dicLRCC['params']
+    dicLRCM = dicLRCM['params']
+    dicMLPCC = dicMLPCC['params']
+    dicMLPCM = dicMLPCM['params']
+    dicRFCC = dicRFCC['params']
+    dicRFCM = dicRFCM['params']
+    dicGradBCC = dicGradBCC['params']
+    dicGradBCM = dicGradBCM['params']
+    dicKNNMC = dicKNNMC['params']
+    dicKNNMM = dicKNNMM['params']
+    dicLRMC = dicLRMC['params']
+    dicLRMM = dicLRMM['params']
+    dicMLPMC = dicMLPMC['params']
+    dicMLPMM = dicMLPMM['params']
+    dicRFMC = dicRFMC['params']
+    dicRFMM = dicRFMM['params']
+    dicGradBMC = dicGradBMC['params']
+    dicGradBMM = dicGradBMM['params']
+    
+    dicKNNCC = {int(k):v for k,v in dicKNNCC.items()}
+    dicKNNCM = {int(k):v for k,v in dicKNNCM.items()}
+    dicLRCC = {int(k):v for k,v in dicLRCC.items()}
+    dicLRCM = {int(k):v for k,v in dicLRCM.items()}
+    dicMLPCC = {int(k):v for k,v in dicMLPCC.items()}
+    dicMLPCM = {int(k):v for k,v in dicMLPCM.items()}
+    dicRFCC = {int(k):v for k,v in dicRFCC.items()}
+    dicRFCM = {int(k):v for k,v in dicRFCM.items()}
+    dicGradBCC = {int(k):v for k,v in dicGradBCC.items()}
+    dicGradBCM = {int(k):v for k,v in dicGradBCM.items()}
+    dicKNNMC = {int(k):v for k,v in dicKNNMC.items()}
+    dicKNNMM = {int(k):v for k,v in dicKNNMM.items()}
+    dicLRMC = {int(k):v for k,v in dicLRMC.items()}
+    dicLRMM = {int(k):v for k,v in dicLRMM.items()}
+    dicMLPMC = {int(k):v for k,v in dicMLPMC.items()}
+    dicMLPMM = {int(k):v for k,v in dicMLPMM.items()}
+    dicRFMC = {int(k):v for k,v in dicRFMC.items()}
+    dicRFMM = {int(k):v for k,v in dicRFMM.items()}
+    dicGradBMC = {int(k):v for k,v in dicGradBMC.items()}
+    dicGradBMM = {int(k):v for k,v in dicGradBMM.items()}
 
-    dicKNNC = {int(k):v for k,v in dicKNNC.items()}
-    dicKNNM = {int(k):v for k,v in dicKNNM.items()}
-    dicLRC = {int(k):v for k,v in dicLRC.items()}
-    dicLRM = {int(k):v for k,v in dicLRM.items()}
-    dicMLPC = {int(k):v for k,v in dicMLPC.items()}
-    dicMLPM = {int(k):v for k,v in dicMLPM.items()}
-    dicRFC = {int(k):v for k,v in dicRFC.items()}
-    dicRFM = {int(k):v for k,v in dicRFM.items()}
-    dicGradBC = {int(k):v for k,v in dicGradBC.items()}
-    dicGradBM = {int(k):v for k,v in dicGradBM.items()}
+    dfKNNCC = pd.DataFrame.from_dict(dicKNNCC)
+    dfKNNCM = pd.DataFrame.from_dict(dicKNNCM)
+    dfLRCC = pd.DataFrame.from_dict(dicLRCC)
+    dfLRCM = pd.DataFrame.from_dict(dicLRCM)
+    dfMLPCC = pd.DataFrame.from_dict(dicMLPCC)
+    dfMLPCM = pd.DataFrame.from_dict(dicMLPCM)
+    dfRFCC = pd.DataFrame.from_dict(dicRFCC)
+    dfRFCM = pd.DataFrame.from_dict(dicRFCM)
+    dfGradBCC = pd.DataFrame.from_dict(dicGradBCC)
+    dfGradBCM = pd.DataFrame.from_dict(dicGradBCM)
+    dfKNNMC = pd.DataFrame.from_dict(dicKNNMC)
+    dfKNNMM = pd.DataFrame.from_dict(dicKNNMM)
+    dfLRMC = pd.DataFrame.from_dict(dicLRMC)
+    dfLRMM = pd.DataFrame.from_dict(dicLRMM)
+    dfMLPMC = pd.DataFrame.from_dict(dicMLPMC)
+    dfMLPMM = pd.DataFrame.from_dict(dicMLPMM)
+    dfRFMC = pd.DataFrame.from_dict(dicRFMC)
+    dfRFMM = pd.DataFrame.from_dict(dicRFMM)
+    dfGradBMC = pd.DataFrame.from_dict(dicGradBMC)
+    dfGradBMM = pd.DataFrame.from_dict(dicGradBMM)
 
-    dfKNNC = pd.DataFrame.from_dict(dicKNNC)
-    dfKNNM = pd.DataFrame.from_dict(dicKNNM)
-    dfLRC = pd.DataFrame.from_dict(dicLRC)
-    dfLRM = pd.DataFrame.from_dict(dicLRM)
-    dfMLPC = pd.DataFrame.from_dict(dicMLPC)
-    dfMLPM = pd.DataFrame.from_dict(dicMLPM)
-    dfRFC = pd.DataFrame.from_dict(dicRFC)
-    dfRFM = pd.DataFrame.from_dict(dicRFM)
-    dfGradBC = pd.DataFrame.from_dict(dicGradBC)
-    dfGradBM = pd.DataFrame.from_dict(dicGradBM)
+    dfKNNCC = dfKNNCC.T
+    dfKNNCM = dfKNNCM.T
+    dfLRCC = dfLRCC.T
+    dfLRCM = dfLRCM.T
+    dfMLPCC = dfMLPCC.T
+    dfMLPCM = dfMLPCM.T
+    dfRFCC = dfRFCC.T
+    dfRFCM = dfRFCM.T
+    dfGradBCC = dfGradBCC.T
+    dfGradBCM = dfGradBCM.T
+    dfKNNMC = dfKNNMC.T
+    dfKNNMM = dfKNNMM.T
+    dfLRMC = dfLRMC.T
+    dfLRMM = dfLRMM.T
+    dfMLPMC = dfMLPMC.T
+    dfMLPMM = dfMLPMM.T
+    dfRFMC = dfRFMC.T
+    dfRFMM = dfRFMM.T
+    dfGradBMC = dfGradBMC.T
+    dfGradBMM = dfGradBMM.T
 
-    dfKNNC = dfKNNC.T
-    dfKNNM = dfKNNM.T
-    dfLRC = dfLRC.T
-    dfLRM = dfLRM.T
-    dfMLPC = dfMLPC.T
-    dfMLPM = dfMLPM.T
-    dfRFC = dfRFC.T
-    dfRFM = dfRFM.T
-    dfGradBC = dfGradBC.T
-    dfGradBM = dfGradBM.T
+    return [dfKNNCC, dfKNNCM, dfLRCC, dfLRCM, dfMLPCC, dfMLPCM, dfRFCC, dfRFCM, dfGradBCC, dfGradBCM, dfKNNMC, dfKNNMM, dfLRMC, dfLRMM, dfMLPMC, dfMLPMM, dfRFMC, dfRFMM, dfGradBMC, dfGradBMM]
 
-    return [dfKNNC, dfKNNM, dfLRC, dfLRM, dfMLPC, dfMLPM, dfRFC, dfRFM, dfGradBC, dfGradBM]
-
-# remove that maybe!
 def preProcsumPerMetricCM(factors):
     sumPerClassifier = []
     loopThroughMetrics = PreprocessingMetricsCM()
+    loopThroughMetrics = loopThroughMetrics.fillna(0)
+    loopThroughMetrics.loc[:, 'log_loss'] = 1 - loopThroughMetrics.loc[:, 'log_loss']
+    for row in loopThroughMetrics.iterrows():
+        rowSum = 0
+        name, values = row
+        for loop, elements in enumerate(values):
+            rowSum = elements*factors[loop] + rowSum
+        if sum(factors) is 0:
+            sumPerClassifier = 0
+        else:
+            sumPerClassifier.append(rowSum/sum(factors) * 100)
+    return sumPerClassifier
+
+def preProcsumPerMetricCMSecond(factors):
+    sumPerClassifier = []
+    loopThroughMetrics = PreprocessingMetricsCMSecond()
     loopThroughMetrics = loopThroughMetrics.fillna(0)
     loopThroughMetrics.loc[:, 'log_loss'] = 1 - loopThroughMetrics.loc[:, 'log_loss']
     for row in loopThroughMetrics.iterrows():
@@ -3487,12 +3907,42 @@ def preProcMetricsAllAndSelCM():
         metricsPerModelColl[index] = metricsPerModelColl[index].to_json()
     return metricsPerModelColl
 
+
+def preProcMetricsAllAndSelCMSecond():
+    loopThroughMetrics = PreprocessingMetricsCMSecond()
+    loopThroughMetrics = loopThroughMetrics.fillna(0)
+    global factors
+    metricsPerModelColl = []
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_accuracy'])
+    metricsPerModelColl.append(loopThroughMetrics['geometric_mean_score_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_precision_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_recall_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_f1_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['matthews_corrcoef'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_roc_auc_ovo'])
+    metricsPerModelColl.append(loopThroughMetrics['log_loss'])
+
+    f=lambda a: (abs(a)+a)/2
+    for index, metric in enumerate(metricsPerModelColl):
+        if (index == 5):
+            metricsPerModelColl[index] = ((f(metric))*factors[index]) * 100
+        elif (index == 7):
+            metricsPerModelColl[index] = ((1 - metric)*factors[index] ) * 100
+        else:  
+            metricsPerModelColl[index] = (metric*factors[index]) * 100
+        metricsPerModelColl[index] = metricsPerModelColl[index].to_json()
+    return metricsPerModelColl
+
 # Sending the overview classifiers' results to be visualized as a scatterplot
 @app.route('/data/PlotCrossMutate', methods=["GET", "POST"])
 def SendToPlotCM():
     while (len(DataResultsRaw) != DataRawLength):
         pass
-    PreProcessingInitial()
+    global CurStage
+    if (CurStage == 1):
+        PreProcessingInitial()
+    else:
+        PreProcessingSecond()
     response = {    
         'OverviewResultsCM': ResultsCM
     }
@@ -3513,6 +3963,20 @@ def PreProcessingInitial():
 
     CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM)
 
+def PreProcessingSecond(): 
+    XModels = PreprocessingMetricsCMSecond()
+
+    XModels = XModels.fillna(0)
+
+    ModelSpaceMDSCM = FunMDS(XModels)
+    ModelSpaceTSNECM = FunTsne(XModels)
+    ModelSpaceTSNECM = ModelSpaceTSNECM.tolist()
+    ModelSpaceUMAPCM = FunUMAP(XModels)
+
+    PredictionProbSelCM = PreprocessingPredCMSecond()
+
+    CrossMutateResultsSecond(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM)
+
 def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM):
 
     global ResultsCM
@@ -3523,6 +3987,37 @@ def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,Predict
     metricsPerModelCM = preProcMetricsAllAndSelCM()
     sumPerClassifierCM = preProcsumPerMetricCM(factors)
     ModelsIDsCM = PreprocessingIDsCM()
+    parametersGenPDGM = parametersGenCM.to_json(orient='records')
+    XDataJSONEntireSet = XData.to_json(orient='records')
+    XDataColumns = XData.columns.tolist()
+
+    ResultsCM.append(json.dumps(ModelsIDsCM))
+    ResultsCM.append(json.dumps(sumPerClassifierCM))
+    ResultsCM.append(json.dumps(parametersGenPDGM))
+    ResultsCM.append(json.dumps(metricsPerModelCM))
+    ResultsCM.append(json.dumps(XDataJSONEntireSet))
+    ResultsCM.append(json.dumps(XDataColumns))
+    ResultsCM.append(json.dumps(yData))
+    ResultsCM.append(json.dumps(target_names))
+    ResultsCM.append(json.dumps(AllTargets))
+    ResultsCM.append(json.dumps(ModelSpaceMDSCM))
+    ResultsCM.append(json.dumps(ModelSpaceTSNECM))
+    ResultsCM.append(json.dumps(ModelSpaceUMAPCM))
+    ResultsCM.append(json.dumps(PredictionProbSelCM))
+    ResultsCM.append(json.dumps(names_labels))
+
+    return ResultsCM
+
+def CrossMutateResultsSecond(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM):
+
+    global ResultsCM
+    global AllTargets
+    ResultsCM = []
+
+    parametersGenCM = PreprocessingParamCMSecond()
+    metricsPerModelCM = preProcMetricsAllAndSelCMSecond()
+    sumPerClassifierCM = preProcsumPerMetricCMSecond(factors)
+    ModelsIDsCM = PreprocessingIDsCMSecond()
     parametersGenPDGM = parametersGenCM.to_json(orient='records')
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
@@ -3561,13 +4056,13 @@ def PreprocessingPredSel(SelectedIDs):
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]) - addKNN)
-            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
                 numberIDLR.append(int(items[1]) - addLR)
-            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM") | (items[0] == "MLPCC") | (items[0] == "MLPCM") | (items[0] == "MLPMC") | (items[0] == "MLPMM")):
                 numberIDMLP.append(int(items[1]) - addMLP)
-            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM") | (items[0] == "RFCC") | (items[0] == "RFCM") | (items[0] == "RFMC") | (items[0] == "RFMM")):
                 numberIDRF.append(int(items[1]) - addRF)
             else:
                 numberIDGradB.append(int(items[1]) - addGradB)
@@ -3668,13 +4163,13 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]))
-            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
                 numberIDLR.append(int(items[1]))
-            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM") | (items[0] == "MLPCC") | (items[0] == "MLPCM") | (items[0] == "MLPMC") | (items[0] == "MLPMM")):
                 numberIDMLP.append(int(items[1]))
-            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM") | (items[0] == "RFCC") | (items[0] == "RFCM") | (items[0] == "RFMC") | (items[0] == "RFMM")):
                 numberIDRF.append(int(items[1]))
             else:
                 numberIDGradB.append(int(items[1]))

@@ -44,6 +44,8 @@ export default {
       WH: [],
       ScatterPlotResults: '',
       representationDef: 'mds',
+      FlagFinalStage: 0,
+      RemainingPointsIndices: []
     }
   },
   methods: {
@@ -68,13 +70,26 @@ export default {
     ScatterPlotView () {
       Plotly.purge('OverviewPlotly')
 
-      var modelId = JSON.parse(this.ScatterPlotResults[0])
-      var colorsforScatterPlot = JSON.parse(this.ScatterPlotResults[1])
-      var parametersLoc = JSON.parse(this.ScatterPlotResults[2])
-      var parameters = JSON.parse(parametersLoc)
-      var MDSData= JSON.parse(this.ScatterPlotResults[9])
-      var TSNEData = JSON.parse(this.ScatterPlotResults[10])
-      var UMAPData = JSON.parse(this.ScatterPlotResults[11])
+      if (this.FlagFinalStage == 0) {
+        var modelId = JSON.parse(this.ScatterPlotResults[0])
+        var colorsforScatterPlot = JSON.parse(this.ScatterPlotResults[1])
+        var parametersLoc = JSON.parse(this.ScatterPlotResults[2])
+        var parameters = JSON.parse(parametersLoc)
+        var MDSData= JSON.parse(this.ScatterPlotResults[9])
+        var TSNEData = JSON.parse(this.ScatterPlotResults[10])
+        var UMAPData = JSON.parse(this.ScatterPlotResults[11])
+      } else {
+        console.log('mpike')
+        var modelId = this.RemainingPointsIndices.map((item) => JSON.parse(this.ScatterPlotResults[0])[item])
+        console.log(modelId)
+        var colorsforScatterPlot = this.RemainingPointsIndices.map((item) => JSON.parse(this.ScatterPlotResults[1])[item])
+        var parametersLoc = this.RemainingPointsIndices.map((item) => JSON.parse(this.ScatterPlotResults[2])[item])
+        var parameters = JSON.parse(parametersLoc)
+        var MDSData = this.RemainingPointsIndices.map((item) => JSON.parse(this.ScatterPlotResults[9])[item])
+        var TSNEData = this.RemainingPointsIndices.map((item) => JSON.parse(this.ScatterPlotResults[10])[item])
+        var UMAPData = this.RemainingPointsIndices.map((item) => JSON.parse(this.ScatterPlotResults[11])[item])
+        console.log(modelId)
+      }
       
       EventBus.$emit('sendPointsNumber', modelId.length)
 
@@ -292,6 +307,7 @@ export default {
       OverviewPlotly.on('plotly_selected', function (evt) {
         if (typeof evt !== 'undefined') {
           var pushModelsRemainingTemp = []
+          var indices = []
           const ClassifierIDsList = []
           for (let i = 0; evt.points.length; i++) {
             if (evt.points[i] === undefined) {
@@ -305,8 +321,10 @@ export default {
           for (let i = 0; i < allModels.length; i++) {
             if (ClassifierIDsList.indexOf((allModels[i])) < 0) {
               pushModelsRemainingTemp.push(allModels[i])
+              indices.push(i)
             }
           }
+          EventBus.$on('RemainingPointsIndices', indices)
           EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
           EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
           EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
@@ -317,7 +335,8 @@ export default {
       EventBus.$emit('InitializeCrossoverMutation')
     },
     Add () {
-
+      EventBus.$emit('ChangeKey', 3)
+      EventBus.$emit('InitializeCrossoverMutation')
     },
     swapButtons () {
       var add = document.getElementById('AddEnsemble');
@@ -327,6 +346,9 @@ export default {
     }
   },
   mounted() {
+    EventBus.$on('RemainingPointsIndices', data => { this.RemainingPointsIndices = data })
+    EventBus.$on('ChangeKey', data => { this.FlagFinalStage = data })
+
     EventBus.$on('emittedEventCallingScatterPlot', data => {
       this.ScatterPlotResults = data})
     EventBus.$on('emittedEventCallingScatterPlot', this.ScatterPlotView)

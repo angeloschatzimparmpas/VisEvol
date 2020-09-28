@@ -38,7 +38,7 @@ export default {
     },
     computePerformanceDiffS () {
       var colorsforScatterPlot = this.PerF
-      console.log(this.storedEnsem)
+      console.log(this.storedCM)
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
       var mergedStoreEnsembleLocFormatted = []
       for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
@@ -46,19 +46,15 @@ export default {
       }
       
       colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
-      console.log(colorsforScatterPlot)
       var max = Math.max.apply(Math, colorsforScatterPlot)
       var min = Math.min.apply(Math, colorsforScatterPlot)
-      console.log(max)
-      console.log(min)
+
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-      console.log(this.PerFCM)
-
       for (let i = 0; i < this.storedCM.length; i++) {
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
-        console.log(tempSplit)
+
         if (tempSplit[0] == 'KNNCC') {
           if (this.PerFCM[i] > max) {
             countMax[0] = countMax[0] + 1
@@ -1138,7 +1134,7 @@ export default {
 
             $("input[type='number']").change( function(d) {
               valuesLoc[d.target.id] = parseInt(d.target.value)
-              EventBus.$emit('changeValues', valuesLoc)
+              EventBus.$emit('changeValues2', valuesLoc)
             });
         }
             // .append("title")
@@ -1531,6 +1527,9 @@ export default {
 
     EventBus.$on('changeValues', data => { this.values = data })
     EventBus.$on('changeValues', this.SankeyView )
+
+    EventBus.$on('changeValues2', data => { this.valuesStage2 = data})
+    EventBus.$on('changeValues2', this.SankeyViewStage2)
 
     EventBus.$on('SendtheChangeinRangePos', data => { this.RandomSearLoc = data })
 

@@ -2,6 +2,7 @@
   <div>
     <div id="containerAll"></div>
     <div id="containerSelection"></div>
+    <div id="LegendHeat"></div>
   </div>
 </template>
 
@@ -24,6 +25,7 @@ export default {
       responsiveWidthHeight: [],
       predictSelection: [],
       StoreIndices: [],
+      classesNumber: 9,
     }
   },
   methods: {
@@ -32,6 +34,8 @@ export default {
       svg.selectAll("*").remove();
       var svg = d3.select("#containerSelection");
       svg.selectAll("*").remove();
+      var svgLeg = d3.select("#LegendHeat");
+      svgLeg.selectAll("*").remove();
       this.GetResultsAll = []
       this.GetResultsSelection = []
       this.predictSelection = []
@@ -102,12 +106,12 @@ export default {
           dataGradB.push({ id: element, value: GradBPred[element][targetNames[i]] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
-          dataAver.push({ id: null, value: 1.0 })
-          dataKNN.push({ id: null, value: 1.0 })
-          dataLR.push({ id: null, value: 1.0 })
-          dataMLP.push({ id: null, value: 1.0 })
-          dataRF.push({ id: null, value: 1.0 })
-          dataGradB.push({ id: null, value: 1.0 })
+          dataAver.push({ id: -1, value: 1.0 })
+          dataKNN.push({ id: -1, value: 1.0 })
+          dataLR.push({ id: -1, value: 1.0 })
+          dataMLP.push({ id: -1, value: 1.0 })
+          dataRF.push({ id: -1, value: 1.0 })
+          dataGradB.push({ id: -1, value: 1.0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
@@ -196,7 +200,7 @@ export default {
 
 		function databind(data, size, sqrtSize) {
 
-			colourScale = d3.scaleSequential(d3.interpolateReds).domain([1, 0])
+			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([1, 0])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -220,9 +224,9 @@ export default {
 				.transition()
 				.attr('width', cellSize)
 				.attr('height', cellSize)
-        .attr('fillStyle', function(d) { return colourScale(d.value); })
+        .attr('fillStyle', function(d) { if(d.id == -1) { return "#ffffff" } else { return colourScale(d.value);}})
         .attr('fill-opacity', function(d) { 
-          if (d.id == null) {
+          if (d.id == -1) {
             return "0.0";
           } else {
             return "1.0"; 
@@ -348,12 +352,12 @@ export default {
           dataGradB.push({ id: element, value: GradBPred[element][targetNames[i]] - GradBPredAll[element][targetNames[i]] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
-          dataAver.push({ id: null, value: 0 })
-          dataKNN.push({ id: null, value: 0 })
-          dataLR.push({ id: null, value: 0 })
-          dataMLP.push({ id: null, value: 0 })
-          dataRF.push({ id: null, value: 0 })
-          dataGradB.push({ id: null, value: 0 })
+          dataAver.push({ id: -1, value: 0 })
+          dataKNN.push({ id: -1, value: 0 })
+          dataLR.push({ id: -1, value: 0 })
+          dataMLP.push({ id: -1, value: 0 })
+          dataRF.push({ id: -1, value: 0 })
+          dataGradB.push({ id: -1, value: 0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
@@ -465,9 +469,9 @@ export default {
 				.transition()
 				.attr('width', cellSize)
 				.attr('height', cellSize)
-        .attr('fillStyle', function(d) { return colourScale(d.value); })
+        .attr('fillStyle', function(d) { if(d.id == -1) { return "#ffffff" } else { return colourScale(d.value);} })
         .attr('fill-opacity', function(d) { 
-          if (d.id == null) {
+          if (d.id == -1) {
             return "0.0";
           } else {
             return "1.0"; 
@@ -510,8 +514,77 @@ export default {
 		} // draw()
 
   },
+  legendCol () {
+    //==================================================
+    var viewerWidth = this.responsiveWidthHeight[0]*7
+    var viewerHeight = this.responsiveWidthHeight[1]*1.6
+    var viewerPosTop = viewerHeight * 0.06;
+    var cellSizeHeat = 20
+    var legendElementWidth = cellSizeHeat * 3;
+
+    // http://bl.ocks.org/mbostock/5577023
+    var colors = colorbrewer.PRGn[this.classesNumber];
+
+    var svgLeg = d3.select("#LegendHeat");
+      svgLeg.selectAll("*").remove();
+        
+      var svgLeg = d3.select("#LegendHeat").append("svg")
+        .attr("width", viewerWidth/2)
+        .attr("height", viewerHeight*0.10)
+        .style("margin-top", "12px")
+
+      var legend = svgLeg.append('g')
+          .attr("class", "legend")
+          .attr("transform", "translate(0,0)")
+          .selectAll(".legendElement")
+          .data([1.00, 0.75, 0.50, 0.25, 0.00, 0.25, 0.50, 0.75, 1.00])
+          .enter().append("g")
+          .attr("class", "legendElement");
+
+      legend.append("svg:rect")
+          .attr("x", function(d, i) {
+              return (legendElementWidth * i) + 35;
+          })
+          .attr("y", viewerPosTop)
+          .attr("class", "cellLegend bordered")
+          .attr("width", legendElementWidth)
+          .attr("height", cellSizeHeat / 2)
+          .style("fill", function(d, i) {
+            console.log(colors[i])
+              return colors[i];
+          });
+
+      legend.append("text")
+          .attr("class", "mono legendElement")
+          .text(function(d, i) {
+            console.log(i)
+            if (i < 4) {
+              return "-" + (d * 100) + "%";
+            } else if (i > 4) {
+              return "+" + (d * 100) + "%";
+            } else {
+              return "" + (d * 100) + "%";
+            }
+
+          })
+          .attr("x", function(d, i) {
+            if (i > 4) {
+              return (legendElementWidth * i) + 45;
+            } else if (i == 4) {
+              return (legendElementWidth * i) + 55;
+            } else {
+              return (legendElementWidth * i) + 40;
+            }
+              
+          })
+          .attr("y", (viewerPosTop + cellSizeHeat) + 5);
+
+      svgLeg.append("text").attr("x", 220).attr("y", 32).text("Difference in predictive power").style("font-size", "16px").attr("alignment-baseline","top")
+  },
   },
   mounted () {
+      EventBus.$on('LegendPredict', this.legendCol)
+
       EventBus.$on('emittedEventCallingGrid', data => { this.GetResultsAll = data; })
       EventBus.$on('emittedEventCallingGrid', this.Grid)
 

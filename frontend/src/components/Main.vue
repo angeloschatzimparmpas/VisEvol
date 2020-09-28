@@ -348,6 +348,7 @@ export default Vue.extend({
             EventBus.$emit('callValidation', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
+            EventBus.$emit('LegendPredict')           
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
           } else {   
@@ -398,7 +399,7 @@ export default Vue.extend({
           EventBus.$emit('SendStoredCMHist', ModelsLocal)
           var PerformanceCM = JSON.parse(this.OverviewResultsCM[1])
           EventBus.$emit('SendPerformanceCM', PerformanceCM)
-          console.log('Server successfully sent all the data related to visualizations!')
+          console.log('Server successfully sent all the data related to visualizations for CM!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
           //EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
@@ -960,7 +961,7 @@ export default Vue.extend({
       axios.post(path, postData, axiosConfig)
         .then(response => {
           console.log('Sent the unselected points for crossover and mutation.')
-          this.CurrentStage = this.CurrentStage + 1
+          this.CurrentStage = 2
           this.getDatafromtheBackEnd()
           this.getCMComputedData()
           this.changeActiveTo2()
@@ -1023,6 +1024,7 @@ export default Vue.extend({
     EventBus.$on('RemainingPoints', this.changeActiveTo1)
     EventBus.$on('RemainingPoints', data => { this.unselectedRemainingPoints = data })
 
+    EventBus.$on('ChangeKey', data => { this.CurrentStage = data })
     EventBus.$on('InitializeCrossoverMutation', this.sendPointsCrossMutat)
 
     EventBus.$on('RemainingPointsCM', this.changeActiveTo2)
@@ -1091,7 +1093,7 @@ export default Vue.extend({
     EventBus.$on('factorsChanged', data => { this.basicValuesFact = data })
 
     EventBus.$on('changeValues', data => { this.CMNumberofModelsOFFICIAL = data })
-    EventBus.$on('changeValuesS2', data => { this.CMNumberofModelsOFFICIALS2 = data })
+    EventBus.$on('changeValues2', data => { this.CMNumberofModelsOFFICIALS2 = data })
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {
