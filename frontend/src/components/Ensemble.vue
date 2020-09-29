@@ -120,6 +120,8 @@ export default {
         }
       }
 
+      EventBus.$emit('ExtractResults', classifiersInfoProcessing)
+
       var DataGeneral, maxX, minX, maxY, minY, layout
 
       var width = this.WH[0]*6.5 // interactive visualization

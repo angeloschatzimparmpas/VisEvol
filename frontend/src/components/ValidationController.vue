@@ -11,50 +11,134 @@ export default {
   data () {
     return {
       WH: [],
-      ResultsValid: [],
+      ResultsValid: '',
+      factorsValid: [1, 1, 1, 1, 0, 0, 0, 0],
+      activeCurr: 1,
+      Metrics: ['Accuracy', 'Precision', 'Recall', 'F1-score', 'G-mean', 'ROC AUC', 'Log loss', 'MCC'],
+      selectedSimple: [],
+      selectedEnsem: [],
+      storedEnsemble: []
     }
   },
   methods: {
     reset () {
       var svg = d3.select("#violin");
       svg.selectAll("*").remove();
+      this.selectedSimple = []
+      this.selectedEnsem = []
+      this.storedEnsemble = []
+      this.activeCurr = 1
+      this.ResultsValid = ''
     },
     ViolinFun () {
       var svg = d3.select("#violin");
       svg.selectAll("*").remove();
       var chart2
+      var IDs = JSON.parse(this.ResultsValid[0])
+      var valid = JSON.parse(this.ResultsValid[3])
 
       var data = []
-        for (let i=0; i<400; i++){
-            if (i < 100){
-                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(10,60), category:"#ff7f00"})
-                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(10,30), category:"#fdbf6f"})
-                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(15,25), category:"#fb9a99"})
-                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(35,45), category:"#b15928"})
-                data.push({Algorithm:"Accuracy",value:randomIntFromInterval(55,70), category:"#a6cee3"})            
-            } else if (i < 200){
-                data.push({Algorithm:"Precision",value:randomIntFromInterval(10,60), category:"#ff7f00"})
-                data.push({Algorithm:"Precision",value:randomIntFromInterval(40,70), category:"#fdbf6f"})
-                data.push({Algorithm:"Precision",value:randomIntFromInterval(60,100), category:"#fb9a99"})
-                data.push({Algorithm:"Precision",value:randomIntFromInterval(60,79), category:"#b15928"})
-                data.push({Algorithm:"Precision",value:randomIntFromInterval(40,45), category:"#a6cee3"})           
-            } else if (i < 300){
-                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,40), category:"#ff7f00"})
-                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,40), category:"#fdbf6f"})
-                data.push({Algorithm:"Recall",value:randomIntFromInterval(12,30), category:"#fb9a99"})
-                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,40), category:"#b15928"})    
-                data.push({Algorithm:"Recall",value:randomIntFromInterval(30,70), category:"#a6cee3"})   
-            } else {
-                data.push({Algorithm:"F1-score",value:randomIntFromInterval(20,80), category:"#ff7f00"})
-                data.push({Algorithm:"F1-score",value:randomIntFromInterval(30,40), category:"#fdbf6f"}) 
-                data.push({Algorithm:"F1-score",value:randomIntFromInterval(50,70), category:"#fb9a99"}) 
-                data.push({Algorithm:"F1-score",value:randomIntFromInterval(60,70), category:"#b15928"})  
-                data.push({Algorithm:"F1-score",value:randomIntFromInterval(80,100), category:"#a6cee3"})   
-            }
-            
+      var colorsGlobal = []
+      var colorsGlobalBins = []
+      var countFactors = 0
+      var activeLines = []
+
+      for (let j=0; j<this.factorsValid.length; j++) {
+        if (this.factorsValid[j] == 1) {
+            countFactors = countFactors + 1
         }
-        function randomIntFromInterval(min, max) { // min and max included 
-        return Math.floor(Math.random() * (max - min + 1) + min);
+      }
+
+      var meanGlobalSel = new Array(countFactors).fill(0)
+      var sumGlobalSel = new Array(countFactors).fill(0)
+      var countValuesSel = new Array(countFactors).fill(0)
+      console.log(this.activeCurr)
+      if (this.activeCurr == 1) {
+        for (let j=0; j<this.factorsValid.length; j++) {
+          if (this.factorsValid[j] == 1) {
+            for (let i=0; i<IDs.length; i++){
+                let tempValid = JSON.parse(valid[j])
+                let tempSplit = IDs[i].split(/([0-9]+)/)
+
+                if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
+                  data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#ff7f00"})
+                } 
+                else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LRC' || tempSplit[0] == 'LRM' || tempSplit[0] == 'LRCC' || tempSplit[0] == 'LRCM' || tempSplit[0] == 'LRMC' || tempSplit[0] == 'LRMM') {
+                  data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#fdbf6f"})
+                } 
+                else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLPM' || tempSplit[0] == 'MLPCC' || tempSplit[0] == 'MLPCM' || tempSplit[0] == 'MLPMC' || tempSplit[0] == 'MLPMM') {
+                  data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#fb9a99"})
+                }
+                else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RFC' || tempSplit[0] == 'RFM' || tempSplit[0] == 'RFCC' || tempSplit[0] == 'RFCM' || tempSplit[0] == 'RFMC' || tempSplit[0] == 'RFMM') {
+                  data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#b15928"})
+                }
+                else {
+                  data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#a6cee3"})
+                }
+                
+                if (this.selectedSimple.length != 0) {
+                  if (this.selectedSimple.includes(IDs[i])) {
+                    sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
+                    countValuesSel[j] = countValuesSel[j] + 1
+                  }
+                }
+              }
+              colorsGlobal.push('#555')
+              colorsGlobalBins.push('#c0c0c0')
+            }
+          }
+
+            activeLines.push('mean')
+            if (this.selectedSimple.length != 0) {
+                activeLines.push('meanSelection')
+            }
+        } else {
+            var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsemble)
+            console.log(mergedStoreEnsembleLoc)
+            for (let j=0; j<this.factorsValid.length; j++) {
+                if (this.factorsValid[j] == 1) {
+                    for (let i=0; i<mergedStoreEnsembleLoc.length; i++){
+                      let tempValid = JSON.parse(valid[j])
+                      let tempSplit = mergedStoreEnsembleLoc[i].split(/([0-9]+)/)
+                      console.log(tempSplit)
+                        if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
+                            data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#ff7f00"})
+                        } 
+                        else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LRC' || tempSplit[0] == 'LRM' || tempSplit[0] == 'LRCC' || tempSplit[0] == 'LRCM' || tempSplit[0] == 'LRMC' || tempSplit[0] == 'LRMM') {
+                            data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#fdbf6f"})
+                        } 
+                        else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLPM' || tempSplit[0] == 'MLPCC' || tempSplit[0] == 'MLPCM' || tempSplit[0] == 'MLPMC' || tempSplit[0] == 'MLPMM') {
+                            data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#fb9a99"})
+                        }
+                        else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RFC' || tempSplit[0] == 'RFM' || tempSplit[0] == 'RFCC' || tempSplit[0] == 'RFCM' || tempSplit[0] == 'RFMC' || tempSplit[0] == 'RFMM') {
+                            data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#b15928"})
+                        }
+                        else {
+                            data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#a6cee3"})
+                        }
+                        console.log(this.selectedEnsem.length)
+                        if (this.selectedEnsem.length != 0) {
+                            if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
+                                sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
+                                countValuesSel[j] = countValuesSel[j] + 1
+                            }
+                        }
+                    }
+                    colorsGlobal.push('#555')
+                    colorsGlobalBins.push('#c0c0c0')
+                }
+            }
+
+            activeLines.push('mean')
+            if (this.selectedEnsem.length != 0) {
+                activeLines.push('meanSelection')
+            }
+        }
+        console.log(data)
+        colorsGlobalBins.push('#c0c0c0')
+        colorsGlobalBins.push('#000')
+        for (let j=0; j<sumGlobalSel.length; j++) {
+            meanGlobalSel[j] = sumGlobalSel[j] / countValuesSel[j]
         }
 
       chart2 = makeDistroChart({
@@ -65,7 +149,7 @@ export default {
             selector:"#violin",
             constrainExtremes:true});
         chart2.renderBoxPlot({showBox:false});
-        chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,showLines:['median']});
+        chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,showLines:activeLines});
         chart2.renderNotchBoxes({showNotchBox:false});
         chart2.renderViolinPlot({reset:true, width:75, clamp:0, resolution:30, bandwidth:50});
 
@@ -97,10 +181,10 @@ export default {
               axisLables: null,
               yTicks: 1,
               scale: 'linear',
-              chartSize: {width: 800, height: 270},
-              margin: {top: 15, right: 60, bottom: 50, left: 50},
+              chartSize: {width: 820, height: 280},
+              margin: {top: 15, right: 40, bottom: 30, left: 40},
               constrainExtremes: false,
-              color: ['#555','#555','#555','#555','#ffff99']
+              color: colorsGlobal
           };
           for (var setting in settings) {
               chart.settings[setting] = settings[setting]
@@ -152,7 +236,7 @@ export default {
                       return colorOptions[group];
                   }
               } else {
-                  return d3.scale.ordinal().range(['#c0c0c0','#c0c0c0','#c0c0c0','#c0c0c0','#ffff99'])
+                  return d3.scale.ordinal().range(colorsGlobalBins)
               }
           }
 
@@ -375,7 +459,7 @@ export default {
               //Update axes
               chart.objs.g.select('.x.axis').attr("transform", "translate(0," + chart.height + ")").call(chart.objs.xAxis)
                   .selectAll("text")
-                  .attr("y", 5)
+                  .attr("y", 10)
                   .attr("x", 30)
                   .attr("transform", "rotate(0)")
                   .style("text-anchor", "end");
@@ -424,7 +508,7 @@ export default {
                   .append("text")
                   .attr("class", "label")
                   .attr("transform", "rotate(-90)")
-                  .attr("y", -42)
+                  .attr("y", -35)
                   .attr("x", -chart.height / 2)
                   .attr("dy", ".71em")
                   .style("text-anchor", "middle")
@@ -1010,15 +1094,15 @@ export default {
 
                       cBoxPlot.objs.g = chart.groupObjs[cName].g.append("g").attr("class", "box-plot");
 
-                      //Plot Box (default show)
-                      if (bOpts.showBox) {
-                          cBoxPlot.objs.box = cBoxPlot.objs.g.append("rect")
-                              .attr("class", "box")
-                              .style("fill", chart.boxPlots.colorFunct(cName))
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                          //A stroke is added to the box with the group color, it is
-                          // hidden by default and can be shown through css with stroke-width
-                      }
+                    //   //Plot Box (default show)
+                    //   if (bOpts.showBox) {
+                    //       cBoxPlot.objs.box = cBoxPlot.objs.g.append("rect")
+                    //           .attr("class", "box")
+                    //           .style("fill", chart.boxPlots.colorFunct(cName))
+                    //           .style("stroke", chart.boxPlots.colorFunct(cName));
+                    //       //A stroke is added to the box with the group color, it is
+                    //       // hidden by default and can be shown through css with stroke-width
+                    //   }
 
                       //Plot Median (default show)
                       if (bOpts.showMedian) {
@@ -1042,24 +1126,24 @@ export default {
                               .style("fill", chart.boxPlots.colorFunct(cName));
                       }
 
-                      // Plot Whiskers (default show)
-                      if (bOpts.showWhiskers) {
-                          cBoxPlot.objs.upperWhisker = {fence: null, line: null};
-                          cBoxPlot.objs.lowerWhisker = {fence: null, line: null};
-                          cBoxPlot.objs.upperWhisker.fence = cBoxPlot.objs.g.append("line")
-                              .attr("class", "upper whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                          cBoxPlot.objs.upperWhisker.line = cBoxPlot.objs.g.append("line")
-                              .attr("class", "upper whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
+                    //   // Plot Whiskers (default show)
+                    //   if (bOpts.showWhiskers) {
+                    //       cBoxPlot.objs.upperWhisker = {fence: null, line: null};
+                    //       cBoxPlot.objs.lowerWhisker = {fence: null, line: null};
+                    //       cBoxPlot.objs.upperWhisker.fence = cBoxPlot.objs.g.append("line")
+                    //           .attr("class", "upper whisker")
+                    //           .style("stroke", chart.boxPlots.colorFunct(cName));
+                    //       cBoxPlot.objs.upperWhisker.line = cBoxPlot.objs.g.append("line")
+                    //           .attr("class", "upper whisker")
+                    //           .style("stroke", chart.boxPlots.colorFunct(cName));
 
-                          cBoxPlot.objs.lowerWhisker.fence = cBoxPlot.objs.g.append("line")
-                              .attr("class", "lower whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                          cBoxPlot.objs.lowerWhisker.line = cBoxPlot.objs.g.append("line")
-                              .attr("class", "lower whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                      }
+                    //       cBoxPlot.objs.lowerWhisker.fence = cBoxPlot.objs.g.append("line")
+                    //           .attr("class", "lower whisker")
+                    //           .style("stroke", chart.boxPlots.colorFunct(cName));
+                    //       cBoxPlot.objs.lowerWhisker.line = cBoxPlot.objs.g.append("line")
+                    //           .attr("class", "lower whisker")
+                    //           .style("stroke", chart.boxPlots.colorFunct(cName));
+                    //   }
 
                       // Plot outliers (default show)
                       if (bOpts.showOutliers) {
@@ -1071,7 +1155,8 @@ export default {
                                   cBoxPlot.objs.outliers[pt].point = outDiv.append("circle")
                                       .attr("class", "outlier")
                                       .attr('r', bOpts.outlierCSize)
-                                      .style("fill", chart.boxPlots.colorFunct(cName));
+                                      .style("fill", chart.boxPlots.colorFunct(cName))
+                                      .style("opacity", 0);
                               }
                           }
 
@@ -1081,7 +1166,7 @@ export default {
                                   cBoxPlot.objs.extremes[pt].point = extDiv.append("circle")
                                       .attr("class", "extreme")
                                       .attr('r', bOpts.outlierCSize)
-                                      .style("stroke", chart.boxPlots.colorFunct(cName));
+                                      .style("opacity", 0);
                               }
                           }
                       }
@@ -1538,25 +1623,40 @@ export default {
                       chart.dataPlots.objs.lines = {};
                       var cMetric;
                       for (var line in dOpts.showLines) {
-                          cMetric = dOpts.showLines[line];
-                          chart.dataPlots.objs.lines[cMetric] = {};
-                          chart.dataPlots.objs.lines[cMetric].values = [];
-                          for (var cGroup in chart.groupObjs) {
-                              chart.dataPlots.objs.lines[cMetric].values.push({
-                                  x: cGroup,
-                                  y: chart.groupObjs[cGroup].metrics[cMetric]
-                              })
-                          }
-                          chart.dataPlots.objs.lines[cMetric].line = d3.svg.line()
-                              .interpolate("cardinal")
-                              .y(function (d) {
-                                  return chart.yScale(d.y)
-                              });
-                          chart.dataPlots.objs.lines[cMetric].g = chart.dataPlots.objs.g.append("path")
-                              .attr("class", "line " + cMetric)
-                              .attr("data-metric", cMetric)
-                              .style("fill", 'none')
-                              .style("stroke", chart.colorFunct(cMetric));
+                          if (line == 0) {
+                                cMetric = dOpts.showLines[line];
+                                chart.dataPlots.objs.lines[cMetric] = {};
+                                chart.dataPlots.objs.lines[cMetric].values = [];
+                                for (var cGroup in chart.groupObjs) {
+                                    chart.dataPlots.objs.lines[cMetric].values.push({
+                                        x: cGroup,
+                                        y: chart.groupObjs[cGroup].metrics[cMetric]
+                                    })
+                                }
+                            } else {
+                                var loop = 0;
+                                cMetric = dOpts.showLines[line];
+                                chart.dataPlots.objs.lines[cMetric] = {};
+                                chart.dataPlots.objs.lines[cMetric].values = [];
+                                for (var cGroup in chart.groupObjs) {
+                                    chart.dataPlots.objs.lines[cMetric].values.push({
+                                        x: cGroup,
+                                        y: meanGlobalSel[loop]
+                                    })
+                                    loop++
+                                }                              
+                            }
+                            chart.dataPlots.objs.lines[cMetric].line = d3.svg.line()
+                                    .interpolate("cardinal")
+                                    .y(function (d) {
+                                        return chart.yScale(d.y)
+                                    });
+                                
+                            chart.dataPlots.objs.lines[cMetric].g = chart.dataPlots.objs.g.append("path")
+                                .attr("class", "line " + cMetric)
+                                .attr("data-metric", cMetric)
+                                .style("fill", 'none')
+                                .style("stroke", chart.colorFunct(cMetric));   
                       }
 
                   }
@@ -1610,7 +1710,17 @@ export default {
     }
   },
   mounted () {
-    EventBus.$on('callValidation', data => { this.ResultsValid = data })
+    EventBus.$on('SendStoredEnsemble', data => { this.storedEnsemble = data})
+    EventBus.$on('activeNow', data => { this.activeCurr = data })
+
+    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.selectedSimple = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', data => { this.selectedEnsem = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicator', this.ViolinFun)
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', this.ViolinFun)
+
+    EventBus.$on('factorsChanged', data => { this.factorsValid = data })
+
+    EventBus.$on('callValidationData', data => { this.ResultsValid = data })
     EventBus.$on('callValidation', this.ViolinFun)
 
     EventBus.$on('Responsive', data => {
@@ -1683,21 +1793,6 @@ export default {
     opacity: 0.7;
 }
 
-.chart-wrapper .box-plot circle.median {
-    /*the script makes the circles the same color as the box, you can override this in the js*/
-    fill: white !important;
-}
-
-.chart-wrapper .box-plot .mean {
-    stroke: white;
-    stroke-dasharray: 2,1;
-    stroke-width: 1px;
-}
-
-@media (max-width:500px){
-    .chart-wrapper .box-plot circle {display: none;}
-}
-
 /*Violin Plot*/
 
 .chart-wrapper .violin-plot .area {
@@ -1724,7 +1819,7 @@ export default {
 }
 
 .chart-wrapper .metrics-lines {
-    stroke-width: 4px;
+    stroke-width: 3px; /* metrics lines! */
 }
 
 /* Non-Chart Styles for demo*/

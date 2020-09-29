@@ -1390,7 +1390,23 @@ def CrossoverMutateFun():
     elif (CurStage == 2):
         InitializeSecondStageCM(RemainingIds, setMaxLoopValue)
     else:
-        pass
+        RemoveSelected(RemainingIds)
+    return 'Okay'
+
+def RemoveSelected(RemainingIds):
+    global allParametersPerfCrossMutr
+
+    for loop in range(20): 
+        indexes = []
+        for i, val in enumerate(allParametersPerfCrossMutr[loop*4]): 
+            if (val not in RemainingIds):
+                indexes.append(i)
+        for index in sorted(indexes, reverse=True):
+            del allParametersPerfCrossMutr[loop*4][index]
+        allParametersPerfCrossMutr[loop*4+1].drop(allParametersPerfCrossMutr[loop*4+1].index[indexes], inplace=True)
+        allParametersPerfCrossMutr[loop*4+2].drop(allParametersPerfCrossMutr[loop*4+2].index[indexes], inplace=True)
+        allParametersPerfCrossMutr[loop*4+3].drop(allParametersPerfCrossMutr[loop*4+3].index[indexes], inplace=True)
+
     return 'Okay'
 
 def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):

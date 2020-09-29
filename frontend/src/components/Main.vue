@@ -6,7 +6,7 @@
       <b-row class="md-3">
         <b-col cols="3" >
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Validation Metrics Manager</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Performance Metrics Manager</mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px;">
                   <PerformanceMetrics/>
@@ -133,7 +133,7 @@
               </b-col>
               <b-col cols="6">
                 <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Majority-Voting Ensemble
+                  <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left"><Knowledge/></small>Majority-Voting Ensemble
                     [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
                     </mdb-card-header>
                     <mdb-card-body>
@@ -180,6 +180,24 @@
               </b-col>
             </b-row>
     </b-container>
+    <div class="w3-container">
+    <div id="myModal" class="w3-modal" style="position: fixed;">
+      <div class="w3-modal-content w3-card-4 w3-animate-zoom">
+        <header class="w3-container w3-blue"> 
+        <h3 style="display:inline-block; font-size: 16px; margin-top: 15px; margin-bottom:15px">Majority-Voting Ensemble Extraction (using Cryo)</h3>
+        </header>
+        <Export/>
+        <div class="w3-container w3-light-grey w3-padding">
+        <button style="float: right; margin-top: -3px; margin-bottom: -3px"
+          id="closeModal" class="w3-button w3-right w3-white w3-border" 
+          v-on:click="closeModalFun">
+          <font-awesome-icon icon="window-close" />
+          {{ valuePickled }}
+          </button>
+        </div>
+        </div>
+      </div>
+    </div>
   </body>
 </template>
 
@@ -193,6 +211,8 @@ import ValidationController from './ValidationController.vue'
 import HyperParameterSpace from './HyperParameterSpace.vue'
 import GlobalParamController from './GlobalParamController'
 import Ensemble from './Ensemble.vue'
+import Knowledge from './Knowledge.vue'
+import Export from './Export.vue'
 import VotingResults from './VotingResults.vue'
 import History from './History.vue'
 import Predictions from './Predictions.vue'
@@ -202,7 +222,6 @@ import 'axios-progress-bar/dist/nprogress.css'
 import 'bootstrap-css-only/css/bootstrap.min.css'
 import { mdbCard, mdbCardBody, mdbCardText, mdbCardHeader } from 'mdbvue'
 import { EventBus } from '../main.js'
-import * as jQuery from 'jquery' 
 import $ from 'jquery'
 import * as d3Base from 'd3'
 import Papa from 'papaparse'
@@ -220,6 +239,8 @@ export default Vue.extend({
     HyperParameterSpace,
     GlobalParamController,
     Ensemble,
+    Knowledge,
+    Export,
     Predictions,
     VotingResults,
     History,
@@ -230,6 +251,7 @@ export default Vue.extend({
   },
   data () {
     return {
+      valuePickled: 'Close',
       sankeyCallS: true,
       CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       CMNumberofModels: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
@@ -342,19 +364,25 @@ export default Vue.extend({
           this.OverviewResults = response.data.OverviewResults
           console.log('Server successfully sent all the data related to visualizations!')
           if (this.firstTimeExec) {
+
+            var ModelsLocalInitial = JSON.parse(this.OverviewResults[0])
+            EventBus.$emit('SendStoredIDsInitial', ModelsLocalInitial)
+            var PerformanceInitial = JSON.parse(this.OverviewResults[1])
+            EventBus.$emit('SendPerformanceInitialAlgs', PerformanceInitial)    
+
             EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
             EventBus.$emit('emittedEventCallingSankey')
-            EventBus.$emit('callAlgorithhms', this.OverviewResults)
-            EventBus.$emit('callValidation', this.OverviewResults)
+            //EventBus.$emit('emittedEventCallingSankeyLegend')
+            EventBus.$emit('callAlgorithhms')
+            EventBus.$emit('callValidationData', this.OverviewResults)
+            EventBus.$emit('callValidation')
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
             EventBus.$emit('LegendPredict')           
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
           } else {   
-            var IDsLocal = JSON.parse(this.OverviewResults[0])
             var Performance = JSON.parse(this.OverviewResults[1])
-            EventBus.$emit('SendIDs', IDsLocal)
             EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemble)
             EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
             EventBus.$emit('SendPerformance', Performance)
@@ -374,7 +402,11 @@ export default Vue.extend({
             this.storeBothEnsCM[1] = this.OverviewResults
             //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
             EventBus.$emit('emittedEventCallingInfo', this.OverviewResults)
+            EventBus.$emit('callAlgorithhms')
+            EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             this.getFinalResults()
+            EventBus.$emit('callValidationData', this.OverviewResults)
+            EventBus.$emit('callValidation')
           }
         })
         .catch(error => {
@@ -397,11 +429,15 @@ export default Vue.extend({
           this.OverviewResultsCM = response.data.OverviewResultsCM
           var ModelsLocal = JSON.parse(this.OverviewResultsCM[0])
           EventBus.$emit('SendStoredCMHist', ModelsLocal)
+          EventBus.$emit('SendStoredIDsInitial', ModelsLocal)
           var PerformanceCM = JSON.parse(this.OverviewResultsCM[1])
           EventBus.$emit('SendPerformanceCM', PerformanceCM)
+          EventBus.$emit('SendPerformanceInitialAlgs', PerformanceCM)
           console.log('Server successfully sent all the data related to visualizations for CM!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
+          EventBus.$emit('callAlgorithhms')
+          EventBus.$emit('callValidationData', this.OverviewResultsCM)
           //EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
           //this.PredictSel = []
           //EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
@@ -973,10 +1009,12 @@ export default Vue.extend({
     changeActiveTo1 () {
       this.projectionID_A = 1 
       this.projectionID_B = 1
+      EventBus.$emit('activeNow', 1)
     },
     changeActiveTo2 () {
       this.projectionID_A = 2 
       this.projectionID_B = 2
+      EventBus.$emit('activeNow', 2)
     }
   },
   created () {
@@ -1094,6 +1132,8 @@ export default Vue.extend({
 
     EventBus.$on('changeValues', data => { this.CMNumberofModelsOFFICIAL = data })
     EventBus.$on('changeValues2', data => { this.CMNumberofModelsOFFICIALS2 = data })
+
+    EventBus.$on('OpenModal', this.openModalFun)
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {

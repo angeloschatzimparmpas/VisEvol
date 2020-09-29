@@ -166,7 +166,7 @@ export default {
 		// === Set up canvas === //
 
 		var width = 1200,
-				height = 85;
+				height = 77;
 		var colourScale;
 
 
@@ -183,7 +183,7 @@ export default {
 		var custom = d3.select(customBase); // this is our svg replacement
 
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
-		var groupSpacing = 40;
+		var groupSpacing = 42;
 		var cellSpacing = 2;
     var cellSize = Math.floor((width - 1 * groupSpacing) / (13 * sqrtSize)) - cellSpacing;
 
@@ -410,7 +410,7 @@ export default {
 		// === Set up canvas === //
 
 		var width = 1200,
-				height = 85;
+				height = 77;
 		var colourScale;
 
 
@@ -427,7 +427,7 @@ export default {
 		var custom = d3.select(customBase); // this is our svg replacement
 
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
-		var groupSpacing = 40;
+		var groupSpacing = 42;
 		var cellSpacing = 2;
     var cellSize = Math.floor((width - 1 * groupSpacing) / (13 * sqrtSize)) - cellSpacing;
 
@@ -531,7 +531,7 @@ export default {
       var svgLeg = d3.select("#LegendHeat").append("svg")
         .attr("width", viewerWidth/2)
         .attr("height", viewerHeight*0.10)
-        .style("margin-top", "12px")
+        .style("margin-top", "28px")
 
       var legend = svgLeg.append('g')
           .attr("class", "legend")
@@ -550,14 +550,12 @@ export default {
           .attr("width", legendElementWidth)
           .attr("height", cellSizeHeat / 2)
           .style("fill", function(d, i) {
-            console.log(colors[i])
               return colors[i];
           });
 
       legend.append("text")
           .attr("class", "mono legendElement")
           .text(function(d, i) {
-            console.log(i)
             if (i < 4) {
               return "-" + (d * 100) + "%";
             } else if (i > 4) {
@@ -579,7 +577,7 @@ export default {
           })
           .attr("y", (viewerPosTop + cellSizeHeat) + 5);
 
-      svgLeg.append("text").attr("x", 220).attr("y", 32).text("Difference in predictive power").style("font-size", "16px").attr("alignment-baseline","top")
+      svgLeg.append("text").attr("x", 220).attr("y", 30).text("Difference in predictive power").style("font-size", "16px").attr("alignment-baseline","top")
   },
   },
   mounted () {

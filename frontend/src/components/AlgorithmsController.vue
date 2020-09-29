@@ -11,35 +11,111 @@ export default {
   data () {
     return {
       WH: [],
-      ResultsLocal: [],
+      PerF: [],
+      PerFCM: [],
+      storedEnsem: [],
+      storedCM: [],
+      selectedSimple: [],
+      selectedEnsem: []
     }
   },
   methods: {
     reset () {
       var svg = d3.select("#Bees");
       svg.selectAll("*").remove();
+      this.PerF = []
+      this.PerFCM = []
+      this.storedEnsem = []
+      this.storedCM = []
+      this.selectedSimple = []
+      this.selectedEnsem = []
     },
     BeesFun () {
       var svg = d3.select("#Bees");
       svg.selectAll("*").remove();
       var chart1
       var data = []
-        for (let i=0; i<500; i++){
-            if (i<100) {
-                data.push({Algorithm:"KNN",value:randomIntFromInterval(40,100), size:(Math.floor(Math.random() * 4) + 4)})
-            } else if (i<200){
-                data.push({Algorithm:"LR",value:randomIntFromInterval(50,100), size:(Math.floor(Math.random() * 4) + 4)})
-            } else if (i<300){
-                data.push({Algorithm:"MLP",value:randomIntFromInterval(30,100), size:(Math.floor(Math.random() * 4) + 4)})
-            } else if (i<400){
-                data.push({Algorithm:"RF",value:randomIntFromInterval(10,100), size:(Math.floor(Math.random() * 4) + 4)})
+
+      for (let i=0; i<this.storedCM.length; i++){
+        let tempSplit = this.storedCM[i].split(/([0-9]+)/)
+        if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
+          if (this.selectedSimple.includes(this.storedCM[i])) {
+            data.push({Algorithm:"KNN",value:this.PerFCM[i], size:3, sw:true})
+          } else {
+            data.push({Algorithm:"KNN",value:this.PerFCM[i], size:3, sw:false})
+          }
+        }
+        else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LRC' || tempSplit[0] == 'LRM' || tempSplit[0] == 'LRCC' || tempSplit[0] == 'LRCM' || tempSplit[0] == 'LRMC' || tempSplit[0] == 'LRMM') {
+          if (this.selectedSimple.includes(this.storedCM[i])) {
+            data.push({Algorithm:"LR",value:this.PerFCM[i], size:3, sw:true})
+          } else {
+            data.push({Algorithm:"LR",value:this.PerFCM[i], size:3, sw:false})
+          }
+        }
+        else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLPM' || tempSplit[0] == 'MLPCC' || tempSplit[0] == 'MLPCM' || tempSplit[0] == 'MLPMC' || tempSplit[0] == 'MLPMM') {
+          if (this.selectedSimple.includes(this.storedCM[i])) {
+            data.push({Algorithm:"MLP",value:this.PerFCM[i], size:3, sw:true})
+          } else {
+            data.push({Algorithm:"MLP",value:this.PerFCM[i], size:3, sw:false})
+          }
+        }
+        else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RFC' || tempSplit[0] == 'RFM' || tempSplit[0] == 'RFCC' || tempSplit[0] == 'RFCM' || tempSplit[0] == 'RFMC' || tempSplit[0] == 'RFMM') {
+          if (this.selectedSimple.includes(this.storedCM[i])) {
+            data.push({Algorithm:"RF",value:this.PerFCM[i], size:3, sw:true})
+          } else {
+            data.push({Algorithm:"RF",value:this.PerFCM[i], size:3, sw:false})
+          }
+        }
+        else {
+          if (this.selectedSimple.includes(this.storedCM[i])) {
+            data.push({Algorithm:"GradB",value:this.PerFCM[i], size:3, sw:true})
+          } else {
+            data.push({Algorithm:"GradB",value:this.PerFCM[i], size:3, sw:false})
+          }
+        }
+      }
+
+      if (this.storedEnsem.length != 0) {
+        var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
+        for (let i=0; i<mergedStoreEnsembleLoc.length; i++){
+          let tempSplit = mergedStoreEnsembleLoc[i].split(/([0-9]+)/)
+          if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
+            if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
+              data.push({Algorithm:"KNN",value:this.PerF[i], size:5, sw:true})
             } else {
-                data.push({Algorithm:"GradB",value:randomIntFromInterval(0,100), size:(Math.floor(Math.random() * 4) + 4)})
+              data.push({Algorithm:"KNN",value:this.PerF[i], size:5, sw:false})
             }
-        }
-        function randomIntFromInterval(min, max) { // min and max included 
-        return Math.floor(Math.random() * (max - min + 1) + min);
-        }
+          }
+          else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LRC' || tempSplit[0] == 'LRM' || tempSplit[0] == 'LRCC' || tempSplit[0] == 'LRCM' || tempSplit[0] == 'LRMC' || tempSplit[0] == 'LRMM') {
+            if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
+              data.push({Algorithm:"LR",value:this.PerF[i], size:5, sw:true})
+            } else {
+              data.push({Algorithm:"LR",value:this.PerF[i], size:5, sw:false})
+            }
+          }
+          else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLPM' || tempSplit[0] == 'MLPCC' || tempSplit[0] == 'MLPCM' || tempSplit[0] == 'MLPMC' || tempSplit[0] == 'MLPMM') {
+            if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
+              data.push({Algorithm:"MLP",value:this.PerF[i], size:5, sw:true})
+            } else {
+              data.push({Algorithm:"MLP",value:this.PerF[i], size:5, sw:false})
+            }
+          }
+          else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RFC' || tempSplit[0] == 'RFM' || tempSplit[0] == 'RFCC' || tempSplit[0] == 'RFCM' || tempSplit[0] == 'RFMC' || tempSplit[0] == 'RFMM') {
+            if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
+              data.push({Algorithm:"RF",value:this.PerF[i], size:5, sw:true})
+            } else {
+              data.push({Algorithm:"RF",value:this.PerF[i], size:5, sw:false})
+            }
+          }
+          else {
+            if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
+              data.push({Algorithm:"GradB",value:this.PerF[i], size:4, sw:true})
+            } else {
+              data.push({Algorithm:"GradB",value:this.PerF[i], size:4, sw:false})
+            }
+          }
+        }   
+      }
 
       chart1 = makeDistroChart({
             data:data,
@@ -48,7 +124,6 @@ export default {
             axisLabels: {xAxis: 'Algorithhm', yAxis: '# Performance (%) #'},
             selector:"#Bees",
             constrainExtremes:true});
-        chart1.renderBoxPlot({showBox:false});
         chart1.renderDataPlots({showPlot:true,plotType:'beeswarm',showBeanLines:false, colors:null});
         chart1.renderNotchBoxes({showNotchBox:false});
         chart1.renderViolinPlot({showViolinPlot:false});
@@ -80,8 +155,8 @@ export default {
               axisLables: null,
               yTicks: 1,
               scale: 'linear',
-              chartSize: {width: 800, height: 400},
-              margin: {top: 15, right: 60, bottom: 50, left: 50},
+              chartSize: {width: 825, height: 420},
+              margin: {top: 15, right: 45, bottom: 25, left: 40},
               constrainExtremes: false,
               color: ['#ff7f00','#fdbf6f','#fb9a99','#b15928','#a6cee3']
           };
@@ -359,7 +434,7 @@ export default {
               //Update axes
               chart.objs.g.select('.x.axis').attr("transform", "translate(0," + chart.height + ")").call(chart.objs.xAxis)
                   .selectAll("text")
-                  .attr("y", 5)
+                  .attr("y", 10)
                   .attr("x", 15)
                   .attr("transform", "rotate(0)")
                   .style("text-anchor", "end");
@@ -408,7 +483,7 @@ export default {
                   .append("text")
                   .attr("class", "label")
                   .attr("transform", "rotate(-90)")
-                  .attr("y", -42)
+                  .attr("y", -35)
                   .attr("x", -chart.height / 2)
                   .attr("dy", ".71em")
                   .style("text-anchor", "middle")
@@ -732,353 +807,6 @@ export default {
               d3.select(window).on('resize.' + chart.selector + '.violinPlot', chart.violinPlots.update);
               chart.violinPlots.update();
               return chart;
-          };
-
-          /**
-          * Render a box plot on the current chart
-          * @param options
-          * @param [options.show=true] Toggle the whole plot on and off
-          * @param [options.showBox=true] Show the box part of the box plot
-          * @param [options.showWhiskers=true] Show the whiskers
-          * @param [options.showMedian=true] Show the median line
-          * @param [options.showMean=false] Show the mean line
-          * @param [options.medianCSize=3] The size of the circle on the median
-          * @param [options.showOutliers=true] Plot outliers
-          * @param [options.boxwidth=30] The max percent of the group rangeBand that the box can be
-          * @param [options.lineWidth=boxWidth] The max percent of the group rangeBand that the line can be
-          * @param [options.outlierScatter=false] Spread out the outliers so they don't all overlap (in development)
-          * @param [options.outlierCSize=2] Size of the outliers
-          * @param [options.colors=chart default] The color mapping for the box plot
-          * @returns {*} The chart object
-          */
-          chart.renderBoxPlot = function (options) {
-              chart.boxPlots = {};
-
-              // Defaults
-              var defaultOptions = {
-                  show: true,
-                  showBox: true,
-                  showWhiskers: true,
-                  showMedian: true,
-                  showMean: false,
-                  medianCSize: 3.5,
-                  showOutliers: true,
-                  boxWidth: 30,
-                  lineWidth: null,
-                  scatterOutliers: false,
-                  outlierCSize: 2.5,
-                  colors: chart.colorFunct
-              };
-              chart.boxPlots.options = shallowCopy(defaultOptions);
-              for (var option in options) {
-                  chart.boxPlots.options[option] = options[option]
-              }
-              var bOpts = chart.boxPlots.options;
-
-              //Create box plot objects
-              for (var cName in chart.groupObjs) {
-                  chart.groupObjs[cName].boxPlot = {};
-                  chart.groupObjs[cName].boxPlot.objs = {};
-              }
-
-
-              /**
-              * Calculates all the outlier points for each group
-              */
-              !function calcAllOutliers() {
-
-                  /**
-                  * Create lists of the outliers for each content group
-                  * @param cGroup The object to modify
-                  * @return null Modifies the object in place
-                  */
-                  function calcOutliers(cGroup) {
-                      var cExtremes = [];
-                      var cOutliers = [];
-                      var cOut, idx;
-                      for (idx = 0; idx <= cGroup.values.length; idx++) {
-                          cOut = {value: cGroup.values[idx]};
-
-                          if (cOut.value < cGroup.metrics.lowerInnerFence) {
-                              if (cOut.value < cGroup.metrics.lowerOuterFence) {
-                                  cExtremes.push(cOut);
-                              } else {
-                                  cOutliers.push(cOut);
-                              }
-                          } else if (cOut.value > cGroup.metrics.upperInnerFence) {
-                              if (cOut.value > cGroup.metrics.upperOuterFence) {
-                                  cExtremes.push(cOut);
-                              } else {
-                                  cOutliers.push(cOut);
-                              }
-                          }
-                      }
-                      cGroup.boxPlot.objs.outliers = cOutliers;
-                      cGroup.boxPlot.objs.extremes = cExtremes;
-                  }
-
-                  for (var cName in chart.groupObjs) {
-                      calcOutliers(chart.groupObjs[cName]);
-                  }
-              }();
-
-              /**
-              * Take updated options and redraw the box plot
-              * @param updateOptions
-              */
-              chart.boxPlots.change = function (updateOptions) {
-                  if (updateOptions) {
-                      for (var key in updateOptions) {
-                          bOpts[key] = updateOptions[key]
-                      }
-                  }
-
-                  for (var cName in chart.groupObjs) {
-                      chart.groupObjs[cName].boxPlot.objs.g.remove()
-                  }
-                  chart.boxPlots.prepareBoxPlot();
-                  chart.boxPlots.update()
-              };
-
-              chart.boxPlots.reset = function () {
-                  chart.boxPlots.change(defaultOptions)
-              };
-              chart.boxPlots.show = function (opts) {
-                  if (opts !== undefined) {
-                      opts.show = true;
-                      if (opts.reset) {
-                          chart.boxPlots.reset()
-                      }
-                  } else {
-                      opts = {show: true};
-                  }
-                  chart.boxPlots.change(opts)
-
-              };
-              chart.boxPlots.hide = function (opts) {
-                  if (opts !== undefined) {
-                      opts.show = false;
-                      if (opts.reset) {
-                          chart.boxPlots.reset()
-                      }
-                  } else {
-                      opts = {show: false};
-                  }
-                  chart.boxPlots.change(opts)
-              };
-
-              /**
-              * Update the box plot obj values
-              */
-              chart.boxPlots.update = function () {
-                  var cName, cBoxPlot;
-
-                  for (cName in chart.groupObjs) {
-                      cBoxPlot = chart.groupObjs[cName].boxPlot;
-
-                      // Get the box width
-                      var objBounds = getObjWidth(bOpts.boxWidth, cName);
-                      var width = (objBounds.right - objBounds.left);
-
-                      var sMetrics = {}; //temp var for scaled (plottable) metric values
-                      for (var attr in chart.groupObjs[cName].metrics) {
-                          sMetrics[attr] = null;
-                          sMetrics[attr] = chart.yScale(chart.groupObjs[cName].metrics[attr]);
-                      }
-
-                      // Box
-                      if (cBoxPlot.objs.box) {
-                          cBoxPlot.objs.box
-                              .attr("x", objBounds.left)
-                              .attr('width', width)
-                              .attr("y", sMetrics.quartile3)
-                              .attr("rx", 1)
-                              .attr("ry", 1)
-                              .attr("height", -sMetrics.quartile3 + sMetrics.quartile1)
-                      }
-
-                      // Lines
-                      var lineBounds = null;
-                      if (bOpts.lineWidth) {
-                          lineBounds = getObjWidth(bOpts.lineWidth, cName)
-                      } else {
-                          lineBounds = objBounds
-                      }
-                      // --Whiskers
-                      if (cBoxPlot.objs.upperWhisker) {
-                          cBoxPlot.objs.upperWhisker.fence
-                              .attr("x1", lineBounds.left)
-                              .attr("x2", lineBounds.right)
-                              .attr('y1', sMetrics.upperInnerFence)
-                              .attr("y2", sMetrics.upperInnerFence);
-                          cBoxPlot.objs.upperWhisker.line
-                              .attr("x1", lineBounds.middle)
-                              .attr("x2", lineBounds.middle)
-                              .attr('y1', sMetrics.quartile3)
-                              .attr("y2", sMetrics.upperInnerFence);
-
-                          cBoxPlot.objs.lowerWhisker.fence
-                              .attr("x1", lineBounds.left)
-                              .attr("x2", lineBounds.right)
-                              .attr('y1', sMetrics.lowerInnerFence)
-                              .attr("y2", sMetrics.lowerInnerFence);
-                          cBoxPlot.objs.lowerWhisker.line
-                              .attr("x1", lineBounds.middle)
-                              .attr("x2", lineBounds.middle)
-                              .attr('y1', sMetrics.quartile1)
-                              .attr("y2", sMetrics.lowerInnerFence);
-                      }
-
-                      // --Median
-                      if (cBoxPlot.objs.median) {
-                          cBoxPlot.objs.median.line
-                              .attr("x1", lineBounds.left)
-                              .attr("x2", lineBounds.right)
-                              .attr('y1', sMetrics.median)
-                              .attr("y2", sMetrics.median);
-                          cBoxPlot.objs.median.circle
-                              .attr("cx", lineBounds.middle)
-                              .attr("cy", sMetrics.median)
-                      }
-
-                      // --Mean
-                      if (cBoxPlot.objs.mean) {
-                          cBoxPlot.objs.mean.line
-                              .attr("x1", lineBounds.left)
-                              .attr("x2", lineBounds.right)
-                              .attr('y1', sMetrics.mean)
-                              .attr("y2", sMetrics.mean);
-                          cBoxPlot.objs.mean.circle
-                              .attr("cx", lineBounds.middle)
-                              .attr("cy", sMetrics.mean);
-                      }
-
-                      // Outliers
-
-                      var pt;
-                      if (cBoxPlot.objs.outliers) {
-                          for (pt in cBoxPlot.objs.outliers) {
-                              cBoxPlot.objs.outliers[pt].point
-                                  .attr("cx", objBounds.middle + addJitter(bOpts.scatterOutliers, width))
-                                  .attr("cy", chart.yScale(cBoxPlot.objs.outliers[pt].value));
-                          }
-                      }
-                      if (cBoxPlot.objs.extremes) {
-                          for (pt in cBoxPlot.objs.extremes) {
-                              cBoxPlot.objs.extremes[pt].point
-                                  .attr("cx", objBounds.middle + addJitter(bOpts.scatterOutliers, width))
-                                  .attr("cy", chart.yScale(cBoxPlot.objs.extremes[pt].value));
-                          }
-                      }
-                  }
-              };
-
-              /**
-              * Create the svg elements for the box plot
-              */
-              chart.boxPlots.prepareBoxPlot = function () {
-                  var cName, cBoxPlot;
-
-                  if (bOpts.colors) {
-                      chart.boxPlots.colorFunct = getColorFunct(bOpts.colors);
-                  } else {
-                      chart.boxPlots.colorFunct = chart.colorFunct
-                  }
-
-                  if (bOpts.show == false) {
-                      return
-                  }
-
-                  for (cName in chart.groupObjs) {
-                      cBoxPlot = chart.groupObjs[cName].boxPlot;
-
-                      cBoxPlot.objs.g = chart.groupObjs[cName].g.append("g").attr("class", "box-plot");
-
-                      //Plot Box (default show)
-                      if (bOpts.showBox) {
-                          cBoxPlot.objs.box = cBoxPlot.objs.g.append("rect")
-                              .attr("class", "box")
-                              .style("fill", chart.boxPlots.colorFunct(cName))
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                          //A stroke is added to the box with the group color, it is
-                          // hidden by default and can be shown through css with stroke-width
-                      }
-
-                      //Plot Median (default show)
-                      if (bOpts.showMedian) {
-                          cBoxPlot.objs.median = {line: null, circle: null};
-                          cBoxPlot.objs.median.line = cBoxPlot.objs.g.append("line")
-                              .attr("class", "median");
-                          cBoxPlot.objs.median.circle = cBoxPlot.objs.g.append("circle")
-                              .attr("class", "median")
-                              .attr('r', bOpts.medianCSize)
-                              .style("fill", chart.boxPlots.colorFunct(cName));
-                      }
-
-                      // Plot Mean (default no plot)
-                      if (bOpts.showMean) {
-                          cBoxPlot.objs.mean = {line: null, circle: null};
-                          cBoxPlot.objs.mean.line = cBoxPlot.objs.g.append("line")
-                              .attr("class", "mean");
-                          cBoxPlot.objs.mean.circle = cBoxPlot.objs.g.append("circle")
-                              .attr("class", "mean")
-                              .attr('r', bOpts.medianCSize)
-                              .style("fill", chart.boxPlots.colorFunct(cName));
-                      }
-
-                      // Plot Whiskers (default show)
-                      if (bOpts.showWhiskers) {
-                          cBoxPlot.objs.upperWhisker = {fence: null, line: null};
-                          cBoxPlot.objs.lowerWhisker = {fence: null, line: null};
-                          cBoxPlot.objs.upperWhisker.fence = cBoxPlot.objs.g.append("line")
-                              .attr("class", "upper whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                          cBoxPlot.objs.upperWhisker.line = cBoxPlot.objs.g.append("line")
-                              .attr("class", "upper whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-
-                          cBoxPlot.objs.lowerWhisker.fence = cBoxPlot.objs.g.append("line")
-                              .attr("class", "lower whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                          cBoxPlot.objs.lowerWhisker.line = cBoxPlot.objs.g.append("line")
-                              .attr("class", "lower whisker")
-                              .style("stroke", chart.boxPlots.colorFunct(cName));
-                      }
-
-                      // Plot outliers (default show)
-                      if (bOpts.showOutliers) {
-                          if (!cBoxPlot.objs.outliers) calcAllOutliers();
-                          var pt;
-                          if (cBoxPlot.objs.outliers.length) {
-                              var outDiv = cBoxPlot.objs.g.append("g").attr("class", "boxplot outliers");
-                              for (pt in cBoxPlot.objs.outliers) {
-                                  cBoxPlot.objs.outliers[pt].point = outDiv.append("circle")
-                                      .attr("class", "outlier")
-                                      .attr('r', bOpts.outlierCSize)
-                                      .style("fill", chart.boxPlots.colorFunct(cName));
-                              }
-                          }
-
-                          if (cBoxPlot.objs.extremes.length) {
-                              var extDiv = cBoxPlot.objs.g.append("g").attr("class", "boxplot extremes");
-                              for (pt in cBoxPlot.objs.extremes) {
-                                  cBoxPlot.objs.extremes[pt].point = extDiv.append("circle")
-                                      .attr("class", "extreme")
-                                      .attr('r', bOpts.outlierCSize)
-                                      .style("stroke", chart.boxPlots.colorFunct(cName));
-                              }
-                          }
-                      }
-
-
-                  }
-              };
-              chart.boxPlots.prepareBoxPlot();
-
-              d3.select(window).on('resize.' + chart.selector + '.boxPlot', chart.boxPlots.update);
-              chart.boxPlots.update();
-              return chart;
-
           };
 
           /**
@@ -1443,8 +1171,8 @@ export default {
                             .range([Math.floor(chart.yScale.range()[0] / dOpts.pointSize), 0])
                             .interpolate(d3.interpolateRound)
                             .domain(chart.yScale.domain());
-                        var maxWidth = Math.floor(chart.xScale.rangeBand() / dOpts.pointSize);
-
+                        var maxWidth = Math.ceil(chart.xScale.rangeBand() / dOpts.pointSize);
+                        
                         var ptsObj = {};
                         var cYBucket = null;
                         //  Bucket points
@@ -1560,23 +1288,18 @@ export default {
                           for (var pt = 0; pt < chart.groupObjs[cName].values.length; pt++) {
                               cPlot.objs.points.pts.push(cPlot.objs.points.g.append("circle")
                                   .attr("class", "point")
-                                  .attr('r', function () { return chart.data[pt].size / 2; })// Options is diameter, r takes radius so divide by 2
-                                  .style("fill", chart.dataPlots.colorFunct(cName)));
+                                  .attr('r', function () {
+                                    var dataLoc = data.filter( i => cName.includes( i.Algorithm ) );
+                                    return dataLoc[pt].size; 
+                                  }) // Options is diameter, r takes radius so divide by 2
+                                  .style("fill", function () {
+                                    var dataLoc = data.filter( i => cName.includes( i.Algorithm ) );
+                                    if (dataLoc[pt].sw) { return "#000000" } 
+                                    else { return chart.dataPlots.colorFunct(cName) }
+                                  }));
                           }
                       }
 
-
-                      // Bean lines
-                      if (dOpts.showBeanLines) {
-                          cPlot.objs.bean = {g: null, lines: []};
-                          cPlot.objs.bean.g = cPlot.objs.g.append("g").attr("class", "bean-plot");
-                          for (var pt = 0; pt < chart.groupObjs[cName].values.length; pt++) {
-                              cPlot.objs.bean.lines.push(cPlot.objs.bean.g.append("line")
-                                  .attr("class", "bean line")
-                                  .style("stroke-width", '1')
-                                  .style("stroke", chart.dataPlots.colorFunct(cName)));
-                          }
-                      }
                   }
 
               };
@@ -1592,7 +1315,19 @@ export default {
     }
   },
   mounted () {
-    EventBus.$on('callAlgorithhms', data => { this.ResultsLocal = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.selectedSimple = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', data => { this.selectedEnsem = data })
+    EventBus.$on('SendSelectedPointsUpdateIndicator', this.BeesFun)
+    EventBus.$on('SendSelectedPointsUpdateIndicatorCM', this.BeesFun)
+
+    EventBus.$on('SendStoredIDsInitial', data => { this.storedCM = data })
+    EventBus.$on('SendPerformanceInitialAlgs', data => {
+    this.PerFCM = data}) 
+
+    EventBus.$on('SendPerformance', data => {
+    this.PerF = data})
+    EventBus.$on('SendStoredEnsembleHist', data => { this.storedEnsem = data })
+
     EventBus.$on('callAlgorithhms', this.BeesFun)
 
     EventBus.$on('Responsive', data => {
@@ -1670,12 +1405,6 @@ export default {
     fill: white !important;
 }
 
-.chart-wrapper .box-plot .mean {
-    stroke: white;
-    stroke-dasharray: 2,1;
-    stroke-width: 1px;
-}
-
 @media (max-width:500px){
     .chart-wrapper .box-plot circle {display: none;}
 }
@@ -1687,17 +1416,6 @@ export default {
     opacity: 0.4;
 }
 
-.chart-wrapper .violin-plot .line {
-    fill: none;
-    stroke-width: 2px;
-    shape-rendering: geometricPrecision;
-}
-
-/*Notch Plot*/
-.chart-wrapper .notch-plot .notch {
-    fill-opacity: 0.4;
-    stroke-width: 2;
-}
 
 .axis text {
   font-size: 16px !important;

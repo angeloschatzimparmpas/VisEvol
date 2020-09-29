@@ -11,42 +11,7 @@ export default {
     return {
       FinalResultsforPlot: [],
       Info: [],
-      NumberofExecutions: 0,
-      scoresMean: [],
-      scoresSTD: [],
-      scoresPositive: [], 
-      scoresNegative: [],
-      scoresMean2: [],
-      scoresSTD2: [],
-      scoresPositive2: [], 
-      scoresNegative2: [],
-      scoresMean3: [],
-      scoresSTD3: [],
-      scoresPositive3: [], 
-      scoresNegative3: [],
-      scoresMean4: [],
-      scoresSTD4: [],
-      scoresPositive4: [], 
-      scoresNegative4: [],
-      Stack_scoresMean: [],
-      Stack_scoresSTD: [],
-      Stack_scoresPositive: [], 
-      Stack_scoresNegative: [],
-      Stack_scoresMean2: [],
-      Stack_scoresSTD2: [],
-      Stack_scoresPositive2: [], 
-      Stack_scoresNegative2: [],
-      Stack_scoresMean3: [],
-      Stack_scoresSTD3: [],
-      Stack_scoresPositive3: [], 
-      Stack_scoresNegative3: [],
-      Stack_scoresMean4: [],
-      Stack_scoresSTD4: [],
-      Stack_scoresPositive4: [], 
-      Stack_scoresNegative4: [],
-      xaxis: [],
       WH: [],
-      firstTime: 0
     }
   },
   methods: {
@@ -162,6 +127,13 @@ export default {
               .attr("dy", ".20em")
               .attr("text-anchor", "middle")
               .attr('class', 'name')
+              .style("fill", function(d) {
+                if (d.countries.includes('Active')) {
+                  return "#1f78b4"
+                } else {
+                  return "#e31a1c"
+                }
+              })
               .text(function(d){return d.countries;});
 
       chart.selectAll("rect.right")
@@ -199,6 +171,7 @@ export default {
     }
   },
   mounted() {
+
     EventBus.$on('emittedEventCallingInfo', data => { this.Info = data }) 
     EventBus.$on('emittedEventCallingResultsPlot', data => { this.FinalResultsforPlot = data }) 
     EventBus.$on('emittedEventCallingResultsPlot', this.VotingResultsFun) 

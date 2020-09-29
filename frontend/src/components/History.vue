@@ -19,7 +19,6 @@ export default {
     return {
       WH: [],
       RandomSearLoc : 100,
-      SendIDLocs: [],
       PerF: [],
       PerFCM: [],
       storedEnsem: [],
@@ -28,17 +27,19 @@ export default {
       values: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       valuesStage2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
       loop: 0,
-      storePreviousPercentage: []
+      storePreviousPercentage: [],
+      classesNumber: 9,
     }
   },
   methods: {
     reset () {
       var svg = d3.select("#SankeyInter");
       svg.selectAll("*").remove();
+      var svgLeg = d3.select("#LegendSankey");
+      svgLeg.selectAll("*").remove();
     },
     computePerformanceDiffS () {
       var colorsforScatterPlot = this.PerF
-      console.log(this.storedCM)
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
       var mergedStoreEnsembleLocFormatted = []
       for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
@@ -248,8 +249,6 @@ export default {
           }
         }
       }
-      console.log(countMax)
-      console.log(countMin)
 
       var percentage = []
       for (let j = 0; j < countMax.length; j++) {
@@ -327,7 +326,7 @@ export default {
                     {month:"Mutate_S2_Prime",value:125,loss:null}];
       //this is the svg canvas attributes: (not buidlign abything just seeting up varaibels)
       var margin = {top: 10, right: 40, bottom: 10, left: 40}, //comma is the equivalent of var : 
-          width = 1200 - margin.left - margin.right,
+          width = 1250 - margin.left - margin.right,
           height = 350 - margin.top - margin.bottom;
 
       var svg = d3.select("#SankeyInter");
@@ -498,6 +497,7 @@ export default {
       var percentage = this.percentageOverall
       console.log(percentage)
       var previousPercentage = this.storePreviousPercentage
+      console.log(previousPercentage)
       // add in the links
         var link = svg.append("g").selectAll(".link")
             .data(graph.links)
@@ -874,7 +874,7 @@ export default {
                     {month:"Mutate_S2_Prime",value:125,loss:null}];
       //this is the svg canvas attributes: (not buidlign abything just seeting up varaibels)
       var margin = {top: 10, right: 40, bottom: 10, left: 40}, //comma is the equivalent of var : 
-          width = 1200 - margin.left - margin.right,
+          width = 1230 - margin.left - margin.right,
           height = 350 - margin.top - margin.bottom;
 
       var svg = d3.select("#SankeyInter");
@@ -1244,7 +1244,7 @@ export default {
                     {month:"Mutate_S1",value:250,loss:null}];
       //this is the svg canvas attributes: (not buidlign abything just seeting up varaibels)
       var margin = {top: 10, right: 40, bottom: 10, left: 40}, //comma is the equivalent of var : 
-          width = 1200 - margin.left - margin.right,
+          width = 1230 - margin.left - margin.right,
           height = 350 - margin.top - margin.bottom;
 
       var svg = d3.select("#SankeyInter");
@@ -1519,8 +1519,74 @@ export default {
         //       "translate(" + -45 + "," + 0 + ") scale(1,-1) translate(" + 0 + "," + -(height) + ")");
 
     },
+    // LegendStable() {
+    //   var viewerWidth = this.responsiveWidthHeight[0]*7
+    //   var viewerHeight = this.responsiveWidthHeight[1]*1.6
+    //   var viewerPosTop = viewerWidth * 0.01;
+    //   var cellSizeHeat = 20
+    //   var legendElementWidth = cellSizeHeat * 3;
+
+    //   // http://bl.ocks.org/mbostock/5577023
+    //   var colors = colorbrewer.PRGn[this.classesNumber];
+    //   var svgLeg = d3.select("#LegendHeat");
+    //   svgLeg.selectAll("*").remove();
+        
+    //   var svgLeg = d3.select("#LegendHeat").append("svg")
+    //     .attr("width", viewerWidth/2)
+    //     .attr("height", viewerHeight*0.10)
+    //     .style("margin-top", "12px")
+
+    //   var legend = svgLeg.append('g')
+    //       .attr("class", "legend")
+    //       .attr("transform", "translate(0,0)")
+    //       .selectAll(".legendElement")
+    //       .data([1.00, 0.75, 0.50, 0.25, 0.00, 0.25, 0.50, 0.75, 1.00])
+    //       .enter().append("g")
+    //       .attr("class", "legendElement");
+
+    //   legend.append("svg:rect")
+    //       .attr("x", viewerPosTop)
+    //       .attr("y", function(d, i) {
+    //           return (legendElementWidth * i) + 35;
+    //       })
+    //       .attr("class", "cellLegend bordered")
+    //       .attr("width", legendElementWidth)
+    //       .attr("height", cellSizeHeat / 2)
+    //       .style("fill", function(d, i) {
+    //         console.log(colors[i])
+    //           return colors[i];
+    //       });
+
+    //   legend.append("text")
+    //       .attr("class", "mono legendElement")
+    //       .text(function(d, i) {
+    //         console.log(i)
+    //         if (i < 4) {
+    //           return "-" + (d * 100) + "%";
+    //         } else if (i > 4) {
+    //           return "+" + (d * 100) + "%";
+    //         } else {
+    //           return "" + (d * 100) + "%";
+    //         }
+
+    //       })
+    //       .attr("x", function(d, i) {
+    //         if (i > 4) {
+    //           return (legendElementWidth * i) + 45;
+    //         } else if (i == 4) {
+    //           return (legendElementWidth * i) + 55;
+    //         } else {
+    //           return (legendElementWidth * i) + 40;
+    //         }
+              
+    //       })
+    //       .attr("y", (viewerPosTop + cellSizeHeat) + 5);
+
+    //   svgLeg.append("text").attr("x", 220).attr("y", 32).text("Difference in PD (solution space vs. ensemble").style("font-size", "16px").attr("alignment-baseline","top").attr('transform', 'translate(0,10) rotate(90)')
+    // }
   },
   mounted() {
+    //EventBus.$on('emittedEventCallingSankeyLegend', this.LegendStable)
 
     EventBus.$on('emittedEventCallingSankeyStage2', this.SankeyViewStage2)
     EventBus.$on('emittedEventCallingSankeyStage3', this.SankeyViewStage3)
@@ -1540,8 +1606,6 @@ export default {
     EventBus.$on('ResponsiveandChange', data => {
     this.WH = data})
 
-    EventBus.$on('SendIDs', data => {
-    this.SendIDLocs = data})
     EventBus.$on('SendPerformance', data => {
     this.PerF = data})
     EventBus.$on('SendPerformanceCM', data => {
