@@ -5,6 +5,10 @@
 <script>
 import * as Plotly from 'plotly.js'
 import { EventBus } from '../main.js'
+import * as d3Base from 'd3'
+
+// attach all d3 plugins to the d3 library
+const d3v5 = Object.assign(d3Base)
 
 export default {
   name: "AlgorithmsController",
@@ -109,9 +113,9 @@ export default {
           }
           else {
             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-              data.push({Algorithm:"GradB",value:this.PerF[i], size:4, sw:true})
+              data.push({Algorithm:"GradB",value:this.PerF[i], size:5, sw:true})
             } else {
-              data.push({Algorithm:"GradB",value:this.PerF[i], size:4, sw:false})
+              data.push({Algorithm:"GradB",value:this.PerF[i], size:5, sw:false})
             }
           }
         }   
@@ -1167,14 +1171,16 @@ export default {
                     if (cPlot.objs.points) {
                     if (dOpts.plotType == 'beeswarm') {
                         var swarmBounds = getObjWidth(100, cName);
+                        console.log(swarmBounds)
                         var yPtScale = chart.yScale.copy()
                             .range([Math.floor(chart.yScale.range()[0] / dOpts.pointSize), 0])
-                            .interpolate(d3.interpolateRound)
+                            //.interpolate(d3.interpolateRound)
                             .domain(chart.yScale.domain());
                         var maxWidth = Math.ceil(chart.xScale.rangeBand() / dOpts.pointSize);
-                        
+                        console.log(maxWidth)
                         var ptsObj = {};
                         var cYBucket = null;
+
                         //  Bucket points
                         for (var pt = 0; pt < cGroup.values.length; pt++) {
                             cYBucket = yPtScale(cGroup.values[pt]);
@@ -1195,38 +1201,37 @@ export default {
                                 col++
                             }
                         }
-                    } else { // For scatter points and points with no scatter
-                        var plotBounds = null,
-                            scatterWidth = 0,
-                            width = 0;
-                        if (dOpts.plotType == 'scatter' || typeof dOpts.plotType == 'number') {
-                            //Default scatter percentage is 20% of box width
-                            scatterWidth = typeof dOpts.plotType == 'number' ? dOpts.plotType : 20;
-                        }
+// FIX THAT!
+                        // let simulation = d3v5.forceSimulation(chart.data)
+    
+                        // .force("x", d3v5.forceX((d) => {
+                        //     return chart.xScale(d.Algorithm);
+                        //     }).strength(0.2))
+                        
+                        // .force("y", d3v5.forceY((d) => {
+                        //     return chart.yScale(d.value);
+                        //     }).strength(1))
+                        
+                        // .force("collide", d3v5.forceCollide((d) => {
+                        //     return d.size;
+                        //     }))
+                        
+                        // .alphaDecay(0)
+                        // .alpha(0.3)
+                        // .on("tick", tick);
 
-                        plotBounds = getObjWidth(scatterWidth, cName);
-                        width = plotBounds.right - plotBounds.left;
+                        // function tick() {
+                        //     d3v5.selectAll(".CirclePoint")
+                        //         .attr("cx", (d) => d.x)
+                        //         .attr("cy", (d) => d.y);
+                        //     }
 
-                        for (var pt = 0; pt < cGroup.values.length; pt++) {
-                            cPlot.objs.points.pts[pt]
-                                .attr("cx", plotBounds.middle + addJitter(true, width))
-                                .attr("cy", chart.yScale(cGroup.values[pt]));
-                        }
-                    }
+                        // let init_decay = setTimeout(function () {
+                        //     console.log("start alpha decay");
+                        //     simulation.alphaDecay(0.1);
+                        //     }, 3000); // start decay after 3 seconds
+                    } 
                 }
-
-
-
-                      if (cPlot.objs.bean) {
-                          var beanBounds = getObjWidth(dOpts.beanWidth, cName);
-                          for (var pt = 0; pt < cGroup.values.length; pt++) {
-                              cPlot.objs.bean.lines[pt]
-                                  .attr("x1", beanBounds.left)
-                                  .attr("x2", beanBounds.right)
-                                  .attr('y1', chart.yScale(cGroup.values[pt]))
-                                  .attr("y2", chart.yScale(cGroup.values[pt]));
-                          }
-                      }
                   }
               };
 
@@ -1287,7 +1292,7 @@ export default {
                           cPlot.objs.points.g = cPlot.objs.g.append("g").attr("class", "points-plot");
                           for (var pt = 0; pt < chart.groupObjs[cName].values.length; pt++) {
                               cPlot.objs.points.pts.push(cPlot.objs.points.g.append("circle")
-                                  .attr("class", "point")
+                                  .attr("class", "CirclePoint")
                                   .attr('r', function () {
                                     var dataLoc = data.filter( i => cName.includes( i.Algorithm ) );
                                     return dataLoc[pt].size; 
@@ -1422,7 +1427,7 @@ export default {
 }
 
 /* Point Plots*/
-.chart-wrapper .points-plot .point {
+.chart-wrapper .points-plot .CirclePoint {
     stroke: black;
     stroke-width: 1px;
 }

@@ -325,7 +325,7 @@ export default {
                     {month:"Crossover_S2_Prime'",value:125,loss:null},
                     {month:"Mutate_S2_Prime",value:125,loss:null}];
       //this is the svg canvas attributes: (not buidlign abything just seeting up varaibels)
-      var margin = {top: 10, right: 40, bottom: 10, left: 40}, //comma is the equivalent of var : 
+      var margin = {top: 0, right: 40, bottom: 0, left: 40}, //comma is the equivalent of var : 
           width = 1250 - margin.left - margin.right,
           height = 350 - margin.top - margin.bottom;
 
@@ -495,9 +495,9 @@ export default {
       var colorDiff
       colorDiff = d3v5.scaleSequential(d3v5.interpolatePRGn).domain([-100, 100])
       var percentage = this.percentageOverall
-      console.log(percentage)
+
       var previousPercentage = this.storePreviousPercentage
-      console.log(previousPercentage)
+
       // add in the links
         var link = svg.append("g").selectAll(".link")
             .data(graph.links)
@@ -691,7 +691,7 @@ export default {
         .attr("font-family","sans-serif")
         .attr("font-size",18.5)
         .attr("fill","black")
-        .attr("x",32)
+        .attr("x",20)
         .attr("y",30)
         .attr("transform", 
                 "translate(" + -45 + "," + 0 + ") scale(1,-1) translate(" + 0 + "," + -(height) + ") rotate(-90 150 150)");
@@ -873,7 +873,7 @@ export default {
                     {month:"Crossover_S2_Prime'",value:125,loss:null},
                     {month:"Mutate_S2_Prime",value:125,loss:null}];
       //this is the svg canvas attributes: (not buidlign abything just seeting up varaibels)
-      var margin = {top: 10, right: 40, bottom: 10, left: 40}, //comma is the equivalent of var : 
+      var margin = {top: 0, right: 40, bottom: 0, left: 40}, //comma is the equivalent of var : 
           width = 1230 - margin.left - margin.right,
           height = 350 - margin.top - margin.bottom;
 
@@ -1220,7 +1220,7 @@ export default {
         .attr("font-family","sans-serif")
         .attr("font-size",18.5)
         .attr("fill","black")
-        .attr("x",32)
+        .attr("x",20)
         .attr("y",30)
         .attr("transform", 
                 "translate(" + -45 + "," + 0 + ") scale(1,-1) translate(" + 0 + "," + -(height) + ") rotate(-90 150 150)");
@@ -1243,7 +1243,7 @@ export default {
                     {month:"Crossover_S1",value:250,loss:null},
                     {month:"Mutate_S1",value:250,loss:null}];
       //this is the svg canvas attributes: (not buidlign abything just seeting up varaibels)
-      var margin = {top: 10, right: 40, bottom: 10, left: 40}, //comma is the equivalent of var : 
+      var margin = {top: 0, right: 40, bottom: 0, left: 40}, //comma is the equivalent of var : 
           width = 1230 - margin.left - margin.right,
           height = 350 - margin.top - margin.bottom;
 
@@ -1506,7 +1506,7 @@ export default {
         .attr("font-family","sans-serif")
         .attr("font-size",18.5)
         .attr("fill","black")
-        .attr("x",32)
+        .attr("x",20)
         .attr("y",30)
         .attr("transform", 
                 "translate(" + -45 + "," + 0 + ") scale(1,-1) translate(" + 0 + "," + -(height) + ") rotate(-90 150 150)");

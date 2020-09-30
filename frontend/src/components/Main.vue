@@ -184,7 +184,7 @@
     <div id="myModal" class="w3-modal" style="position: fixed;">
       <div class="w3-modal-content w3-card-4 w3-animate-zoom">
         <header class="w3-container w3-blue"> 
-        <h3 style="display:inline-block; font-size: 16px; margin-top: 15px; margin-bottom:15px">Majority-Voting Ensemble Extraction (using Cryo)</h3>
+        <h3 style="display:inline-block; font-size: 22px; margin-top: 15px; margin-bottom:15px">Majority-Voting Ensemble Extraction (using Cryo)</h3>
         </header>
         <Export/>
         <div class="w3-container w3-light-grey w3-padding">
@@ -222,7 +222,8 @@ import 'axios-progress-bar/dist/nprogress.css'
 import 'bootstrap-css-only/css/bootstrap.min.css'
 import { mdbCard, mdbCardBody, mdbCardText, mdbCardHeader } from 'mdbvue'
 import { EventBus } from '../main.js'
-import $ from 'jquery'
+import $ from "jquery";
+import 'bootstrap';
 import * as d3Base from 'd3'
 import Papa from 'papaparse'
 
@@ -378,6 +379,7 @@ export default Vue.extend({
             EventBus.$emit('callValidation')
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingInfo', this.OverviewResults)
             EventBus.$emit('LegendPredict')           
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
@@ -396,17 +398,15 @@ export default Vue.extend({
               EventBus.$emit('emittedEventCallingSankeyStage3')
               EventBus.$emit('hideCrossMut')
             }
-
+            this.storeBothEnsCM[1] = this.OverviewResults
+            EventBus.$emit('callAlgorithhms')
+            this.getFinalResults()
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
-            this.storeBothEnsCM[1] = this.OverviewResults
             //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
-            EventBus.$emit('emittedEventCallingInfo', this.OverviewResults)
-            EventBus.$emit('callAlgorithhms')
-            EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
-            this.getFinalResults()
             EventBus.$emit('callValidationData', this.OverviewResults)
             EventBus.$emit('callValidation')
+            EventBus.$emit('LegendPredictEnsem') 
           }
         })
         .catch(error => {
@@ -437,7 +437,6 @@ export default Vue.extend({
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
           EventBus.$emit('callAlgorithhms')
-          EventBus.$emit('callValidationData', this.OverviewResultsCM)
           //EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
           //this.PredictSel = []
           //EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
@@ -1132,8 +1131,6 @@ export default Vue.extend({
 
     EventBus.$on('changeValues', data => { this.CMNumberofModelsOFFICIAL = data })
     EventBus.$on('changeValues2', data => { this.CMNumberofModelsOFFICIALS2 = data })
-
-    EventBus.$on('OpenModal', this.openModalFun)
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {

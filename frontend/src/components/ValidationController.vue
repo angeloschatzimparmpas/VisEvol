@@ -1,5 +1,8 @@
 <template>
-  <div id="violin" class="chart-wrapper" style="min-height: 270px; max-height: 200px !important"></div>
+<div>
+  <div id="violin" class="chart-wrapper" style="max-height: 200px !important"></div>
+  <div id="legendViolin" class="text-center"></div>
+</div>
 </template>
 
 <script>
@@ -17,13 +20,15 @@ export default {
       Metrics: ['Accuracy', 'Precision', 'Recall', 'F1-score', 'G-mean', 'ROC AUC', 'Log loss', 'MCC'],
       selectedSimple: [],
       selectedEnsem: [],
-      storedEnsemble: []
+      storedEnsemble: [],
     }
   },
   methods: {
     reset () {
       var svg = d3.select("#violin");
       svg.selectAll("*").remove();
+      var svgLeg = d3.select("#legendViolin");
+      svgLeg.selectAll("*").remove();
       this.selectedSimple = []
       this.selectedEnsem = []
       this.storedEnsemble = []
@@ -34,8 +39,6 @@ export default {
       var svg = d3.select("#violin");
       svg.selectAll("*").remove();
       var chart2
-      var IDs = JSON.parse(this.ResultsValid[0])
-      var valid = JSON.parse(this.ResultsValid[3])
 
       var data = []
       var colorsGlobal = []
@@ -52,8 +55,11 @@ export default {
       var meanGlobalSel = new Array(countFactors).fill(0)
       var sumGlobalSel = new Array(countFactors).fill(0)
       var countValuesSel = new Array(countFactors).fill(0)
-      console.log(this.activeCurr)
-      if (this.activeCurr == 1) {
+      var globalActive = this.activeCurr
+
+      if (globalActive == 1) {
+        var IDs = JSON.parse(this.ResultsValid[0])
+        var valid = JSON.parse(this.ResultsValid[3])
         for (let j=0; j<this.factorsValid.length; j++) {
           if (this.factorsValid[j] == 1) {
             for (let i=0; i<IDs.length; i++){
@@ -93,14 +99,18 @@ export default {
                 activeLines.push('meanSelection')
             }
         } else {
+            var valid = JSON.parse(this.ResultsValid[3])
             var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsemble)
-            console.log(mergedStoreEnsembleLoc)
+            var mergedStoreEnsembleLocFormatted = []
+            for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
+                mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
+            }
             for (let j=0; j<this.factorsValid.length; j++) {
                 if (this.factorsValid[j] == 1) {
                     for (let i=0; i<mergedStoreEnsembleLoc.length; i++){
                       let tempValid = JSON.parse(valid[j])
+                      tempValid = mergedStoreEnsembleLocFormatted.map((item) => tempValid[item])
                       let tempSplit = mergedStoreEnsembleLoc[i].split(/([0-9]+)/)
-                      console.log(tempSplit)
                         if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
                             data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#ff7f00"})
                         } 
@@ -116,7 +126,6 @@ export default {
                         else {
                             data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#a6cee3"})
                         }
-                        console.log(this.selectedEnsem.length)
                         if (this.selectedEnsem.length != 0) {
                             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
                                 sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
@@ -134,7 +143,6 @@ export default {
                 activeLines.push('meanSelection')
             }
         }
-        console.log(data)
         colorsGlobalBins.push('#c0c0c0')
         colorsGlobalBins.push('#000')
         for (let j=0; j<sumGlobalSel.length; j++) {
@@ -181,8 +189,8 @@ export default {
               axisLables: null,
               yTicks: 1,
               scale: 'linear',
-              chartSize: {width: 820, height: 280},
-              margin: {top: 15, right: 40, bottom: 30, left: 40},
+              chartSize: {width: 820, height: 200},
+              margin: {top: 15, right: 40, bottom: 60, left: 40},
               constrainExtremes: false,
               color: colorsGlobal
           };
@@ -492,7 +500,7 @@ export default {
               chart.objs.g = chart.objs.chartDiv.append("svg")
                   .attr("class", "chart-area")
                   .attr("width", chart.width + (chart.margin.left + chart.margin.right))
-                  .attr("height", 270 + (chart.margin.top + chart.margin.bottom))
+                  .attr("height", 200 + (chart.margin.top + chart.margin.bottom))
                   .append("g")
                   .attr("transform", "translate(" + chart.margin.left + "," + chart.margin.top + ")");
 
@@ -1532,6 +1540,7 @@ export default {
                       }
                   }
 
+                  var loopValue = 0
 
                   for (cName in chart.groupObjs) {
                       cGroup = chart.groupObjs[cName];
@@ -1594,10 +1603,15 @@ export default {
                               cPlot.objs.bean.lines[pt]
                                   .attr("x1", beanBounds.left)
                                   .attr("x2", beanBounds.right)
-                                  .attr('y1', chart.yScale(cGroup.values[pt]))
-                                  .attr("y2", chart.yScale(cGroup.values[pt]));
+                                  .attr('y1', function () { return chart.yScale(chart.data[pt+loopValue].value) })
+                                  .attr("y2", function () { return chart.yScale(chart.data[pt+loopValue].value) });
                           }
                       }
+                        if (globalActive == 1) {
+                            loopValue = loopValue + IDs.length
+                        } else {
+                            loopValue = loopValue + mergedStoreEnsembleLoc.length
+                        }
                   }
               };
 
@@ -1693,8 +1707,12 @@ export default {
                                   .style("stroke", function () { return chart.data[pt+loopValue].category; }));
                           }
                       }
-
-                      loopValue = loopValue + 500
+                    if (globalActive == 1) {
+                        loopValue = loopValue + IDs.length
+                    } else {
+                        loopValue = loopValue + mergedStoreEnsembleLoc.length
+                    }
+                      
                   }
 
               };
@@ -1707,9 +1725,70 @@ export default {
 
           return chart;
       }
-    }
+
+
+    },
+    legendColViol () {        
+    //==================================================
+    var viewerWidth = this.WH[0]*2.5
+    var viewerHeight = this.WH[1]*0.06
+    var viewerPosTop = viewerHeight * 0.2;
+    var cellSizeHeat = 10
+    var legendElementWidth = cellSizeHeat * 3;
+
+    // http://bl.ocks.org/mbostock/5577023
+    var colors = ['#c0c0c0','#fff','#fff','#fff','#000'];
+
+    var svgLeg = d3.select("#legendViolin");
+      svgLeg.selectAll("*").remove();
+        
+      var svgLeg = d3.select("#legendViolin").append("svg")
+        .attr("width", viewerWidth/2)
+        .attr("height", viewerHeight*1)
+        .style("margin-top", "42px")
+
+      var legend = svgLeg.append('g')
+          .attr("class", "legend")
+          .attr("transform", "translate(0,0)")
+          .selectAll(".legendElement")
+          .data([0, 1, 3, 4, 5])
+          .enter().append("g")
+          .attr("class", "legendElement");
+
+      legend.append("svg:rect")
+          .attr("x", function(d, i) {
+              return (legendElementWidth * i) + 35;
+          })
+          .attr("y", viewerPosTop)
+          .attr("class", "cellLegend bordered")
+          .attr("width", legendElementWidth)
+          .attr("height", cellSizeHeat / 2)
+          .style("fill", function(d, i) {
+              return colors[i];
+          });
+
+      legend.append("text")
+          .attr("class", "mono legendElement")
+          .text(function(d, i) {
+            if (i == 0) {
+              return "Mean All";
+            } else if (i== 4) {
+              return "Mean Sel.";
+            } else {
+              return "";
+            }
+
+          })
+          .attr("x", function(d, i) {
+              return (legendElementWidth * i) + 12;
+              return (legendElementWidth * i) + 12; 
+          })
+          .attr("y", (viewerPosTop + cellSizeHeat) + 10);
+  },
   },
   mounted () {
+    EventBus.$on('LegendPredict', this.legendColViol)
+
     EventBus.$on('SendStoredEnsemble', data => { this.storedEnsemble = data})
     EventBus.$on('activeNow', data => { this.activeCurr = data })
 

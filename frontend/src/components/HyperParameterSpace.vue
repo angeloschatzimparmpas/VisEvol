@@ -304,6 +304,7 @@ export default {
     selectedPointsOverview () {
       const OverviewPlotly = document.getElementById('OverviewPlotly')
       var allModels = JSON.parse(this.ScatterPlotResults[0])
+      var ResultsAll = this.ScatterPlotResults
       OverviewPlotly.on('plotly_selected', function (evt) {
         if (typeof evt !== 'undefined') {
           var pushModelsRemainingTemp = []
@@ -326,6 +327,7 @@ export default {
           }
           //EventBus.$on('RemainingPointsIndices', indices)
           EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
+          EventBus.$emit('callValidationData', ResultsAll)
           EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
           EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
         }

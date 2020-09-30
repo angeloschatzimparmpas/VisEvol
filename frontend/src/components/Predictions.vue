@@ -1,7 +1,8 @@
 <template>
-  <div>
+  <div id="containerForAll">
     <div id="containerAll"></div>
     <div id="containerSelection"></div>
+    <div id="LegendMain"></div>
     <div id="LegendHeat"></div>
   </div>
 </template>
@@ -9,7 +10,6 @@
 <script>
 import * as d3Base from 'd3'
 import { EventBus } from '../main.js'
-import $ from 'jquery'
 import * as colorbr from 'colorbrewer'
 
 // attach all d3 plugins to the d3 library
@@ -26,6 +26,7 @@ export default {
       predictSelection: [],
       StoreIndices: [],
       classesNumber: 9,
+      InfoPred: []
     }
   },
   methods: {
@@ -34,12 +35,15 @@ export default {
       svg.selectAll("*").remove();
       var svg = d3.select("#containerSelection");
       svg.selectAll("*").remove();
+      var svgLegG = d3.select("#LegendMain");
+      svgLegG.selectAll("*").remove();
       var svgLeg = d3.select("#LegendHeat");
       svgLeg.selectAll("*").remove();
       this.GetResultsAll = []
       this.GetResultsSelection = []
       this.predictSelection = []
       this.StoreIndices = []
+      this.InfoPred = []
     },
     Grid () {
 
@@ -162,7 +166,6 @@ export default {
     }
 
     var classStore = [].concat.apply([], classArray);
-
 		// === Set up canvas === //
 
 		var width = 1200,
@@ -173,7 +176,7 @@ export default {
 		var canvas = d3.select('#containerAll')
 			.append('canvas')
 			.attr('width', width)
-			.attr('height', height);
+      .attr('height', height);
 
 		var context = canvas.node().getContext('2d');
 
@@ -189,10 +192,10 @@ export default {
 
 		// === First call === //
 		databind(classStore, size, sqrtSize); // ...then update the databind function
-		
+
 		var t = d3.timer(function(elapsed) {
 			draw();
-			if (elapsed > 1000) t.stop();
+			if (elapsed > 2000) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
 
 
@@ -238,7 +241,6 @@ export default {
 				.attr('width', 0)
 				.attr('height', 0)
 				.remove();
-
 		} // databind()
 
 
@@ -436,7 +438,7 @@ export default {
 		
 		var t = d3.timer(function(elapsed) {
 			draw();
-			if (elapsed > 1000) t.stop();
+			if (elapsed > 2000) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
 
 
@@ -522,16 +524,60 @@ export default {
     var cellSizeHeat = 20
     var legendElementWidth = cellSizeHeat * 3;
 
+    var info = JSON.parse(this.InfoPred[13])
+
     // http://bl.ocks.org/mbostock/5577023
     var colors = colorbrewer.PRGn[this.classesNumber];
 
+    var svgLegGl = d3.select("#LegendMain");
+      svgLegGl.selectAll("*").remove();
+
     var svgLeg = d3.select("#LegendHeat");
       svgLeg.selectAll("*").remove();
-        
+
+    var svgLegGl = d3.select("#LegendMain").append("svg")
+      .attr("width", viewerWidth)
+      .attr("height", viewerHeight*0.35)
+      .style("margin-top", "0")
+
+    var initialValue = 35
+    var multiple = 105
+    var heightText = 180
+
+    svgLegGl.append("line")
+      .attr("x1", 614)
+      .attr("y1", 0)
+      .attr("x2", 614)
+      .attr("y2", heightText+30)
+      .style("stroke-width", 1)
+      .style("stroke", "black")
+      .style("fill", "none");
+
+    svgLegGl.append("text").attr("x", -52).attr("y", 12).text("All").style("font-size", "16px").style("font-weight", "bold").attr("alignment-baseline","top").attr("transform", 
+                "rotate(-90)");
+    svgLegGl.append("text").attr("x", -142).attr("y", 12).text("Sel.").style("font-size", "16px").style("font-weight", "bold").attr("alignment-baseline","top").attr("transform", 
+                "rotate(-90)");
+
+    svgLegGl.append("text").attr("x", initialValue).attr("y", heightText).text("Mean").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*1).attr("y", heightText).text("KNN").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*2).attr("y", heightText).text("LR").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*3-5).attr("y", heightText).text("MLP").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*4-6).attr("y", heightText).text("RF").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*5-12).attr("y", heightText).text("GradB").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*6-16).attr("y", heightText).text("Mean").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*7-20).attr("y", heightText).text("KNN").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*8-18).attr("y", heightText).text("LR").style("font-size", "14px").attr("alignment-baseline","top")    
+    svgLegGl.append("text").attr("x", initialValue+multiple*9-25).attr("y", heightText).text("MLP").style("font-size", "14px").attr("alignment-baseline","top")    
+    svgLegGl.append("text").attr("x", initialValue+multiple*10-24).attr("y", heightText).text("RF").style("font-size", "14px").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", initialValue+multiple*11-36).attr("y", heightText).text("GradB").style("font-size", "14px").attr("alignment-baseline","top")
+    
+    svgLegGl.append("text").attr("x", 275).attr("y", heightText+30).text(info[0]).style("font-size", "16px").style("font-weight", "bold").attr("alignment-baseline","top")
+    svgLegGl.append("text").attr("x", 882).attr("y", heightText+30).text(info[1]).style("font-size", "16px").style("font-weight", "bold").attr("alignment-baseline","top")
+
       var svgLeg = d3.select("#LegendHeat").append("svg")
         .attr("width", viewerWidth/2)
         .attr("height", viewerHeight*0.10)
-        .style("margin-top", "28px")
+        .style("margin-top", "35px")
 
       var legend = svgLeg.append('g')
           .attr("class", "legend")
@@ -543,7 +589,7 @@ export default {
 
       legend.append("svg:rect")
           .attr("x", function(d, i) {
-              return (legendElementWidth * i) + 35;
+              return (legendElementWidth * i) + 50;
           })
           .attr("y", viewerPosTop)
           .attr("class", "cellLegend bordered")
@@ -567,11 +613,11 @@ export default {
           })
           .attr("x", function(d, i) {
             if (i > 4) {
-              return (legendElementWidth * i) + 45;
+              return (legendElementWidth * i) + 60;
             } else if (i == 4) {
-              return (legendElementWidth * i) + 55;
+              return (legendElementWidth * i) + 72;
             } else {
-              return (legendElementWidth * i) + 40;
+              return (legendElementWidth * i) + 52;
             }
               
           })
@@ -581,6 +627,7 @@ export default {
   },
   },
   mounted () {
+      EventBus.$on('emittedEventCallingInfo', data => { this.InfoPred = data })
       EventBus.$on('LegendPredict', this.legendCol)
 
       EventBus.$on('emittedEventCallingGrid', data => { this.GetResultsAll = data; })
@@ -607,4 +654,19 @@ export default {
 		canvas {
 			border:  1px dotted #ccc;
 		}
+
+    #containerForAll {
+      height: 100px;
+      position: relative;
+    }
+    #LegendMain {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    #LegendMain {
+      z-index: 10;
+    }
 </style>

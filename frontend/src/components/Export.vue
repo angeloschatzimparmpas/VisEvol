@@ -2,7 +2,7 @@
   <div id="ExportResults">
     =======================================================
     <br>
-    IDs of Models/Algorithms and Hyper-parameters: {{ ModelsPickled }}
+    Models/Algorithms and Hyper-parameters: {{ ModelsPickled }}
     <br>
     =======================================================
   </div>

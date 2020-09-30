@@ -97,7 +97,6 @@
 
 <script>
     import { EventBus } from '../main.js'
-    import $ from 'jquery'
 
     export default {
         name: 'PerformanceMetrics',

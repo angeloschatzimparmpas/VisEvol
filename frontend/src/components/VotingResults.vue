@@ -1,5 +1,8 @@
 <template>
-  <div id="doubleBarChart" style="min-height: 270px;"></div>
+<div>
+  <div id="doubleBarChart"></div>
+  <div id="legendFinal" class="text-center"></div>
+</div>
 </template>
 
 <script>
@@ -18,6 +21,9 @@ export default {
     reset () {
         var svg = d3.select("#doubleBarChart");
         svg.selectAll("*").remove();
+        var svgLeg = d3.select("#legendFinal");
+        svgLeg.selectAll("*").remove();
+        this.FinalResultsforPlot = []
     },
     VotingResultsFun () {
 
@@ -59,7 +65,7 @@ export default {
       var chart,
               width = 214,
               bar_height = 15,
-              height = bar_height * 18;
+              height = bar_height * 16;
       var rightOffset = width + labelArea;
 
       var lCol = "infant.mortality";
@@ -71,7 +77,7 @@ export default {
         .domain([0,100])
         .range([0, width-40]);
       var y = d3.scale.ordinal()
-        .rangeBands([30, height-58]);
+        .rangeBands([20, height-58]);
 
       var chart = d3.select("#doubleBarChart")
         .append('svg')
@@ -128,11 +134,12 @@ export default {
               .attr("text-anchor", "middle")
               .attr('class', 'name')
               .style("fill", function(d) {
-                if (d.countries.includes('Active')) {
-                  return "#1f78b4"
-                } else {
-                  return "#e31a1c"
-                }
+                return "#000000"
+                // if (d.countries.includes('Active')) {
+                //   return "#1f78b4"
+                // } else {
+                //   return "#e31a1c"
+                // }
               })
               .text(function(d){return d.countries;});
 
@@ -165,12 +172,74 @@ export default {
               .attr('class', 'score')
               .text(function(d){return d[rCol];});
 
-      chart.append("text").attr("x",width/3).attr("y", 15).attr("class","title").text(info[0]);
-      chart.append("text").attr("x",width/3+rightOffset).attr("y", 15).attr("class","title").text(info[1]);
-      chart.append("text").attr("x",width+labelArea/3).attr("y", 15).attr("class","title").text("Metrics");
-    }
+      chart.append("text").attr("x",width/3).attr("y", 20).attr("class","title").text(info[0]);
+      chart.append("text").attr("x",width/3+rightOffset).attr("y", 20).attr("class","title").text(info[1]);
+      chart.append("text").attr("x",width+labelArea/3).attr("y", 20).attr("class","title").text("Metrics");
+    },
+    legendColFinal () {        
+    //==================================================
+    var viewerWidth = this.WH[0]*2.5
+    var viewerHeight = this.WH[1]*0.058
+    var viewerPosTop = viewerHeight * 0.2;
+    var cellSizeHeat = 10
+    var legendElementWidth = cellSizeHeat * 3;
+
+    // http://bl.ocks.org/mbostock/5577023
+    var colors = ['#1f78b4','#fff','#fff','#fff','#e31a1c'];
+
+    var svgLeg = d3.select("#legendFinal");
+      svgLeg.selectAll("*").remove();
+        
+      var svgLeg = d3.select("#legendFinal").append("svg")
+        .attr("width", viewerWidth/2)
+        .attr("height", viewerHeight*1)
+        .style("margin-top", "6px")
+
+      var legend = svgLeg.append('g')
+          .attr("class", "legend")
+          .attr("transform", "translate(0,0)")
+          .selectAll(".legendElement")
+          .data([0, 1, 3, 4, 5])
+          .enter().append("g")
+          .attr("class", "legendElement");
+
+      legend.append("svg:rect")
+          .attr("x", function(d, i) {
+              return (legendElementWidth * i) + 35;
+          })
+          .attr("y", viewerPosTop)
+          .attr("class", "cellLegend bordered")
+          .attr("width", legendElementWidth)
+          .attr("height", cellSizeHeat / 2)
+          .style("fill", function(d, i) {
+              return colors[i];
+          });
+
+      legend.append("text")
+          .attr("class", "mono legendElement")
+          .text(function(d, i) {
+            if (i == 0) {
+              return "Active";
+            } else if (i== 4) {
+              return "Best";
+            } else {
+              return "";
+            }
+
+          })
+          .attr("x", function(d, i) {
+            if (i == 0) {
+              return (legendElementWidth * i) + 32;
+            } else {
+              return (legendElementWidth * i) + 36; 
+            }
+
+          })
+          .attr("y", (viewerPosTop + cellSizeHeat) + 10);
+  },
   },
   mounted() {
+    EventBus.$on('LegendPredictEnsem', this.legendColFinal)
 
     EventBus.$on('emittedEventCallingInfo', data => { this.Info = data }) 
     EventBus.$on('emittedEventCallingResultsPlot', data => { this.FinalResultsforPlot = data }) 
