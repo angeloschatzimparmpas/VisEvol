@@ -374,7 +374,6 @@ export default Vue.extend({
             EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
             EventBus.$emit('emittedEventCallingSankey')
             //EventBus.$emit('emittedEventCallingSankeyLegend')
-            EventBus.$emit('callAlgorithhms')
             EventBus.$emit('callValidationData', this.OverviewResults)
             EventBus.$emit('callValidation')
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
@@ -383,6 +382,7 @@ export default Vue.extend({
             EventBus.$emit('LegendPredict')           
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
+            EventBus.$emit('callAlgorithhms')
           } else {   
             var Performance = JSON.parse(this.OverviewResults[1])
             EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemble)
@@ -399,7 +399,6 @@ export default Vue.extend({
               EventBus.$emit('hideCrossMut')
             }
             this.storeBothEnsCM[1] = this.OverviewResults
-            EventBus.$emit('callAlgorithhms')
             this.getFinalResults()
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
@@ -407,6 +406,7 @@ export default Vue.extend({
             EventBus.$emit('callValidationData', this.OverviewResults)
             EventBus.$emit('callValidation')
             EventBus.$emit('LegendPredictEnsem') 
+            EventBus.$emit('callAlgorithhms')
           }
         })
         .catch(error => {
@@ -1130,7 +1130,7 @@ export default Vue.extend({
     EventBus.$on('factorsChanged', data => { this.basicValuesFact = data })
 
     EventBus.$on('changeValues', data => { this.CMNumberofModelsOFFICIAL = data })
-    EventBus.$on('changeValues2', data => { this.CMNumberofModelsOFFICIALS2 = data })
+    EventBus.$on('changeValues2Run', data => { this.CMNumberofModelsOFFICIALS2 = data })
 
     //Prevent double click to search for a word. 
     document.addEventListener('mousedown', function (event) {

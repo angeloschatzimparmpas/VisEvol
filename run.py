@@ -806,8 +806,6 @@ def PreprocessingPredEnsemble():
     numberIDRF = []
     numberIDGradB = []
 
-    print(EnsembleActive)
-
     for el in EnsembleActive:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:

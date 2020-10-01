@@ -195,7 +195,7 @@ export default {
 
 		var t = d3.timer(function(elapsed) {
 			draw();
-			if (elapsed > 2000) t.stop();
+			if (elapsed > 2500) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
 
 
@@ -240,7 +240,7 @@ export default {
 				.transition()
 				.attr('width', 0)
 				.attr('height', 0)
-				.remove();
+        .remove();
 		} // databind()
 
 
@@ -438,7 +438,7 @@ export default {
 		
 		var t = d3.timer(function(elapsed) {
 			draw();
-			if (elapsed > 2000) t.stop();
+			if (elapsed > 2500) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
 
 
@@ -545,11 +545,11 @@ export default {
     var heightText = 180
 
     svgLegGl.append("line")
-      .attr("x1", 614)
+      .attr("x1", 613)
       .attr("y1", 0)
-      .attr("x2", 614)
+      .attr("x2", 613)
       .attr("y2", heightText+30)
-      .style("stroke-width", 1)
+      .style("stroke-width", 2)
       .style("stroke", "black")
       .style("fill", "none");
 

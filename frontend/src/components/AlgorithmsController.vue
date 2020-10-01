@@ -1,5 +1,8 @@
 <template>
-  <div id="Bees" class="chart-wrapper" style="min-height: 357px;"></div>
+  <div id="containerForAllAlg">
+    <div id="Bees" class="chart-wrapper" style="min-height: 357px;"></div>
+    <div id="MainPlot"></div>
+  </div>
 </template>
 
 <script>
@@ -27,6 +30,8 @@ export default {
     reset () {
       var svg = d3.select("#Bees");
       svg.selectAll("*").remove();
+      var svg = d3.select("#MainPlot");
+      svg.selectAll("*").remove();
       this.PerF = []
       this.PerFCM = []
       this.storedEnsem = []
@@ -36,6 +41,8 @@ export default {
     },
     BeesFun () {
       var svg = d3.select("#Bees");
+      svg.selectAll("*").remove();
+      var svg = d3.select("#MainPlot");
       svg.selectAll("*").remove();
       var chart1
       var data = []
@@ -121,16 +128,101 @@ export default {
         }   
       }
 
-      chart1 = makeDistroChart({
-            data:data,
-            xName:'Algorithm',
-            yName:'value',
-            axisLabels: {xAxis: 'Algorithhm', yAxis: '# Performance (%) #'},
-            selector:"#Bees",
-            constrainExtremes:true});
-        chart1.renderDataPlots({showPlot:true,plotType:'beeswarm',showBeanLines:false, colors:null});
-        chart1.renderNotchBoxes({showNotchBox:false});
-        chart1.renderViolinPlot({showViolinPlot:false});
+        var widthChr = 589;
+        var heightChr = 330;
+
+        let svgAlg = d3v5
+          .select("#MainPlot")
+          .append("svg")
+          .attr("height", heightChr)
+          .attr("width", widthChr);
+
+        let sectors = Array.from(new Set(data.map((d) => d.Algorithm)));
+        let xCoords = sectors.map((d, i) => 95 + i * 108);
+        let xScale = d3v5.scaleOrdinal().domain(sectors).range(xCoords);
+
+        let yScale = d3v5
+          .scaleLinear()
+          .domain(d3v5.extent(data.map((d) => d.value)))
+          .range([heightChr-30, 30]);
+
+        var colorsF = d3.scale.ordinal().range(['#ff7f00','#fdbf6f','#fb9a99','#b15928','#a6cee3'])
+
+        svgAlg
+          .selectAll(".circ")
+          .data(data)
+          .enter()
+          .append("circle")
+          .attr("class", "circ")
+          .attr("stroke", "black")
+          .attr("fill", function (d) {
+            if (d.sw) { return "#000000" } 
+            else { return colorsF(d.Algorithm) }
+          })
+          .attr("r", (d) => d.size)
+          .attr("cx", (d) => xScale(d.Algorithm))
+          .attr("cy", (d) => yScale(d.value));
+
+        let simulation = d3v5
+          .forceSimulation(data)
+          .force(
+            "x",
+            d3v5
+              .forceX((d) => {
+                return xScale(d.Algorithm);
+              })
+              .strength(1)
+          )
+          .force(
+            "y",
+            d3v5
+              .forceY(function (d) {
+                return yScale(d.value);
+              })
+              .strength(1)
+          )
+          .force(
+            "collide",
+            d3v5.forceCollide((d) => {
+              return d.size;
+            })
+          )
+          .alphaDecay(0)
+          .alpha(1)
+          //.on("tick", tick);
+
+        function tick() {
+          d3v5.selectAll(".circ")
+            .attr("cx", (d) => {
+              return d.x;
+            })
+            .attr("cy", (d) => d.y);
+        }
+
+        function first() {
+          simulation.alphaDecay(0.1);
+          second()
+          setTimeout(function () {
+            tick();
+          }, 5000);
+        }
+
+      function second() {
+        chart1 = makeDistroChart({
+          data:data,
+          xName:'Algorithm',
+          yName:'value',
+          axisLabels: {xAxis: 'Algorithhm', yAxis: '# Performance (%) #'},
+          selector:"#Bees",
+          constrainExtremes:true});
+          
+        //chart1.renderDataPlots({showPlot:true,plotType:'beeswarm',showBeanLines:false, colors:null});
+      }
+      first()
+      
+      
+
+
       /**
        * Creates a box plot, violin plot, and or notched box plot
        * @param settings Configuration options for the base plot
@@ -510,552 +602,6 @@ export default {
           }();
 
           /**
-           * Render a violin plot on the current chart
-           * @param options
-           * @param [options.showViolinPlot=true] True or False, show the violin plot
-           * @param [options.resolution=100 default]
-           * @param [options.bandwidth=10 default] May need higher bandwidth for larger data sets
-           * @param [options.width=50] The max percent of the group rangeBand that the violin can be
-           * @param [options.interpolation=''] How to render the violin
-           * @param [options.clamp=0 default]
-           *   0 = keep data within chart min and max, clamp once data = 0. May extend beyond data set min and max
-           *   1 = clamp at min and max of data set. Possibly no tails
-           *  -1 = extend chart axis to make room for data to interpolate to 0. May extend axis and data set min and max
-           * @param [options.colors=chart default] The color mapping for the violin plot
-           * @returns {*} The chart object
-           */
-          chart.renderViolinPlot = function (options) {
-              chart.violinPlots = {};
-
-              var defaultOptions = {
-                  show: true,
-                  showViolinPlot: true,
-                  resolution: 100,
-                  bandwidth: 20,
-                  width: 50,
-                  interpolation: 'cardinal',
-                  clamp: 1,
-                  colors: chart.colorFunct,
-                  _yDomainVP: null // If the Violin plot is set to close all violin plots, it may need to extend the domain, that extended domain is stored here
-              };
-              chart.violinPlots.options = shallowCopy(defaultOptions);
-              for (var option in options) {
-                  chart.violinPlots.options[option] = options[option]
-              }
-              var vOpts = chart.violinPlots.options;
-
-              // Create violin plot objects
-              for (var cName in chart.groupObjs) {
-                  chart.groupObjs[cName].violin = {};
-                  chart.groupObjs[cName].violin.objs = {};
-              }
-
-              /**
-               * Take a new set of options and redraw the violin
-               * @param updateOptions
-               */
-              chart.violinPlots.change = function (updateOptions) {
-                  if (updateOptions) {
-                      for (var key in updateOptions) {
-                          vOpts[key] = updateOptions[key]
-                      }
-                  }
-
-                  for (var cName in chart.groupObjs) {
-                      chart.groupObjs[cName].violin.objs.g.remove()
-                  }
-
-                  chart.violinPlots.prepareViolin();
-                  chart.violinPlots.update();
-              };
-
-              chart.violinPlots.reset = function () {
-                  chart.violinPlots.change(defaultOptions)
-              };
-              chart.violinPlots.show = function (opts) {
-                  if (opts !== undefined) {
-                      opts.show = true;
-                      if (opts.reset) {
-                          chart.violinPlots.reset()
-                      }
-                  } else {
-                      opts = {show: true};
-                  }
-                  chart.violinPlots.change(opts);
-
-              };
-
-              chart.violinPlots.hide = function (opts) {
-                  if (opts !== undefined) {
-                      opts.show = false;
-                      if (opts.reset) {
-                          chart.violinPlots.reset()
-                      }
-                  } else {
-                      opts = {show: false};
-                  }
-                  chart.violinPlots.change(opts);
-
-              };
-
-              /**
-               * Update the violin obj values
-               */
-              chart.violinPlots.update = function () {
-                  var cName, cViolinPlot;
-
-                  for (cName in chart.groupObjs) {
-                      cViolinPlot = chart.groupObjs[cName].violin;
-
-                      // Build the violins sideways, so use the yScale for the xScale and make a new yScale
-                      var xVScale = chart.yScale.copy();
-
-
-                      // Create the Kernel Density Estimator Function
-                      cViolinPlot.kde = kernelDensityEstimator(eKernel(vOpts.bandwidth), xVScale.ticks(vOpts.resolution));
-                      cViolinPlot.kdedata = cViolinPlot.kde(chart.groupObjs[cName].values);
-
-                      var interpolateMax = chart.groupObjs[cName].metrics.max,
-                          interpolateMin = chart.groupObjs[cName].metrics.min;
-
-                      if (vOpts.clamp == 0 || vOpts.clamp == -1) { //
-                          // When clamp is 0, calculate the min and max that is needed to bring the violin plot to a point
-                          // interpolateMax = the Minimum value greater than the max where y = 0
-                          interpolateMax = d3.min(cViolinPlot.kdedata.filter(function (d) {
-                              return (d.x > chart.groupObjs[cName].metrics.max && d.y == 0)
-                          }), function (d) {
-                              return d.x;
-                          });
-                          // interpolateMin = the Maximum value less than the min where y = 0
-                          interpolateMin = d3.max(cViolinPlot.kdedata.filter(function (d) {
-                              return (d.x < chart.groupObjs[cName].metrics.min && d.y == 0)
-                          }), function (d) {
-                              return d.x;
-                          });
-                          // If clamp is -1 we need to extend the axises so that the violins come to a point
-                          if (vOpts.clamp == -1) {
-                              kdeTester = eKernelTest(eKernel(vOpts.bandwidth), chart.groupObjs[cName].values);
-                              if (!interpolateMax) {
-                                  var interMaxY = kdeTester(chart.groupObjs[cName].metrics.max);
-                                  var interMaxX = chart.groupObjs[cName].metrics.max;
-                                  var count = 25; // Arbitrary limit to make sure we don't get an infinite loop
-                                  while (count > 0 && interMaxY != 0) {
-                                      interMaxY = kdeTester(interMaxX);
-                                      interMaxX += 1;
-                                      count -= 1;
-                                  }
-                                  interpolateMax = interMaxX;
-                              }
-                              if (!interpolateMin) {
-                                  var interMinY = kdeTester(chart.groupObjs[cName].metrics.min);
-                                  var interMinX = chart.groupObjs[cName].metrics.min;
-                                  var count = 25;  // Arbitrary limit to make sure we don't get an infinite loop
-                                  while (count > 0 && interMinY != 0) {
-                                      interMinY = kdeTester(interMinX);
-                                      interMinX -= 1;
-                                      count -= 1;
-                                  }
-                                  interpolateMin = interMinX;
-                              }
-
-                          }
-                          // Check to see if the new values are outside the existing chart range
-                          //   If they are assign them to the master _yDomainVP
-                          if (!vOpts._yDomainVP) vOpts._yDomainVP = chart.range.slice(0);
-                          if (interpolateMin && interpolateMin < vOpts._yDomainVP[0]) {
-                              vOpts._yDomainVP[0] = interpolateMin;
-                          }
-                          if (interpolateMax && interpolateMax > vOpts._yDomainVP[1]) {
-                              vOpts._yDomainVP[1] = interpolateMax;
-                          }
-
-
-                      }
-
-
-                      if (vOpts.showViolinPlot) {
-                          chart.update();
-                          xVScale = chart.yScale.copy();
-
-                          // Need to recalculate the KDE because the xVScale changed
-                          cViolinPlot.kde = kernelDensityEstimator(eKernel(vOpts.bandwidth), xVScale.ticks(vOpts.resolution));
-                          cViolinPlot.kdedata = cViolinPlot.kde(chart.groupObjs[cName].values);
-                      }
-
-                      cViolinPlot.kdedata = cViolinPlot.kdedata
-                          .filter(function (d) {
-                              return (!interpolateMin || d.x >= interpolateMin)
-                          })
-                          .filter(function (d) {
-                              return (!interpolateMax || d.x <= interpolateMax)
-                          });
-                  }
-                  for (cName in chart.groupObjs) {
-                      cViolinPlot = chart.groupObjs[cName].violin;
-
-                      // Get the violin width
-                      var objBounds = getObjWidth(vOpts.width, cName);
-                      var width = (objBounds.right - objBounds.left) / 2;
-
-                      var yVScale = d3.scale.linear()
-                          .range([width, 0])
-                          .domain([0, d3.max(cViolinPlot.kdedata, function (d) {return d.y;})])
-                          .clamp(true);
-
-                      var area = d3.svg.area()
-                          .interpolate(vOpts.interpolation)
-                          .x(function (d) {return xVScale(d.x);})
-                          .y0(width)
-                          .y1(function (d) {return yVScale(d.y);});
-
-                      var line = d3.svg.line()
-                          .interpolate(vOpts.interpolation)
-                          .x(function (d) {return xVScale(d.x);})
-                          .y(function (d) {return yVScale(d.y)});
-
-                      if (cViolinPlot.objs.left.area) {
-                          cViolinPlot.objs.left.area
-                              .datum(cViolinPlot.kdedata)
-                              .attr("d", area);
-                          cViolinPlot.objs.left.line
-                              .datum(cViolinPlot.kdedata)
-                              .attr("d", line);
-
-                          cViolinPlot.objs.right.area
-                              .datum(cViolinPlot.kdedata)
-                              .attr("d", area);
-                          cViolinPlot.objs.right.line
-                              .datum(cViolinPlot.kdedata)
-                              .attr("d", line);
-                      }
-
-                      // Rotate the violins
-                      cViolinPlot.objs.left.g.attr("transform", "rotate(90,0,0)   translate(0,-" + objBounds.left + ")  scale(1,-1)");
-                      cViolinPlot.objs.right.g.attr("transform", "rotate(90,0,0)  translate(0,-" + objBounds.right + ")");
-                  }
-              };
-
-              /**
-              * Create the svg elements for the violin plot
-              */
-              chart.violinPlots.prepareViolin = function () {
-                  var cName, cViolinPlot;
-
-                  if (vOpts.colors) {
-                      chart.violinPlots.color = getColorFunct(vOpts.colors);
-                  } else {
-                      chart.violinPlots.color = chart.colorFunct
-                  }
-
-                  if (vOpts.show == false) {return}
-
-                  for (cName in chart.groupObjs) {
-                      cViolinPlot = chart.groupObjs[cName].violin;
-
-                      cViolinPlot.objs.g = chart.groupObjs[cName].g.append("g").attr("class", "violin-plot");
-                      cViolinPlot.objs.left = {area: null, line: null, g: null};
-                      cViolinPlot.objs.right = {area: null, line: null, g: null};
-
-                      cViolinPlot.objs.left.g = cViolinPlot.objs.g.append("g");
-                      cViolinPlot.objs.right.g = cViolinPlot.objs.g.append("g");
-
-                      if (vOpts.showViolinPlot !== false) {
-                          //Area
-                          cViolinPlot.objs.left.area = cViolinPlot.objs.left.g.append("path")
-                              .attr("class", "area")
-                              .style("fill", chart.violinPlots.color(cName));
-                          cViolinPlot.objs.right.area = cViolinPlot.objs.right.g.append("path")
-                              .attr("class", "area")
-                              .style("fill", chart.violinPlots.color(cName));
-
-                          //Lines
-                          cViolinPlot.objs.left.line = cViolinPlot.objs.left.g.append("path")
-                              .attr("class", "line")
-                              .attr("fill", 'none')
-                              .style("stroke", chart.violinPlots.color(cName));
-                          cViolinPlot.objs.right.line = cViolinPlot.objs.right.g.append("path")
-                              .attr("class", "line")
-                              .attr("fill", 'none')
-                              .style("stroke", chart.violinPlots.color(cName));
-                      }
-
-                  }
-
-              };
-
-
-              function kernelDensityEstimator(kernel, x) {
-                  return function (sample) {
-                      return x.map(function (x) {
-                          return {x:x, y:d3.mean(sample, function (v) {return kernel(x - v);})};
-                      });
-                  };
-              }
-
-              function eKernel(scale) {
-                  return function (u) {
-                      return Math.abs(u /= scale) <= 1 ? .75 * (1 - u * u) / scale : 0;
-                  };
-              }
-
-              // Used to find the roots for adjusting violin axis
-              // Given an array, find the value for a single point, even if it is not in the domain
-              function eKernelTest(kernel, array) {
-                  return function (testX) {
-                      return d3.mean(array, function (v) {return kernel(testX - v);})
-                  }
-              }
-
-              chart.violinPlots.prepareViolin();
-
-              d3.select(window).on('resize.' + chart.selector + '.violinPlot', chart.violinPlots.update);
-              chart.violinPlots.update();
-              return chart;
-          };
-
-          /**
-          * Render a notched box on the current chart
-          * @param options
-          * @param [options.show=true] Toggle the whole plot on and off
-          * @param [options.showNotchBox=true] Show the notch box
-          * @param [options.showLines=false] Show lines at the confidence intervals
-          * @param [options.boxWidth=35] The width of the widest part of the box
-          * @param [options.medianWidth=20] The width of the narrowist part of the box
-          * @param [options.lineWidth=50] The width of the confidence interval lines
-          * @param [options.notchStyle=null] null=traditional style, 'box' cuts out the whole notch in right angles
-          * @param [options.colors=chart default] The color mapping for the notch boxes
-          * @returns {*} The chart object
-          */
-          chart.renderNotchBoxes = function (options) {
-              chart.notchBoxes = {};
-
-              //Defaults
-              var defaultOptions = {
-                  show: true,
-                  showNotchBox: true,
-                  showLines: false,
-                  boxWidth: 35,
-                  medianWidth: 20,
-                  lineWidth: 50,
-                  notchStyle: null,
-                  colors: null
-              };
-              chart.notchBoxes.options = shallowCopy(defaultOptions);
-              for (var option in options) {
-                  chart.notchBoxes.options[option] = options[option]
-              }
-              var nOpts = chart.notchBoxes.options;
-
-              //Create notch objects
-              for (var cName in chart.groupObjs) {
-                  chart.groupObjs[cName].notchBox = {};
-                  chart.groupObjs[cName].notchBox.objs = {};
-              }
-
-              /**
-              * Makes the svg path string for a notched box
-              * @param cNotch Current notch box object
-              * @param notchBounds objBound object
-              * @returns {string} A string in the proper format for a svg polygon
-              */
-              function makeNotchBox(cNotch, notchBounds) {
-                  var scaledValues = [];
-                  if (nOpts.notchStyle == 'box') {
-                      scaledValues = [
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.quartile1)],
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.lowerNotch)],
-                          [notchBounds.medianLeft, chart.yScale(cNotch.metrics.lowerNotch)],
-                          [notchBounds.medianLeft, chart.yScale(cNotch.metrics.median)],
-                          [notchBounds.medianLeft, chart.yScale(cNotch.metrics.upperNotch)],
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.upperNotch)],
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.quartile3)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.quartile3)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.upperNotch)],
-                          [notchBounds.medianRight, chart.yScale(cNotch.metrics.upperNotch)],
-                          [notchBounds.medianRight, chart.yScale(cNotch.metrics.median)],
-                          [notchBounds.medianRight, chart.yScale(cNotch.metrics.lowerNotch)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.lowerNotch)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.quartile1)]
-                      ];
-                  } else {
-                      scaledValues = [
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.quartile1)],
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.lowerNotch)],
-                          [notchBounds.medianLeft, chart.yScale(cNotch.metrics.median)],
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.upperNotch)],
-                          [notchBounds.boxLeft, chart.yScale(cNotch.metrics.quartile3)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.quartile3)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.upperNotch)],
-                          [notchBounds.medianRight, chart.yScale(cNotch.metrics.median)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.lowerNotch)],
-                          [notchBounds.boxRight, chart.yScale(cNotch.metrics.quartile1)]
-                      ];
-                  }
-                  return scaledValues.map(function (d) {
-                      return [d[0], d[1]].join(",");
-                  }).join(" ");
-              }
-
-              /**
-              * Calculate the confidence intervals
-              */
-              !function calcNotches() {
-                  var cNotch, modifier;
-                  for (var cName in chart.groupObjs) {
-                      cNotch = chart.groupObjs[cName];
-                      modifier = (1.57 * (cNotch.metrics.iqr / Math.sqrt(cNotch.values.length)));
-                      cNotch.metrics.upperNotch = cNotch.metrics.median + modifier;
-                      cNotch.metrics.lowerNotch = cNotch.metrics.median - modifier;
-                  }
-              }();
-
-              /**
-              * Take a new set of options and redraw the notch boxes
-              * @param updateOptions
-              */
-              chart.notchBoxes.change = function (updateOptions) {
-                  if (updateOptions) {
-                      for (var key in updateOptions) {
-                          nOpts[key] = updateOptions[key]
-                      }
-                  }
-
-                  for (var cName in chart.groupObjs) {
-                      chart.groupObjs[cName].notchBox.objs.g.remove()
-                  }
-                  chart.notchBoxes.prepareNotchBoxes();
-                  chart.notchBoxes.update();
-              };
-
-              chart.notchBoxes.reset = function () {
-                  chart.notchBoxes.change(defaultOptions)
-              };
-              chart.notchBoxes.show = function (opts) {
-                  if (opts !== undefined) {
-                      opts.show = true;
-                      if (opts.reset) {
-                          chart.notchBoxes.reset()
-                      }
-                  } else {
-                      opts = {show: true};
-                  }
-                  chart.notchBoxes.change(opts)
-              };
-              chart.notchBoxes.hide = function (opts) {
-                  if (opts !== undefined) {
-                      opts.show = false;
-                      if (opts.reset) {
-                          chart.notchBoxes.reset()
-                      }
-                  } else {
-                      opts = {show: false};
-                  }
-                  chart.notchBoxes.change(opts)
-              };
-
-              /**
-              * Update the notch box obj values
-              */
-              chart.notchBoxes.update = function () {
-                  var cName, cGroup;
-
-                  for (cName in chart.groupObjs) {
-                      cGroup = chart.groupObjs[cName];
-
-                      // Get the box size
-                      var boxBounds = getObjWidth(nOpts.boxWidth, cName);
-                      var medianBounds = getObjWidth(nOpts.medianWidth, cName);
-
-                      var notchBounds = {
-                          boxLeft: boxBounds.left,
-                          boxRight: boxBounds.right,
-                          middle: boxBounds.middle,
-                          medianLeft: medianBounds.left,
-                          medianRight: medianBounds.right
-                      };
-
-                      // Notch Box
-                      if (cGroup.notchBox.objs.notch) {
-                          cGroup.notchBox.objs.notch
-                              .attr("points", makeNotchBox(cGroup, notchBounds));
-                      }
-                      if (cGroup.notchBox.objs.upperLine) {
-                          var lineBounds = null;
-                          if (nOpts.lineWidth) {
-                              lineBounds = getObjWidth(nOpts.lineWidth, cName)
-                          } else {
-                              lineBounds = objBounds
-                          }
-
-                          var confidenceLines = {
-                              upper: chart.yScale(cGroup.metrics.upperNotch),
-                              lower: chart.yScale(cGroup.metrics.lowerNotch)
-                          };
-                          cGroup.notchBox.objs.upperLine
-                              .attr("x1", lineBounds.left)
-                              .attr("x2", lineBounds.right)
-                              .attr('y1', confidenceLines.upper)
-                              .attr("y2", confidenceLines.upper);
-                          cGroup.notchBox.objs.lowerLine
-                              .attr("x1", lineBounds.left)
-                              .attr("x2", lineBounds.right)
-                              .attr('y1', confidenceLines.lower)
-                              .attr("y2", confidenceLines.lower);
-                      }
-                  }
-              };
-
-              /**
-              * Create the svg elements for the notch boxes
-              */
-              chart.notchBoxes.prepareNotchBoxes = function () {
-                  var cName, cNotch;
-
-                  if (nOpts && nOpts.colors) {
-                      chart.notchBoxes.colorFunct = getColorFunct(nOpts.colors);
-                  } else {
-                      chart.notchBoxes.colorFunct = chart.colorFunct
-                  }
-
-                  if (nOpts.show == false) {
-                      return
-                  }
-
-                  for (cName in chart.groupObjs) {
-                      cNotch = chart.groupObjs[cName].notchBox;
-
-                      cNotch.objs.g = chart.groupObjs[cName].g.append("g").attr("class", "notch-plot");
-
-                      // Plot Box (default show)
-                      if (nOpts.showNotchBox) {
-                          cNotch.objs.notch = cNotch.objs.g.append("polygon")
-                              .attr("class", "notch")
-                              .style("fill", chart.notchBoxes.colorFunct(cName))
-                              .style("stroke", chart.notchBoxes.colorFunct(cName));
-                          //A stroke is added to the notch with the group color, it is
-                          // hidden by default and can be shown through css with stroke-width
-                      }
-
-                      //Plot Confidence Lines (default hide)
-                      if (nOpts.showLines) {
-                          cNotch.objs.upperLine = cNotch.objs.g.append("line")
-                              .attr("class", "upper confidence line")
-                              .style("stroke", chart.notchBoxes.colorFunct(cName));
-
-                          cNotch.objs.lowerLine = cNotch.objs.g.append("line")
-                              .attr("class", "lower confidence line")
-                              .style("stroke", chart.notchBoxes.colorFunct(cName));
-                      }
-                  }
-              };
-              chart.notchBoxes.prepareNotchBoxes();
-
-              d3.select(window).on('resize.' + chart.selector + '.notchBox', chart.notchBoxes.update);
-              chart.notchBoxes.update();
-              return chart;
-          };
-
-          /**
           * Render a raw data in various forms
           * @param options
           * @param [options.show=true] Toggle the whole plot on and off
@@ -1171,17 +717,16 @@ export default {
                     if (cPlot.objs.points) {
                     if (dOpts.plotType == 'beeswarm') {
                         var swarmBounds = getObjWidth(100, cName);
-                        console.log(swarmBounds)
                         var yPtScale = chart.yScale.copy()
                             .range([Math.floor(chart.yScale.range()[0] / dOpts.pointSize), 0])
                             //.interpolate(d3.interpolateRound)
                             .domain(chart.yScale.domain());
                         var maxWidth = Math.ceil(chart.xScale.rangeBand() / dOpts.pointSize);
-                        console.log(maxWidth)
+
                         var ptsObj = {};
                         var cYBucket = null;
 
-                        //  Bucket points
+                        // //  Bucket points
                         for (var pt = 0; pt < cGroup.values.length; pt++) {
                             cYBucket = yPtScale(cGroup.values[pt]);
                             if (ptsObj.hasOwnProperty(cYBucket) !== true) {
@@ -1191,7 +736,7 @@ export default {
                                 .attr("cx", swarmBounds.middle)
                                 .attr("cy", yPtScale(cGroup.values[pt]) * dOpts.pointSize));
                         }
-                        //  Plot buckets
+                        // //  Plot buckets
                         var rightMax = Math.min(swarmBounds.right - dOpts.pointSize);
                         for (var row in ptsObj) {
                             var leftMin = swarmBounds.left + (Math.max((maxWidth - ptsObj[row].length) / 2, 0) * dOpts.pointSize);
@@ -1201,35 +746,8 @@ export default {
                                 col++
                             }
                         }
-// FIX THAT!
-                        // let simulation = d3v5.forceSimulation(chart.data)
-    
-                        // .force("x", d3v5.forceX((d) => {
-                        //     return chart.xScale(d.Algorithm);
-                        //     }).strength(0.2))
-                        
-                        // .force("y", d3v5.forceY((d) => {
-                        //     return chart.yScale(d.value);
-                        //     }).strength(1))
-                        
-                        // .force("collide", d3v5.forceCollide((d) => {
-                        //     return d.size;
-                        //     }))
-                        
-                        // .alphaDecay(0)
-                        // .alpha(0.3)
-                        // .on("tick", tick);
 
-                        // function tick() {
-                        //     d3v5.selectAll(".CirclePoint")
-                        //         .attr("cx", (d) => d.x)
-                        //         .attr("cy", (d) => d.y);
-                        //     }
 
-                        // let init_decay = setTimeout(function () {
-                        //     console.log("start alpha decay");
-                        //     simulation.alphaDecay(0.1);
-                        //     }, 3000); // start decay after 3 seconds
                     } 
                 }
                   }
@@ -1251,36 +769,6 @@ export default {
                       return
                   }
 
-                  // Metrics lines
-                  chart.dataPlots.objs.g = chart.objs.g.append("g").attr("class", "metrics-lines");
-                  if (dOpts.showLines && dOpts.showLines.length > 0) {
-                      chart.dataPlots.objs.lines = {};
-                      var cMetric;
-                      for (var line in dOpts.showLines) {
-                          cMetric = dOpts.showLines[line];
-                          chart.dataPlots.objs.lines[cMetric] = {};
-                          chart.dataPlots.objs.lines[cMetric].values = [];
-                          for (var cGroup in chart.groupObjs) {
-                              chart.dataPlots.objs.lines[cMetric].values.push({
-                                  x: cGroup,
-                                  y: chart.groupObjs[cGroup].metrics[cMetric]
-                              })
-                          }
-                          chart.dataPlots.objs.lines[cMetric].line = d3.svg.line()
-                              .interpolate("cardinal")
-                              .y(function (d) {
-                                  return chart.yScale(d.y)
-                              });
-                          chart.dataPlots.objs.lines[cMetric].g = chart.dataPlots.objs.g.append("path")
-                              .attr("class", "line " + cMetric)
-                              .attr("data-metric", cMetric)
-                              .style("fill", 'none')
-                              .style("stroke", chart.colorFunct(cMetric));
-                      }
-
-                  }
-
-
                   for (cName in chart.groupObjs) {
 
                       cPlot = chart.groupObjs[cName].dataPlots;
@@ -1292,7 +780,7 @@ export default {
                           cPlot.objs.points.g = cPlot.objs.g.append("g").attr("class", "points-plot");
                           for (var pt = 0; pt < chart.groupObjs[cName].values.length; pt++) {
                               cPlot.objs.points.pts.push(cPlot.objs.points.g.append("circle")
-                                  .attr("class", "CirclePoint")
+                                  .attr("class", function () { return "CirclePoint" })
                                   .attr('r', function () {
                                     var dataLoc = data.filter( i => cName.includes( i.Algorithm ) );
                                     return dataLoc[pt].size; 
@@ -1304,12 +792,12 @@ export default {
                                   }));
                           }
                       }
-
-                  }
-
+  
+                }  
               };
-              chart.dataPlots.preparePlots();
 
+              chart.dataPlots.preparePlots();
+ 
               d3.select(window).on('resize.' + chart.selector + '.dataPlot', chart.dataPlots.update);
               chart.dataPlots.update();
               return chart;
@@ -1452,5 +940,20 @@ export default {
 }
 @media (max-width:500px){
     .chart-options p {display: block;}
+}
+
+#containerForAllAlg {
+  height: 100px;
+  position: relative;
+}
+#MainPlot {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+#MainPlot {
+  z-index: 10;
 }
 </style>

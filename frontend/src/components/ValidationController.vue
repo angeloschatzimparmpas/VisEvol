@@ -155,7 +155,7 @@ export default {
             yName:'value',
             axisLabels: {xAxis: 'Algorithm', yAxis: '# Performance (%) #'},
             selector:"#violin",
-            constrainExtremes:true});
+            constrainExtremes:false});
         chart2.renderBoxPlot({showBox:false});
         chart2.renderDataPlots({showBeanLines:true,beanWidth:15,showPlot:false,showLines:activeLines});
         chart2.renderNotchBoxes({showNotchBox:false});
