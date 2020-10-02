@@ -204,7 +204,7 @@ export default {
           second()
           setTimeout(function () {
             tick();
-          }, 5000);
+          }, 6000);
         }
 
       function second() {
