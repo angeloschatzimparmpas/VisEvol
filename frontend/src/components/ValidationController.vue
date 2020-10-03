@@ -153,7 +153,7 @@ export default {
             data:data,
             xName:'Algorithm',
             yName:'value',
-            axisLabels: {xAxis: 'Algorithm', yAxis: '# Performance (%) #'},
+            axisLabels: {xAxis: 'Algorithm', yAxis: '# Ov. Performance (%) #'},
             selector:"#violin",
             constrainExtremes:false});
         chart2.renderBoxPlot({showBox:false});
@@ -187,7 +187,7 @@ export default {
               yName: null,
               selector: null,
               axisLables: null,
-              yTicks: 1,
+              yTicks: 0.5,
               scale: 'linear',
               chartSize: {width: 820, height: 200},
               margin: {top: 15, right: 40, bottom: 60, left: 40},

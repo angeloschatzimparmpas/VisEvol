@@ -145,7 +145,7 @@ export default {
             size: 12,
             colorscale: 'Viridis',
             colorbar: {
-              title: '# Performance (%) #',
+              title: '# Ov. Performance (%) #',
               titleside:'right',
             },
           }
@@ -161,7 +161,7 @@ export default {
               visible: false,
               range: [minY, maxY]
           },
-          font: { family: 'Helvetica', size: 16, color: '#000000' },
+          font: { family: 'Helvetica', size: 22, color: '#000000' },
           autosize: true,
           width: width,
           height: height,
@@ -209,7 +209,7 @@ export default {
               size: 12,
               colorscale: 'Viridis',
               colorbar: {
-                title: '# Performance (%) #',
+                title: '# Ov. Performance (%) #',
                 titleside: 'right'
               },
           }
@@ -224,6 +224,7 @@ export default {
               visible: false,
               range: [minY, maxY]
           },
+          font: { family: 'Helvetica', size: 22, color: '#000000' },
           autosize: true,
           width: width,
           height: height,
@@ -261,7 +262,7 @@ export default {
             size: 12,
             colorscale: 'Viridis',
             colorbar: {
-              title: '# Performance (%) #',
+              title: '# Ov. Performance (%) #',
               titleside: 'right'
             },
           }
@@ -277,6 +278,7 @@ export default {
               visible: false,
               range: [minY, maxY]
           },
+          font: { family: 'Helvetica', size: 22, color: '#000000' },
           autosize: true,
           width: width,
           height: height,
@@ -370,4 +372,10 @@ export default {
   }
 }
 </script>
+
+<style>
+.infolayer {
+  transform: scale(0.7) translate(520px, 110px) !important;
+}
+</style>
 

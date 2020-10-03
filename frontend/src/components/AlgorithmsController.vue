@@ -1,7 +1,8 @@
 <template>
   <div id="containerForAllAlg">
-    <div id="Bees" class="chart-wrapper" style="min-height: 357px;"></div>
+    <div id="Bees" class="chart-wrapper" style="min-height: 307px;"></div>
     <div id="MainPlot"></div>
+    <div id="uncertainty"></div>
   </div>
 </template>
 
@@ -32,6 +33,7 @@ export default {
       svg.selectAll("*").remove();
       var svg = d3.select("#MainPlot");
       svg.selectAll("*").remove();
+      Plotly.purge('uncertainty')
       this.PerF = []
       this.PerFCM = []
       this.storedEnsem = []
@@ -44,8 +46,16 @@ export default {
       svg.selectAll("*").remove();
       var svg = d3.select("#MainPlot");
       svg.selectAll("*").remove();
+      Plotly.purge('uncertainty')
       var chart1
       var data = []
+      var originalPositions = []
+      var belongs = []
+      var newPositions = []
+      var difference = []
+      var maximumDiff = 0
+      var minimumDiff = 0
+      var average = new Array(5).fill(0);
 
       for (let i=0; i<this.storedCM.length; i++){
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
@@ -129,7 +139,7 @@ export default {
       }
 
         var widthChr = 589;
-        var heightChr = 330;
+        var heightChr = 280;
 
         let svgAlg = d3v5
           .select("#MainPlot")
@@ -161,7 +171,10 @@ export default {
           })
           .attr("r", (d) => d.size)
           .attr("cx", (d) => xScale(d.Algorithm))
-          .attr("cy", (d) => yScale(d.value));
+          .attr("cy", function (d) {
+            originalPositions.push(yScale(d.value))
+            return yScale(d.value)
+          });
 
         let simulation = d3v5
           .forceSimulation(data)
@@ -199,26 +212,98 @@ export default {
             .attr("cy", (d) => d.y);
         }
 
-        function first() {
-          simulation.alphaDecay(0.1);
-          second()
-          setTimeout(function () {
-            tick();
-          }, 6000);
-        }
+        simulation.alphaDecay(0.1);
+        setTimeout(function () {
+          tick();
+          d3v5.selectAll(".circ").attr("cy", function (d) {
+            belongs.push(d.Algorithm)
+            newPositions.push(d.y)
+            return d.y
+          })
+          for(var i = 0;i<=originalPositions.length-1;i++)
+            difference.push(Math.ceil(Math.abs(newPositions[i] - originalPositions[i])));
+          maximumDiff = Math.max(difference)
+          minimumDiff = Math.min(difference)
+          
+          var localSum = new Array(5).fill(0);
+          var localCount = new Array(5).fill(0);
+          for (let j = 0; j<belongs.length; j++) {
+            if(belongs[j] == "KNN") {
+              localSum[0] = localSum[0] + difference[j]
+              localCount[0]++
+            }
+            else if (belongs[j] == "LR") {
+              localSum[1] = localSum[1] + difference[j]
+              localCount[1]++
+            } else if (belongs[j] == "MLP") {
+              localSum[2] = localSum[2] + difference[j]
+              localCount[2]++
+            } else if (belongs[j] == "RF") {
+              localSum[3] = localSum[3] + difference[j]
+              localCount[3]++
+            } else {
+              localSum[4] = localSum[4] + difference[j]
+              localCount[4]++
+            }
+          }
+          for (let k = 0; k<localSum.length; k++) {
+            average[k] = localSum[k]/localCount[k]
+          }
 
-      function second() {
+          var dataPlot = [
+            {
+              x: ['KNN', 'LR', 'MLP', 'RF', 'GradB'],
+              y: average,
+              marker:{
+                color: ['rgb(255,127,0)', 'rgb(253,191,111)', 'rgb(251,154,153)', 'rgb(177,89,40)', 'rgb(166,206,227)']
+              },
+              type: 'bar'
+            }
+          ];
+          
+          var layout = {
+            xaxis: {
+              visible: false
+            },
+            yaxis: {
+              range: [minimumDiff, maximumDiff],
+              title: {
+                text: 'Dev. (px)',
+              }
+            },
+            title: { 
+              text: 'Visualization Uncertainty (Mean Deviation in Pixels)', 
+            },
+            width: 589,
+            height: 50,
+            showlegend: false,
+            bargap :0.60,
+            margin: {
+              l: 40,
+              r: 0,
+              b: 5,
+              t: 20,
+              pad: 0
+            },
+          };
+
+          var config = {'displayModeBar': false}
+
+          Plotly.newPlot('uncertainty', dataPlot, layout, config);
+
+        }, 6000);
+
         chart1 = makeDistroChart({
           data:data,
           xName:'Algorithm',
           yName:'value',
-          axisLabels: {xAxis: 'Algorithhm', yAxis: '# Performance (%) #'},
+          axisLabels: {xAxis: 'Algorithhm', yAxis: '# Ov. Performance (%) #'},
           selector:"#Bees",
           constrainExtremes:true});
           
         //chart1.renderDataPlots({showPlot:true,plotType:'beeswarm',showBeanLines:false, colors:null});
-      }
-      first()
+
+
       
       
 
@@ -249,10 +334,10 @@ export default {
               yName: null,
               selector: null,
               axisLables: null,
-              yTicks: 1,
+              yTicks: 0.25,
               scale: 'linear',
-              chartSize: {width: 825, height: 420},
-              margin: {top: 15, right: 45, bottom: 25, left: 40},
+              chartSize: {width: 825, height: 354},
+              margin: {top: 15, right: 45, bottom: 75, left: 40},
               constrainExtremes: false,
               color: ['#ff7f00','#fdbf6f','#fb9a99','#b15928','#a6cee3']
           };
@@ -956,4 +1041,21 @@ export default {
 #MainPlot {
   z-index: 10;
 }
+
+.gtitle {
+  transform: translate(-351px, -93px) !important;
+  font-size: 18.5px !important;
+  font-family: sans-serif !important;
+}
+
+.g-ytitle {
+  transform: translate(0px, 0px) !important;
+}
+
+.ytitle {
+  transform: rotate(-90deg) translate(67px, -530px) !important;
+  font-size: 16px !important;
+  font-family: sans-serif !important;
+}
+
 </style>

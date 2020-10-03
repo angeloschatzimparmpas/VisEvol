@@ -18,7 +18,7 @@
         </b-col>
         <b-col cols="6">
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">History and Algorithms/Models Selector<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="arrow-alt-circle-right"/> {{ Status }}</span>History and Algorithms/Models Selector<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
             <mdb-card-body>
               <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 357px">
                 <History/>
@@ -37,148 +37,67 @@
             </mdb-card>
         </b-col>
       </b-row>
-      <!--
-      <hr/>
-      <ul class="nav nav-tabs" id="myTab" role="tablist" style="margin-top: 15px">
-      <li class="nav-item">
-        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab" aria-controls="home" aria-selected="true">Algorithms' Exploration</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile" role="tab" aria-controls="profile" aria-selected="false">Data Wrangling</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" id="contact-tab" data-toggle="tab" href="#contact" role="tab" aria-controls="contact" aria-selected="false">Models' Exploration</a>
-      </li>
-      </ul>
-      <div class="tab-content" id="myTabContent">
-        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
-          <b-row class="md-3">
-            <b-col cols="3">
-              <mdb-card style="margin-top: 15px">
-                <mdb-card-header color="primary-color" tag="h5" class="text-center">Overview of the Algorithms' Space</mdb-card-header>
-                <mdb-card-body class="text-center">
-                  <Parameters/>
-                </mdb-card-body>
-              </mdb-card>
-            </b-col>
-            <b-col cols="9">
-              <mdb-card style="margin-top: 15px;">
-                <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left" style="padding-top: 3px;">Metrics Support: [All]</small>Performance of the Algorithms [Sel: {{valueSel}} / All: {{valueAll}}]<small class="float-right" style="font-size:85% !important"><Controller/></small></mdb-card-header>
-                  <mdb-card-body>
-                      <Algorithms :width="width" :height="height"/>
-                  </mdb-card-body>
-              </mdb-card>
-            </b-col>
-          </b-row>
-          <b-row class="md-3">
-            <b-col cols="3">
-              <mdb-card style="margin-top: 15px">
-                <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left" style="padding-top: 3px;">Metrics Support: [All]</small>Parameters Manipulation for Each Algorithm</mdb-card-header>
-                <mdb-card-body>
-                  <AlgorithmHyperParam/>
-                </mdb-card-body>
-              </mdb-card>
-            </b-col>
-            <b-col cols="9">
-              <mdb-card style="margin-top: 15px;">
-                <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left" style="padding-top: 3px;"><font-awesome-icon class="fa-lg" icon="dice-three"/>&nbsp;Metrics Support: [M3*, M4*, M5* (F1 Score)]</small>Performance of the Algorithms for Each Class<small class="float-right"><ResetClass/></small></mdb-card-header>
-                <mdb-card-body>
-                    <BarChart/>
-                </mdb-card-body>
-              </mdb-card>
-            </b-col>
-          </b-row>
-        </div>
-        <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
-          <b-row class="md-3">
-              <b-col cols="6">
-              <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Space<small class="float-right"><saveStack/></small></mdb-card-header>
-                  <mdb-card-body>
-                    <mdb-card-text class="text-center" style="min-height: 822px">
-                      <DataSpace/>
-                      <PCPData/>
-                    </mdb-card-text>
-                  </mdb-card-body>
-                </mdb-card>
-              </b-col>
-              <b-col cols="6">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Features Selection for Each Model<small class="float-right"><active/></small></mdb-card-header>
-                    <mdb-card-body>
-                      <mdb-card-text class="text-center" style="min-height: 822px">
-                        <ToggleSelection/>
-                        <br/>
-                        <Heatmap/>
-                      </mdb-card-text>
-                    </mdb-card-body>
-                </mdb-card>    
-              </b-col>
-            </b-row>
-        </div>
-        <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
-          -->
-          <b-row class="md-3">
-              <b-col cols="6">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Solution Space of Hyper-Parameters
-                    [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
-                  </mdb-card-header>
-                  <mdb-card-body>
-                    <mdb-card-text class="text-center"  style="min-height: 434px">
-                      <HyperParameterSpace/>
-                    </mdb-card-text>
-                  </mdb-card-body>
-                </mdb-card>
-              </b-col>
-              <b-col cols="6">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left"><Knowledge/></small>Majority-Voting Ensemble
-                    [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
-                    </mdb-card-header>
-                    <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 434px">
-                        <Ensemble/>
-                      </mdb-card-text>
-                    </mdb-card-body>
-                </mdb-card>
-              </b-col>
-            </b-row>
-            <b-row class="md-3">
-              <b-col cols="3">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
-                    </mdb-card-header>
-                    <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 270px">
-                        <ValidationController/>
-                      </mdb-card-text>
-                    </mdb-card-body>
-                </mdb-card>
-              </b-col>
-              <b-col cols="6">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Each Data Instance<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_A}}</span></span>
-                    </mdb-card-header>
-                    <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 270px">
-                        <Predictions/>
-                      </mdb-card-text>
-                    </mdb-card-body>
-                </mdb-card>
-              </b-col>
-              <b-col cols="3">
-                <mdb-card style="margin-top: 15px;">
-                  <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="calculator" /></span>Predictive Results for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
-                    </mdb-card-header>
-                    <mdb-card-body>
-                      <mdb-card-text class="text-center"  style="min-height: 270px">   
-                        <VotingResults/>
-                      </mdb-card-text>
-                    </mdb-card-body>
-                </mdb-card>
-              </b-col>
-            </b-row>
+    <b-row class="md-3">
+        <b-col cols="6">
+          <mdb-card style="margin-top: 15px;">
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Solution Space of Hyper-Parameters
+              [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
+            </mdb-card-header>
+            <mdb-card-body>
+              <mdb-card-text class="text-center"  style="min-height: 434px">
+                <HyperParameterSpace/>
+              </mdb-card-text>
+            </mdb-card-body>
+          </mdb-card>
+        </b-col>
+        <b-col cols="6">
+          <mdb-card style="margin-top: 15px;">
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left"><Knowledge/></small>Majority-Voting Ensemble
+              [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
+              </mdb-card-header>
+              <mdb-card-body>
+                <mdb-card-text class="text-center"  style="min-height: 434px">
+                  <Ensemble/>
+                </mdb-card-text>
+              </mdb-card-body>
+          </mdb-card>
+        </b-col>
+      </b-row>
+      <b-row class="md-3">
+        <b-col cols="3">
+          <mdb-card style="margin-top: 15px;">
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
+              </mdb-card-header>
+              <mdb-card-body>
+                <mdb-card-text class="text-center"  style="min-height: 270px">
+                  <ValidationController/>
+                </mdb-card-text>
+              </mdb-card-body>
+          </mdb-card>
+        </b-col>
+        <b-col cols="6">
+          <mdb-card style="margin-top: 15px;">
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Each Data Instance<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_A}}</span></span>
+              </mdb-card-header>
+              <mdb-card-body>
+                <mdb-card-text class="text-center"  style="min-height: 270px">
+                  <Predictions/>
+                </mdb-card-text>
+              </mdb-card-body>
+          </mdb-card>
+        </b-col>
+        <b-col cols="3">
+          <mdb-card style="margin-top: 15px;">
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="calculator" /></span>Predictive Results for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
+              </mdb-card-header>
+              <mdb-card-body>
+                <mdb-card-text class="text-center"  style="min-height: 270px">   
+                  <VotingResults/>
+                </mdb-card-text>
+              </mdb-card-body>
+          </mdb-card>
+        </b-col>
+      </b-row>
     </b-container>
     <div class="w3-container">
     <div id="myModal" class="w3-modal" style="position: fixed;">
@@ -252,6 +171,7 @@ export default Vue.extend({
   },
   data () {
     return {
+      Status: " (S) Stage 0",
       valuePickled: 'Close',
       sankeyCallS: true,
       CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
@@ -383,6 +303,7 @@ export default Vue.extend({
             this.storeBothEnsCM[0] = this.OverviewResults
             this.firstTimeExec = false
             EventBus.$emit('callAlgorithhms')
+            this.Status = " (S) Stage 1"
           } else {   
             var Performance = JSON.parse(this.OverviewResults[1])
             EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemble)
@@ -393,10 +314,12 @@ export default Vue.extend({
             if (this.sankeyCallS) {
               EventBus.$emit('SendSank')
               EventBus.$emit('emittedEventCallingSankeyStage2')
+              this.Status = " (S) Stage 2"
             } else {
               EventBus.$emit('SendSankS')
               EventBus.$emit('emittedEventCallingSankeyStage3')
               EventBus.$emit('hideCrossMut')
+              this.Status = " (S) Stage \u2014"
             }
             this.storeBothEnsCM[1] = this.OverviewResults
             this.getFinalResults()
@@ -407,6 +330,7 @@ export default Vue.extend({
             EventBus.$emit('callValidation')
             EventBus.$emit('LegendPredictEnsem') 
             EventBus.$emit('callAlgorithhms')
+            
           }
         })
         .catch(error => {
