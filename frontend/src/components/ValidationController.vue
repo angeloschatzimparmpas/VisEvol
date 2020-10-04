@@ -1702,7 +1702,7 @@ export default {
                           cPlot.objs.bean.g = cPlot.objs.g.append("g").attr("class", "bean-plot");
                           for (var pt = 0; pt < chart.groupObjs[cName].values.length; pt++) {
                               cPlot.objs.bean.lines.push(cPlot.objs.bean.g.append("line")
-                                  .attr("class", "bean line")
+                                  .attr("class", "bean-line")
                                   .style("stroke-width", '1')
                                   .style("stroke", function () { return chart.data[pt+loopValue].category; }));
                           }
@@ -1915,6 +1915,12 @@ export default {
 .chart-options p {
     display: inline;
 }
+
+.bean-line {
+    mix-blend-mode: "soft-light" !important;
+    isolation: isolate !important;
+}
+
 @media (max-width:500px){
     .chart-options p {display: block;}
 }
