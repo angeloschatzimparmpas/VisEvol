@@ -601,7 +601,7 @@ export default {
           }
       function linkmouseover(d){
         d3.select(this)
-            .attr("stroke-opacity",.8);
+            .attr("stroke-width",2);
           }
       function linkmouseout(d){
         d3.select(this)
@@ -1083,7 +1083,7 @@ export default {
           }
       function linkmouseover(d){
         d3.select(this)
-            .attr("stroke-opacity",.8);
+            .attr("stroke-width",2);
           }
       function linkmouseout(d){
         d3.select(this)
@@ -1324,7 +1324,7 @@ export default {
           }
       function linkmouseover(d){
         d3.select(this)
-            .attr("stroke-opacity",.8);
+            .attr("stroke-width",2);
           }
       function linkmouseout(d){
         d3.select(this)
@@ -1405,12 +1405,11 @@ export default {
 	}
 
 .link:hover {
-	stroke-opacity: .8;
+  fill: none;
+  stroke-width: 1px;
+  stroke-dasharray: 2,2;
+  stroke-linejoin: round;
 	}
-
-#clicked {
-  stroke-opacity: .8;
-}
 
 .axis path,
 .axis line {

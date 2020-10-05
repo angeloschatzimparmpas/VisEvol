@@ -5,8 +5,24 @@
       <table class="table table-borderless table-sm">
         <tbody>
           <tr>
-            <th scope="col" colspan="2">Balanced data set</th>
-            <th scope="col" colspan="2">Imbalanced data set</th>
+            <th scope="col" colspan="1">Balanced data set</th>
+            <td>
+            <b-form-checkbox
+                id="checkedboxBalanced"
+                v-model="checkedBalanced"
+                @change="clickBalan()"
+              >
+            </b-form-checkbox>
+            </td>
+            <th scope="col" colspan="1">Imbalanced data set</th>
+            <td>
+            <b-form-checkbox
+                id="checkedboxUnbalanced"
+                v-model="checkedUnbalanced"
+                @change="clickUnbalan()"
+              >
+            </b-form-checkbox>
+            </td>
           </tr>
           <tr>
             <td>(M1) Accuracy:</td>
@@ -110,13 +126,46 @@
               checkedRA: false,
               checkedLog: false,
               checkedMCC: false,
+              checkedBalanced: true,
+              checkedUnbalanced: false,
               factorsLocal: [1,1,1,1,0,0,0,0]
           }
         },
         methods: {
+          clickBalan () {
+            this.checkedUnbalanced = !this.checkedUnbalanced
+            this.checkedBalanced = !this.checkedBalanced
+
+            this.checkedAcc = !this.checkedAcc
+            this.checkedPrec = !this.checkedPrec
+            this.checkedF1 = !this.checkedF1
+            this.checkedGM = !this.checkedGM
+            this.checkedRA = !this.checkedRA
+            this.checkedMCC = !this.checkedMCC
+            this.checkedLog = !this.checkedLog
+            this.checkedRec = !this.checkedRec
+
+            this.factorsLocal = [1,1,1,1,0,0,0,0]
+            EventBus.$emit('factorsChanged', this.factorsLocal)
+          },
+          clickUnbalan () {
+            this.checkedUnbalanced = !this.checkedUnbalanced
+            this.checkedBalanced = !this.checkedBalanced
+
+            this.checkedAcc = !this.checkedAcc
+            this.checkedPrec = !this.checkedPrec
+            this.checkedF1 = !this.checkedF1
+            this.checkedGM = !this.checkedGM
+            this.checkedRA = !this.checkedRA
+            this.checkedMCC = !this.checkedMCC
+            this.checkedLog = !this.checkedLog
+            this.checkedRec = !this.checkedRec
+
+            this.factorsLocal = [0,0,0,0,1,1,1,1]
+            EventBus.$emit('factorsChanged', this.factorsLocal)
+          },
           clickAcc () {
             this.checkedAcc = !this.checkedAcc
-            console.log(this.checkedAcc)
             this.factorsRegisterChange(0,this.checkedAcc)
           },
           clickPrec () {

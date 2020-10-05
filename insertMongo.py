@@ -10,7 +10,7 @@ def import_content(filepath):
     mng_client = pymongo.MongoClient('localhost', 27017)
     mng_db = mng_client['mydb']
     #collection_name = 'StanceCTest' 
-    collection_name = 'IrisC' 
+    collection_name = 'HeartC' 
     db_cm = mng_db[collection_name]
     cdir = os.path.dirname(__file__)
     file_res = os.path.join(cdir, filepath)
@@ -21,5 +21,5 @@ def import_content(filepath):
     db_cm.insert(data_json)
 
 if __name__ == "__main__":
-  filepath = '/Users/anchaa/Documents/Research/HyperSearVis_code/dist/datasets/iris.csv'
+  filepath = '/Users/anchaa/Documents/Research/HyperSearVis_code/extra_data_sets/heart.csv'
   import_content(filepath)
