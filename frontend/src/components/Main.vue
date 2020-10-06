@@ -66,7 +66,7 @@
       <b-row class="md-3">
         <b-col cols="3">
           <mdb-card style="margin-top: 15px;">
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Overall Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Performance for Each Validation Metric<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_B}}</span></span>
               </mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -297,7 +297,7 @@ export default Vue.extend({
             EventBus.$emit('callValidationData', this.OverviewResults)
             EventBus.$emit('callValidation')
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
-            EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
+            EventBus.$emit('emittedEventCallingGridSelection')
             EventBus.$emit('emittedEventCallingInfo', this.OverviewResults)
             EventBus.$emit('LegendPredict')           
             this.storeBothEnsCM[0] = this.OverviewResults

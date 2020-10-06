@@ -21,7 +21,6 @@ export default {
   data () {
     return {
       GetResultsAll: [],
-      GetResultsSelection: [],
       responsiveWidthHeight: [],
       predictSelection: [],
       StoreIndices: [],
@@ -40,7 +39,6 @@ export default {
       var svgLeg = d3.select("#LegendHeat");
       svgLeg.selectAll("*").remove();
       this.GetResultsAll = []
-      this.GetResultsSelection = []
       this.predictSelection = []
       this.StoreIndices = []
       this.InfoPred = []
@@ -63,7 +61,7 @@ export default {
         getIndices.push(clTemp)
       }
       getIndices.reverse()
-
+      
       var predictions = JSON.parse(this.GetResultsAll[12])
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
@@ -277,7 +275,7 @@ export default {
       svg.selectAll("*").remove();
 
       var predictionsAll = JSON.parse(this.GetResultsAll[12])
-
+      console.log(this.predictSelection.length)
       if (this.predictSelection.length != 0) {
         var predictions = this.predictSelection
         var KNNPred = predictions[0]
@@ -301,8 +299,8 @@ export default {
       var GradBPredAll = predictionsAll[4]
       var PredAverAll = predictionsAll[5]
 
-      var yValues = JSON.parse(this.GetResultsSelection[6])
-      var targetNames = JSON.parse(this.GetResultsSelection[7])
+      var yValues = JSON.parse(this.GetResultsAll[6])
+      var targetNames = JSON.parse(this.GetResultsAll[7])
 
       var getIndices = []
       for (let i = 0; i < targetNames.length; i++) {
@@ -346,6 +344,7 @@ export default {
         dataRF = []
         dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
+
           dataAver.push({ id: element, value: PredAver[element][targetNames[i]] - PredAverAll[element][targetNames[i]] })
           dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] - KNNPredAll[element][targetNames[i]] })
           dataLR.push({ id: element, value: LRPred[element][targetNames[i]] - LRPredAll[element][targetNames[i]] })
@@ -633,7 +632,6 @@ export default {
       EventBus.$on('emittedEventCallingGrid', data => { this.GetResultsAll = data; })
       EventBus.$on('emittedEventCallingGrid', this.Grid)
 
-      EventBus.$on('emittedEventCallingGridSelection', data => { this.GetResultsSelection = data; })
       EventBus.$on('emittedEventCallingGridSelection', this.GridSelection)
 
       EventBus.$on('SendSelectedPointsToServerEvent', data => { this.predictSelection = data; })

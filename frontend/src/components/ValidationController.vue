@@ -60,12 +60,14 @@ export default {
       if (globalActive == 1) {
         var IDs = JSON.parse(this.ResultsValid[0])
         var valid = JSON.parse(this.ResultsValid[3])
+
         for (let j=0; j<this.factorsValid.length; j++) {
           if (this.factorsValid[j] == 1) {
             for (let i=0; i<IDs.length; i++){
                 let tempValid = JSON.parse(valid[j])
+                console.log(tempValid)
                 let tempSplit = IDs[i].split(/([0-9]+)/)
-
+                console.log(tempSplit)
                 if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
                   data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#ff7f00"})
                 } 
@@ -83,6 +85,7 @@ export default {
                 }
                 
                 if (this.selectedSimple.length != 0) {
+                console.log("selected", this.selectedSimple)
                   if (this.selectedSimple.includes(IDs[i])) {
                     sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
                     countValuesSel[j] = countValuesSel[j] + 1
@@ -93,13 +96,13 @@ export default {
               colorsGlobalBins.push('#c0c0c0')
             }
           }
-
             activeLines.push('mean')
             if (this.selectedSimple.length != 0) {
                 activeLines.push('meanSelection')
             }
         } else {
             var valid = JSON.parse(this.ResultsValid[3])
+
             var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsemble)
             var mergedStoreEnsembleLocFormatted = []
             for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
@@ -153,7 +156,7 @@ export default {
             data:data,
             xName:'Algorithm',
             yName:'value',
-            axisLabels: {xAxis: 'Algorithm', yAxis: '# Ov. Performance (%) #'},
+            axisLabels: {xAxis: 'Algorithm', yAxis: 'Performance (%)'},
             selector:"#violin",
             constrainExtremes:false});
         chart2.renderBoxPlot({showBox:false});

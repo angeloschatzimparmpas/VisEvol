@@ -732,7 +732,7 @@ def PreprocessingPred():
     dfGradB = pd.DataFrame.from_dict(dicGradB)
 
     df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
-    df_concatProbs.reset_index(drop=True, inplace=True)
+    df_concatProbs.reset_index(drop=True)
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -751,6 +751,7 @@ def PreprocessingPred():
 
     predictionsRF = []
     for column, content in dfRF.items():
+
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsRF.append(el)
 
@@ -761,6 +762,7 @@ def PreprocessingPred():
     
     predictions = []
     for column, content in df_concatProbs.items():
+
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
@@ -805,11 +807,12 @@ def PreprocessingPredEnsemble():
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
-
+    print(EnsembleActive)
     for el in EnsembleActive:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
+            print(items)
             if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]))
             elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
@@ -991,7 +994,7 @@ def preProcsumPerMetric(factors):
         name, values = row
         for loop, elements in enumerate(values):
             rowSum = elements*factors[loop] + rowSum
-        if sum(factors) is 0:
+        if sum(factors) == 0:
             sumPerClassifier = 0
         else:
             sumPerClassifier.append(rowSum/sum(factors) * 100)
@@ -1007,7 +1010,7 @@ def preProcsumPerMetricEnsem(factors):
         name, values = row
         for loop, elements in enumerate(values):
             rowSum = elements*factors[loop] + rowSum
-        if sum(factors) is 0:
+        if sum(factors) == 0:
             sumPerClassifier = 0
         else:
             sumPerClassifier.append(rowSum/sum(factors) * 100)
@@ -3874,7 +3877,7 @@ def preProcsumPerMetricCM(factors):
         name, values = row
         for loop, elements in enumerate(values):
             rowSum = elements*factors[loop] + rowSum
-        if sum(factors) is 0:
+        if sum(factors) == 0:
             sumPerClassifier = 0
         else:
             sumPerClassifier.append(rowSum/sum(factors) * 100)
@@ -3890,7 +3893,7 @@ def preProcsumPerMetricCMSecond(factors):
         name, values = row
         for loop, elements in enumerate(values):
             rowSum = elements*factors[loop] + rowSum
-        if sum(factors) is 0:
+        if sum(factors) == 0:
             sumPerClassifier = 0
         else:
             sumPerClassifier.append(rowSum/sum(factors) * 100)
@@ -4066,6 +4069,7 @@ def PreprocessingPredSel(SelectedIDs):
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
+
     for el in SelectedIDs:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
@@ -4090,28 +4094,32 @@ def PreprocessingPredSel(SelectedIDs):
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfKNN = dfKNN.loc[numberIDKNN]
 
+    dfKNN.index += addKNN
+
     dfLR = pd.DataFrame.from_dict(dicLR)
     dfLR = dfLR.loc[numberIDLR]
 
-    dfLR.index += addKNN
+    dfLR.index += addLR
 
     dfMLP = pd.DataFrame.from_dict(dicMLP)
     dfMLP = dfMLP.loc[numberIDMLP]
 
-    dfMLP.index += addKNN + addLR
+    dfMLP.index += addMLP
 
     dfRF = pd.DataFrame.from_dict(dicRF)
+
     dfRF = dfRF.loc[numberIDRF]
 
-    dfRF.index += addKNN + addLR + addMLP
-    
+    dfRF.index += addRF
+
     dfGradB = pd.DataFrame.from_dict(dicGradB)
-    
+
     dfGradB = dfGradB.loc[numberIDGradB]
-    
-    dfGradB.index += addKNN + addLR + addMLP + addRF
+
+    dfGradB.index += addGradB
 
     df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
+    df_concatProbs = df_concatProbs.reset_index(drop=True)
 
     predictionsKNN = []
     for column, content in dfKNN.items():
@@ -4130,6 +4138,7 @@ def PreprocessingPredSel(SelectedIDs):
 
     predictionsRF = []
     for column, content in dfRF.items():
+
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsRF.append(el)
 
@@ -4153,6 +4162,7 @@ def RetrieveSelIDsPredict():
     RetrieveIDsSelection = request.get_data().decode('utf8').replace("'", '"')
     RetrieveIDsSelection = json.loads(RetrieveIDsSelection)
     RetrieveIDsSelection = RetrieveIDsSelection['predictSelectionIDs']
+
     ResultsSelPred = PreprocessingPredSel(RetrieveIDsSelection)
 
     return 'Everything Okay'
@@ -4172,11 +4182,12 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
-
+    print(SelectedIDsEnsem)
     for el in SelectedIDsEnsem:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
+            print(items)
             if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]))
             elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
@@ -4208,11 +4219,11 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     dfMLP = df_concatProbs.loc[numberIDMLP]
     dfRF = df_concatProbs.loc[numberIDRF]
     dfGradB = df_concatProbs.loc[numberIDGradB]
-
+    print(dfGradB)
     df_concatProbs = pd.DataFrame()
     df_concatProbs = df_concatProbs.iloc[0:0]
     df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
-
+    print(df_concatProbs)
     predictionsKNN = []
     for column, content in dfKNN.items():
         el = [sum(x)/len(x) for x in zip(*content)]
@@ -4237,12 +4248,12 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     for column, content in dfGradB.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsGradB.append(el)
-
+    print(predictionsGradB)
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
-
+    print(predictions)
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
@@ -4255,7 +4266,7 @@ def RetrieveSelIDsPredictEnsem():
     RetrieveIDsSelectionEnsem = RetrieveIDsSelectionEnsem['predictSelectionIDsCM']
     
     ResultsSelPredEnsem = PreprocessingPredSelEnsem(RetrieveIDsSelectionEnsem)
-
+    print(ResultsSelPredEnsem)
     return 'Everything Okay'
 
 @app.route('/data/RetrievePredictionsEnsem', methods=["GET", "POST"])

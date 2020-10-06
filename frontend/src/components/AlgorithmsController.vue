@@ -102,37 +102,37 @@ export default {
           let tempSplit = mergedStoreEnsembleLoc[i].split(/([0-9]+)/)
           if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-              data.push({Algorithm:"KNN",value:this.PerF[i], size:5, sw:true})
+              data.push({Algorithm:"KNN",value:this.PerF[tempSplit[1]], size:5, sw:true})
             } else {
-              data.push({Algorithm:"KNN",value:this.PerF[i], size:5, sw:false})
+              data.push({Algorithm:"KNN",value:this.PerF[tempSplit[1]], size:5, sw:false})
             }
           }
           else if (tempSplit[0] == 'LR' || tempSplit[0] == 'LRC' || tempSplit[0] == 'LRM' || tempSplit[0] == 'LRCC' || tempSplit[0] == 'LRCM' || tempSplit[0] == 'LRMC' || tempSplit[0] == 'LRMM') {
             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-              data.push({Algorithm:"LR",value:this.PerF[i], size:5, sw:true})
+              data.push({Algorithm:"LR",value:this.PerF[tempSplit[1]], size:5, sw:true})
             } else {
-              data.push({Algorithm:"LR",value:this.PerF[i], size:5, sw:false})
+              data.push({Algorithm:"LR",value:this.PerF[tempSplit[1]], size:5, sw:false})
             }
           }
           else if (tempSplit[0] == 'MLP' || tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLPM' || tempSplit[0] == 'MLPCC' || tempSplit[0] == 'MLPCM' || tempSplit[0] == 'MLPMC' || tempSplit[0] == 'MLPMM') {
             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-              data.push({Algorithm:"MLP",value:this.PerF[i], size:5, sw:true})
+              data.push({Algorithm:"MLP",value:this.PerF[tempSplit[1]], size:5, sw:true})
             } else {
-              data.push({Algorithm:"MLP",value:this.PerF[i], size:5, sw:false})
+              data.push({Algorithm:"MLP",value:this.PerF[tempSplit[1]], size:5, sw:false})
             }
           }
           else if (tempSplit[0] == 'RF' || tempSplit[0] == 'RFC' || tempSplit[0] == 'RFM' || tempSplit[0] == 'RFCC' || tempSplit[0] == 'RFCM' || tempSplit[0] == 'RFMC' || tempSplit[0] == 'RFMM') {
             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-              data.push({Algorithm:"RF",value:this.PerF[i], size:5, sw:true})
+              data.push({Algorithm:"RF",value:this.PerF[tempSplit[1]], size:5, sw:true})
             } else {
-              data.push({Algorithm:"RF",value:this.PerF[i], size:5, sw:false})
+              data.push({Algorithm:"RF",value:this.PerF[tempSplit[1]], size:5, sw:false})
             }
           }
           else {
             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-              data.push({Algorithm:"GradB",value:this.PerF[i], size:5, sw:true})
+              data.push({Algorithm:"GradB",value:this.PerF[tempSplit[1]], size:5, sw:true})
             } else {
-              data.push({Algorithm:"GradB",value:this.PerF[i], size:5, sw:false})
+              data.push({Algorithm:"GradB",value:this.PerF[tempSplit[1]], size:5, sw:false})
             }
           }
         }   
