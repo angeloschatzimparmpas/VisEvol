@@ -32,6 +32,7 @@ from imblearn.metrics import geometric_mean_score
 from sklearn.metrics import classification_report, accuracy_score, make_scorer, confusion_matrix
 from sklearn.manifold import MDS
 from sklearn.manifold import TSNE
+from sklearn.cluster import MeanShift, estimate_bandwidth
 import umap
 
 
@@ -50,6 +51,9 @@ cors = CORS(app, resources={r"/data/*": {"origins": "*"}})
 @app.route('/data/Reset', methods=["GET", "POST"])
 def reset():
 
+    global yDataSorted
+    yDataSorted = []
+
     global PerClassResultsClass0
     PerClassResultsClass0 = []
     global PerClassResultsClass1
@@ -59,6 +63,8 @@ def reset():
     Results = []
     global ResultsCM
     ResultsCM = []
+    global ResultsCMSecond
+    ResultsCMSecond = []
 
     global DataRawLength
     global DataResultsRaw
@@ -97,6 +103,12 @@ def reset():
     MLPModelsCount = LRModelsCount+randomSearchVar
     RFModelsCount = MLPModelsCount+randomSearchVar
     GradBModelsCount = RFModelsCount+randomSearchVar
+
+    global storeClass0
+    storeClass0 = 0
+
+    global storeClass1
+    storeClass1 = 0
 
     global XData
     XData = []
@@ -199,6 +211,9 @@ def retrieveFileName():
     global DataResultsRawTest
     global DataRawLengthTest
 
+    global yDataSorted
+    yDataSorted = []
+
     fileName = request.get_data().decode('utf8').replace("'", '"')
     data = json.loads(fileName)  
 
@@ -222,6 +237,12 @@ def retrieveFileName():
 
     global randomSearchVar
     randomSearchVar = int(data['RandomSearch'])
+
+    global storeClass0
+    storeClass0 = 0
+
+    global storeClass1
+    storeClass1 = 0
 
     global XData
     XData = []
@@ -414,6 +435,15 @@ def sendToServerData():
     global XDataStored, yDataStored
     XDataStored = XData.copy()
     yDataStored = yData.copy()
+
+    global storeClass0
+    global storeClass1
+
+    for item in yData:
+        if (item == 0):
+            storeClass0 = storeClass0 + 1
+        else:
+            storeClass1 = storeClass1 + 1
     
     return 'Processed uploaded data set'
 
@@ -501,6 +531,15 @@ def dataSetSelection():
 
     global XData, yData, RANDOM_SEED
     XData, yData = ArrayDataResults, AllTargetsFloatValues
+    
+    global storeClass0
+    global storeClass1
+
+    for item in yData:
+        if (item == 0):
+            storeClass0 = storeClass0 + 1
+        else:
+            storeClass1 = storeClass1 + 1
 
     global XDataStored, yDataStored
     XDataStored = XData.copy()
@@ -719,6 +758,7 @@ def PreprocessingMetricsEnsem():
     return df_concatMetrics
 
 def PreprocessingPred():
+    
     dicKNN = allParametersPerformancePerModel[3]
     dicLR = allParametersPerformancePerModel[7]
     dicMLP = allParametersPerformancePerModel[11]
@@ -765,8 +805,121 @@ def PreprocessingPred():
 
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
+    
+    global storeClass0
+    global storeClass1
+    global yDataSorted
+
+    firstElKNN = []
+    firstElLR = []
+    firstElMLP = []
+    firstElRF = []
+    firstElGradB = []
+    firstElPredAv = []
+    lastElKNN = []
+    lastElLR = []
+    lastElMLP = []
+    lastElRF = []
+    lastElGradB = []
+    lastElPredAv = []
+    yDataSortedFirst = []
+    yDataSortedLast = []
+
+    for index, item in enumerate(yData):
+        if (item == 0):
+            if (len(predictionsKNN[index]) != 0):
+                firstElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                firstElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                firstElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                firstElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                firstElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                firstElPredAv.append(predictions[index][item]*100)
+            yDataSortedFirst.append(item)
+        else:
+            if (len(predictionsKNN[index]) != 0):
+                lastElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                lastElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                lastElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                lastElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                lastElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                lastElPredAv.append(predictions[index][item]*100)
+            yDataSortedLast.append(item)
+
+    if (storeClass0 > 169 & storeClass1 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+        lastElKNN = computeClusters(lastElKNN)
+        firstElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass0 < 169 & storeClass1 > 169):
+                
+        lastElKNN = computeClusters(lastElKNN)
+        lastElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass1 < 169 & storeClass0 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+
+    else:
+        pass
+
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR        
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    predictions = firstElPredAv + lastElPredAv
+    yDataSorted = yDataSortedFirst + yDataSortedLast
 
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+
+def computeClusters(dataLocal):
+    if (dataLocal.length != 0):
+        X = np.array(list(zip(dataLocal,np.zeros(len(dataLocal)))), dtype=np.int)
+        bandwidth = estimate_bandwidth(X, quantile=0.015, random_state=RANDOM_SEED, n_jobs=-1)
+        ms = MeanShift(bandwidth=bandwidth, bin_seeding=True, n_jobs=-1)
+        ms.fit(X)
+        labels = ms.labels_
+        cluster_centers = ms.cluster_centers_
+
+        labels_unique = np.unique(labels)
+        n_clusters_ = len(labels_unique)
+
+        gatherPoints = []
+        for k in range(n_clusters_):
+            my_members = labels == k
+            gatherPoints.append(sum(X[my_members, 0])/len(X[my_members, 0]))
+    else:
+        gatherPoints = []
+    return gatherPoints
 
 def EnsembleIDs():
     global EnsembleActive
@@ -807,12 +960,12 @@ def PreprocessingPredEnsemble():
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
-    print(EnsembleActive)
+
     for el in EnsembleActive:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            print(items)
+
             if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]))
             elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
@@ -878,6 +1031,99 @@ def PreprocessingPredEnsemble():
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
+
+    global storeClass0
+    global storeClass1
+    global yDataSorted
+
+    firstElKNN = []
+    firstElLR = []
+    firstElMLP = []
+    firstElRF = []
+    firstElGradB = []
+    firstElPredAv = []
+    lastElKNN = []
+    lastElLR = []
+    lastElMLP = []
+    lastElRF = []
+    lastElGradB = []
+    lastElPredAv = []
+    yDataSortedFirst = []
+    yDataSortedLast = []
+
+    for index, item in enumerate(yData):
+        if (item == 0):
+            if (len(predictionsKNN[index]) != 0):
+                firstElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                firstElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                firstElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                firstElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                firstElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                firstElPredAv.append(predictions[index][item]*100)
+            yDataSortedFirst.append(item)
+        else:
+            if (len(predictionsKNN[index]) != 0):
+                lastElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                lastElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                lastElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                lastElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                lastElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                lastElPredAv.append(predictions[index][item]*100)
+            yDataSortedLast.append(item)
+
+    if (storeClass0 > 169 & storeClass1 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+        lastElKNN = computeClusters(lastElKNN)
+        firstElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass0 < 169 & storeClass1 > 169):
+                
+        lastElKNN = computeClusters(lastElKNN)
+        lastElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass1 < 169 & storeClass0 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+
+    else:
+        pass
+
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR        
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    predictions = firstElPredAv + lastElPredAv
+    yDataSorted = yDataSortedFirst + yDataSortedLast
 
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
@@ -1041,6 +1287,31 @@ def preProcMetricsAllAndSel():
         metricsPerModelColl[index] = metricsPerModelColl[index].to_json()
     return metricsPerModelColl
 
+def preProcMetricsAllAndSelEnsem():
+    loopThroughMetrics = PreprocessingMetricsEnsem()
+    loopThroughMetrics = loopThroughMetrics.fillna(0)
+    global factors
+    metricsPerModelColl = []
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_accuracy'])
+    metricsPerModelColl.append(loopThroughMetrics['geometric_mean_score_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_precision_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_recall_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_f1_macro'])
+    metricsPerModelColl.append(loopThroughMetrics['matthews_corrcoef'])
+    metricsPerModelColl.append(loopThroughMetrics['mean_test_roc_auc_ovo'])
+    metricsPerModelColl.append(loopThroughMetrics['log_loss'])
+
+    f=lambda a: (abs(a)+a)/2
+    for index, metric in enumerate(metricsPerModelColl):
+        if (index == 5):
+            metricsPerModelColl[index] = ((f(metric))*factors[index]) * 100
+        elif (index == 7):
+            metricsPerModelColl[index] = ((1 - metric)*factors[index] ) * 100
+        else:  
+            metricsPerModelColl[index] = (metric*factors[index]) * 100
+        metricsPerModelColl[index] = metricsPerModelColl[index].to_json()
+    return metricsPerModelColl
+
 def FunMDS (data):
     mds = MDS(n_components=2, random_state=RANDOM_SEED)
     XTransformed = mds.fit_transform(data).T
@@ -1070,35 +1341,46 @@ def SendToPlot():
     return jsonify(response)
 
 def InitializeEnsemble(): 
-    XModels = PreprocessingMetrics()
+
     global ModelSpaceMDS
     global ModelSpaceTSNE
     global allParametersPerformancePerModel
     global EnsembleActive
     global ModelsIDs
     global keySend
-
-    XModels = XModels.fillna(0)
-
-    ModelSpaceMDS = FunMDS(XModels)
-    ModelSpaceTSNE = FunTsne(XModels)
-    ModelSpaceTSNE = ModelSpaceTSNE.tolist()
-    ModelSpaceUMAP = FunUMAP(XModels)
+    global metricsPerModel
+    global factors
 
     if (len(EnsembleActive) == 0):
+        XModels = PreprocessingMetrics()
         parametersGen = PreprocessingParam()
         PredictionProbSel = PreprocessingPred()
         ModelsIDs = PreprocessingIDs()
         sumPerClassifier = preProcsumPerMetric(factors)
-
+        metricsPerModel = preProcMetricsAllAndSel()
     else:
+        XModels = PreprocessingMetricsEnsem()
         parametersGen = PreprocessingParamEnsem()
         PredictionProbSel = PreprocessingPredEnsemble()
         ModelsIDs = EnsembleActive
         modelsIdsCuts = EnsembleIDs()
         sumPerClassifier = preProcsumPerMetricEnsem(factors)
+        metricsPerModel = preProcMetricsAllAndSelEnsem()
         EnsembleModel(modelsIdsCuts, keySend)
         keySend=1
+
+    XModels = XModels.fillna(0)
+    dropMetrics = []
+    for index, element in enumerate(factors):
+        if (element == 0):
+            dropMetrics.append(index)
+    
+    XModels.drop(XModels.columns[dropMetrics], axis=1, inplace=True)
+
+    ModelSpaceMDS = FunMDS(XModels)
+    ModelSpaceTSNE = FunTsne(XModels)
+    ModelSpaceTSNE = ModelSpaceTSNE.tolist()
+    ModelSpaceUMAP = FunUMAP(XModels)
 
     returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumPerClassifier,PredictionProbSel)
 
@@ -1333,9 +1615,18 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumP
     global names_labels
     global EnsembleActive
     global ModelsIDs
+    global metricsPerModel
+    global yDataSorted
+    global storeClass0
+    global storeClass1
+
+    if(storeClass0 > 169 | storeClass1 > 169):
+        mode = 1
+    else:
+        mode = 0
+
     Results = []
 
-    metricsPerModel = preProcMetricsAllAndSel()
     parametersGenPD = parametersGen.to_json(orient='records')
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
@@ -1354,6 +1645,8 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumP
     Results.append(json.dumps(ModelSpaceUMAP))
     Results.append(json.dumps(PredictionProbSel))
     Results.append(json.dumps(names_labels))
+    Results.append(json.dumps(yDataSorted))
+    Results.append(json.dumps(mode))
 
     return Results
 
@@ -1546,6 +1839,101 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNCM
 
+    countKNN = 0
+    KNNIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrKNNMC = []
+    for dr in KNNIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countKNN < setMaxLoopValue[28]:
+
+        KNNPickPair = random.sample(KNNIntIndex,2)
+        pairDF = paramAllAlgs.iloc[KNNPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = KNeighborsClassifier()
+            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countKNN
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNMC', AlgorithmsIDsEnd)
+            countKNN += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[28]
+
+    for loop in range(setMaxLoopValue[28] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[3])
+    
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMC
+
+    countKNN = 0
+    KNNIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrKNNMM = []
+    for dr in KNNIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
+        else:
+            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countKNN < setMaxLoopValue[22]:
+
+        KNNPickPair = random.sample(KNNIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[KNNPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_neighbors'):
+                randomNumber = random.randint(101, math.floor(((len(yData)/crossValidation)*(crossValidation-1)))-1)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = KNeighborsClassifier()
+            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countKNN
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNMM', AlgorithmsIDsEnd)
+            countKNN += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[22]
+
+    for loop in range(setMaxLoopValue[22] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[3])
+    
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMM
+
     localCrossMutr.clear()
     allParametersPerfCrossMutrLRCC = []
     for dr in LRIDsC:
@@ -1639,6 +2027,101 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRCM
     
+    countLR = 0
+    LRIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrLRMC = []
+    for dr in LRIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countLR < setMaxLoopValue[27]:
+
+        LRPickPair = random.sample(LRIntIndex,2)
+        pairDF = paramAllAlgs.iloc[LRPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = LogisticRegression(random_state=RANDOM_SEED)
+            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countLR
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRMC', AlgorithmsIDsEnd)
+            countLR += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[27]
+
+    for loop in range(setMaxLoopValue[27] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+    
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrLRMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRMC
+
+    countLR = 0
+    LRIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrLRMM = []
+    for dr in LRIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
+        else:
+            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countLR < setMaxLoopValue[21]:
+
+        LRPickPair = random.sample(LRIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[LRPickPair]
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'C'):
+                randomNumber = random.randint(101, 1000)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = LogisticRegression(random_state=RANDOM_SEED)
+            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countLR
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRMM', AlgorithmsIDsEnd)
+            countLR += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[21]
+
+    for loop in range(setMaxLoopValue[21] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+    
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrLRMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRMM
+
     localCrossMutr.clear()
     allParametersPerfCrossMutrMLPCC = []
     for dr in MLPIDsC:
@@ -1732,6 +2215,104 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrMLPCM.append(localCrossMutr[3])
 
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPCM
+
+    countMLP = 0
+    MLPIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrMLPMC = []
+    for dr in MLPIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countMLP < setMaxLoopValue[26]:
+
+        MLPPickPair = random.sample(MLPIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[MLPPickPair]
+
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countMLP
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPMC', AlgorithmsIDsEnd)
+            countMLP += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[26]
+
+    for loop in range(setMaxLoopValue[26] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[3])
+    
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMC
+
+    countMLP = 0
+    MLPIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrMLPMM = []
+    for dr in MLPIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
+        else:
+            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countMLP < setMaxLoopValue[20]:
+
+        MLPPickPair = random.sample(MLPIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[MLPPickPair]
+
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'hidden_layer_sizes'):
+                randomNumber = (random.randint(10,60), random.randint(4,10))
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = MLPClassifier(random_state=RANDOM_SEED)
+            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countMLP
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPMM', AlgorithmsIDsEnd)
+            countMLP += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[20]
+
+    for loop in range(setMaxLoopValue[20] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[3])
+    
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMM
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrRFCC = []
@@ -1828,6 +2409,103 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerfCrossMutrRFCM.append(localCrossMutr[3])
 
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFCM
+
+    countRF = 0
+    RFIntIndex = []
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrRFMC = []
+    while countRF < setMaxLoopValue[25]:
+        for dr in RFIDsM:
+            if (int(re.findall('\d+', dr)[0]) >= greater):
+                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+            else:
+                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+        RFPickPair = random.sample(RFIntIndex,2)
+
+        pairDF = paramAllAlgs.iloc[RFPickPair]
+
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            randomZeroOne = random.randint(0, 1)
+            valuePerColumn = pairDF[column].iloc[randomZeroOne]
+            listData.append(valuePerColumn)
+            crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countRF
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFMC', AlgorithmsIDsEnd)
+            countRF += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[25]
+
+    for loop in range(setMaxLoopValue[25] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+    
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[0])
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[1])
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[2])
+    allParametersPerfCrossMutrRFMC.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFMC
+
+    countRF = 0
+    RFIntIndex = [] 
+    localCrossMutr.clear()
+    allParametersPerfCrossMutrRFMM = []
+    for dr in RFIDsM:
+        if (int(re.findall('\d+', dr)[0]) >= greater):
+            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
+        else:
+            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
+    while countRF < setMaxLoopValue[19]:
+
+        RFPickPair = random.sample(RFIntIndex,1)
+
+        pairDF = paramAllAlgs.iloc[RFPickPair]
+
+        crossoverDF = pd.DataFrame()
+        for column in pairDF:
+            listData = []
+            if (column == 'n_estimators'):
+                randomNumber = random.randint(100, 200)
+                listData.append(randomNumber)
+                crossoverDF[column] = listData
+            else:
+                valuePerColumn = pairDF[column].iloc[0]
+                listData.append(valuePerColumn)
+                crossoverDF[column] = listData
+        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
+            crossoverDF = pd.DataFrame()
+        else:
+            clf = RandomForestClassifier(random_state=RANDOM_SEED)
+            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
+            AlgorithmsIDsEnd = countAllModels + countRF
+            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFMM', AlgorithmsIDsEnd)
+            countRF += 1
+            crossoverDF = pd.DataFrame()
+
+    countAllModels = countAllModels + setMaxLoopValue[19]
+
+    for loop in range(setMaxLoopValue[19] - 1):
+        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
+        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
+        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
+        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
+    
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[0])
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[1])
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[2])
+    allParametersPerfCrossMutrRFMM.append(localCrossMutr[3])
+
+    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFMM
 
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBCC = []
@@ -1928,399 +2606,10 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrGradBCM
 
-    countKNN = 0
-    countLR = 0
-    countMLP = 0
-    countRF = 0
     countGradB = 0
-
-    KNNIntIndex = []
-    LRIntIndex = []
-    MLPIntIndex = []
-    RFIntIndex = []
     GradBIntIndex = []
-    
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrKNNMC = []
-    for dr in KNNIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-        else:
-            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countKNN < setMaxLoopValue[28]:
-
-        KNNPickPair = random.sample(KNNIntIndex,2)
-        pairDF = paramAllAlgs.iloc[KNNPickPair]
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            randomZeroOne = random.randint(0, 1)
-            valuePerColumn = pairDF[column].iloc[randomZeroOne]
-            listData.append(valuePerColumn)
-            crossoverDF[column] = listData
-        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = KNeighborsClassifier()
-            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNMC', AlgorithmsIDsEnd)
-            countKNN += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[28]
-
-    for loop in range(setMaxLoopValue[28] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
-    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[0])
-    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[1])
-    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[2])
-    allParametersPerfCrossMutrKNNMC.append(localCrossMutr[3])
-    
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMC
-
-    countKNN = 0
-    KNNIntIndex = []
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrKNNMM = []
-    for dr in KNNIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            KNNIntIndex.append(int(re.findall('\d+', dr)[0])-addKNN)
-        else:
-            KNNIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countKNN < setMaxLoopValue[22]:
-
-        KNNPickPair = random.sample(KNNIntIndex,1)
-
-        pairDF = paramAllAlgs.iloc[KNNPickPair]
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            if (column == 'n_neighbors'):
-                randomNumber = random.randint(101, math.floor(((len(yData)/crossValidation)*(crossValidation-1)))-1)
-                listData.append(randomNumber)
-                crossoverDF[column] = listData
-            else:
-                valuePerColumn = pairDF[column].iloc[0]
-                listData.append(valuePerColumn)
-                crossoverDF[column] = listData
-        if (((paramAllAlgs['algorithm'] == crossoverDF['algorithm'].iloc[0]) & (paramAllAlgs['metric'] == crossoverDF['metric'].iloc[0]) & (paramAllAlgs['n_neighbors'] == crossoverDF['n_neighbors'].iloc[0]) & (paramAllAlgs['weights'] == crossoverDF['weights'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = KNeighborsClassifier()
-            params = {'n_neighbors': [crossoverDF['n_neighbors'].iloc[0]], 'metric': [crossoverDF['metric'].iloc[0]], 'algorithm': [crossoverDF['algorithm'].iloc[0]], 'weights': [crossoverDF['weights'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countKNN
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'KNNMM', AlgorithmsIDsEnd)
-            countKNN += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[22]
-
-    for loop in range(setMaxLoopValue[22] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
-    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[0])
-    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[1])
-    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[2])
-    allParametersPerfCrossMutrKNNMM.append(localCrossMutr[3])
-    
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrKNNMM
-
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrLRMC = []
-    for dr in LRIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-        else:
-            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countLR < setMaxLoopValue[27]:
-
-        LRPickPair = random.sample(LRIntIndex,2)
-        pairDF = paramAllAlgs.iloc[LRPickPair]
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            randomZeroOne = random.randint(0, 1)
-            valuePerColumn = pairDF[column].iloc[randomZeroOne]
-            listData.append(valuePerColumn)
-            crossoverDF[column] = listData
-        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = LogisticRegression(random_state=RANDOM_SEED)
-            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRMC', AlgorithmsIDsEnd)
-            countLR += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[27]
-
-    for loop in range(setMaxLoopValue[27] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-    
-    allParametersPerfCrossMutrLRMC.append(localCrossMutr[0])
-    allParametersPerfCrossMutrLRMC.append(localCrossMutr[1])
-    allParametersPerfCrossMutrLRMC.append(localCrossMutr[2])
-    allParametersPerfCrossMutrLRMC.append(localCrossMutr[3])
-
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRMC
-
-    countLR = 0
-    LRIntIndex = [] 
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrLRMM = []
-    for dr in LRIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            LRIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar))
-        else:
-            LRIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countLR < setMaxLoopValue[21]:
-
-        LRPickPair = random.sample(LRIntIndex,1)
-
-        pairDF = paramAllAlgs.iloc[LRPickPair]
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            if (column == 'C'):
-                randomNumber = random.randint(101, 1000)
-                listData.append(randomNumber)
-                crossoverDF[column] = listData
-            else:
-                valuePerColumn = pairDF[column].iloc[0]
-                listData.append(valuePerColumn)
-                crossoverDF[column] = listData
-        if (((paramAllAlgs['C'] == crossoverDF['C'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0]) & (paramAllAlgs['penalty'] == crossoverDF['penalty'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = LogisticRegression(random_state=RANDOM_SEED)
-            params = {'C': [crossoverDF['C'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]], 'penalty': [crossoverDF['penalty'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countLR
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'LRMM', AlgorithmsIDsEnd)
-            countLR += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[21]
-
-    for loop in range(setMaxLoopValue[21] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-    
-    allParametersPerfCrossMutrLRMM.append(localCrossMutr[0])
-    allParametersPerfCrossMutrLRMM.append(localCrossMutr[1])
-    allParametersPerfCrossMutrLRMM.append(localCrossMutr[2])
-    allParametersPerfCrossMutrLRMM.append(localCrossMutr[3])
-
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrLRMM
-    
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrMLPMC = []
-    for dr in MLPIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-        else:
-            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countMLP < setMaxLoopValue[26]:
-
-        MLPPickPair = random.sample(MLPIntIndex,2)
-
-        pairDF = paramAllAlgs.iloc[MLPPickPair]
-
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            randomZeroOne = random.randint(0, 1)
-            valuePerColumn = pairDF[column].iloc[randomZeroOne]
-            listData.append(valuePerColumn)
-            crossoverDF[column] = listData
-        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = MLPClassifier(random_state=RANDOM_SEED)
-            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPMC', AlgorithmsIDsEnd)
-            countMLP += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[26]
-
-    for loop in range(setMaxLoopValue[26] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
-    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[0])
-    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[1])
-    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[2])
-    allParametersPerfCrossMutrMLPMC.append(localCrossMutr[3])
-    
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMC
-
-    countMLP = 0
-    MLPIntIndex = [] 
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrMLPMM = []
-    for dr in MLPIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            MLPIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*2))
-        else:
-            MLPIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countMLP < setMaxLoopValue[20]:
-
-        MLPPickPair = random.sample(MLPIntIndex,1)
-
-        pairDF = paramAllAlgs.iloc[MLPPickPair]
-
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            if (column == 'hidden_layer_sizes'):
-                randomNumber = (random.randint(10,60), random.randint(4,10))
-                listData.append(randomNumber)
-                crossoverDF[column] = listData
-            else:
-                valuePerColumn = pairDF[column].iloc[0]
-                listData.append(valuePerColumn)
-                crossoverDF[column] = listData
-        if (((paramAllAlgs['hidden_layer_sizes'] == crossoverDF['hidden_layer_sizes'].iloc[0]) & (paramAllAlgs['alpha'] == crossoverDF['alpha'].iloc[0]) & (paramAllAlgs['tol'] == crossoverDF['tol'].iloc[0]) & (paramAllAlgs['max_iter'] == crossoverDF['max_iter'].iloc[0]) & (paramAllAlgs['activation'] == crossoverDF['activation'].iloc[0]) & (paramAllAlgs['solver'] == crossoverDF['solver'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = MLPClassifier(random_state=RANDOM_SEED)
-            params = {'hidden_layer_sizes': [crossoverDF['hidden_layer_sizes'].iloc[0]], 'alpha': [crossoverDF['alpha'].iloc[0]], 'tol': [crossoverDF['tol'].iloc[0]], 'max_iter': [crossoverDF['max_iter'].iloc[0]], 'activation': [crossoverDF['activation'].iloc[0]], 'solver': [crossoverDF['solver'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countMLP
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'MLPMM', AlgorithmsIDsEnd)
-            countMLP += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[20]
-
-    for loop in range(setMaxLoopValue[20] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-
-    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[0])
-    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[1])
-    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[2])
-    allParametersPerfCrossMutrMLPMM.append(localCrossMutr[3])
-    
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrMLPMM
-
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrRFMC = []
-
-    while countRF < setMaxLoopValue[25]:
-        for dr in RFIDsM:
-            if (int(re.findall('\d+', dr)[0]) >= greater):
-                RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-            else:
-                RFIntIndex.append(int(re.findall('\d+', dr)[0]))
-        RFPickPair = random.sample(RFIntIndex,2)
-
-        pairDF = paramAllAlgs.iloc[RFPickPair]
-
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            randomZeroOne = random.randint(0, 1)
-            valuePerColumn = pairDF[column].iloc[randomZeroOne]
-            listData.append(valuePerColumn)
-            crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = RandomForestClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFMC', AlgorithmsIDsEnd)
-            countRF += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[25]
-
-    for loop in range(setMaxLoopValue[25] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-    
-    allParametersPerfCrossMutrRFMC.append(localCrossMutr[0])
-    allParametersPerfCrossMutrRFMC.append(localCrossMutr[1])
-    allParametersPerfCrossMutrRFMC.append(localCrossMutr[2])
-    allParametersPerfCrossMutrRFMC.append(localCrossMutr[3])
-
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFMC
-
-    countRF = 0
-    RFIntIndex = [] 
-    localCrossMutr.clear()
-    allParametersPerfCrossMutrRFMM = []
-    for dr in RFIDsM:
-        if (int(re.findall('\d+', dr)[0]) >= greater):
-            RFIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*3))
-        else:
-            RFIntIndex.append(int(re.findall('\d+', dr)[0]))
-    while countRF < setMaxLoopValue[19]:
-
-        RFPickPair = random.sample(RFIntIndex,1)
-
-        pairDF = paramAllAlgs.iloc[RFPickPair]
-
-        crossoverDF = pd.DataFrame()
-        for column in pairDF:
-            listData = []
-            if (column == 'n_estimators'):
-                randomNumber = random.randint(100, 200)
-                listData.append(randomNumber)
-                crossoverDF[column] = listData
-            else:
-                valuePerColumn = pairDF[column].iloc[0]
-                listData.append(valuePerColumn)
-                crossoverDF[column] = listData
-        if (((paramAllAlgs['n_estimators'] == crossoverDF['n_estimators'].iloc[0]) & (paramAllAlgs['max_depth'] == crossoverDF['max_depth'].iloc[0]) & (paramAllAlgs['criterion'] == crossoverDF['criterion'].iloc[0])).any()):
-            crossoverDF = pd.DataFrame()
-        else:
-            clf = RandomForestClassifier(random_state=RANDOM_SEED)
-            params = {'n_estimators': [crossoverDF['n_estimators'].iloc[0]], 'max_depth': [crossoverDF['max_depth'].iloc[0]], 'criterion': [crossoverDF['criterion'].iloc[0]]}
-            AlgorithmsIDsEnd = countAllModels + countRF
-            localCrossMutr = crossoverMutation(XData, yData, clf, params, 'RFMM', AlgorithmsIDsEnd)
-            countRF += 1
-            crossoverDF = pd.DataFrame()
-
-    countAllModels = countAllModels + setMaxLoopValue[19]
-
-    for loop in range(setMaxLoopValue[19] - 1):
-        localCrossMutr[0] = localCrossMutr[0] + localCrossMutr[(loop+1)*4]
-        localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
-        localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
-        localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-    
-    allParametersPerfCrossMutrRFMM.append(localCrossMutr[0])
-    allParametersPerfCrossMutrRFMM.append(localCrossMutr[1])
-    allParametersPerfCrossMutrRFMM.append(localCrossMutr[2])
-    allParametersPerfCrossMutrRFMM.append(localCrossMutr[3])
-
-    HistoryPreservation = HistoryPreservation + allParametersPerfCrossMutrRFMM
-
     localCrossMutr.clear()
     allParametersPerfCrossMutrGradBMC = []
-
     for dr in GradBIDsM:
         if (int(re.findall('\d+', dr)[0]) >= greater):
             GradBIntIndex.append(int(re.findall('\d+', dr)[0])-(addKNN-randomSearchVar*4))
@@ -3499,6 +3788,99 @@ def PreprocessingPredCM():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
+    global storeClass0
+    global storeClass1
+    global yDataSorted
+
+    firstElKNN = []
+    firstElLR = []
+    firstElMLP = []
+    firstElRF = []
+    firstElGradB = []
+    firstElPredAv = []
+    lastElKNN = []
+    lastElLR = []
+    lastElMLP = []
+    lastElRF = []
+    lastElGradB = []
+    lastElPredAv = []
+    yDataSortedFirst = []
+    yDataSortedLast = []
+
+    for index, item in enumerate(yData):
+        if (item == 0):
+            if (len(predictionsKNN[index]) != 0):
+                firstElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                firstElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                firstElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                firstElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                firstElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                firstElPredAv.append(predictions[index][item]*100)
+            yDataSortedFirst.append(item)
+        else:
+            if (len(predictionsKNN[index]) != 0):
+                lastElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                lastElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                lastElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                lastElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                lastElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                lastElPredAv.append(predictions[index][item]*100)
+            yDataSortedLast.append(item)
+
+    if (storeClass0 > 169 & storeClass1 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+        lastElKNN = computeClusters(lastElKNN)
+        firstElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass0 < 169 & storeClass1 > 169):
+                
+        lastElKNN = computeClusters(lastElKNN)
+        lastElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass1 < 169 & storeClass0 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+
+    else:
+        pass
+
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR        
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    predictions = firstElPredAv + lastElPredAv
+    yDataSorted = yDataSortedFirst + yDataSortedLast
+
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 def PreprocessingPredCMSecond():
@@ -3585,6 +3967,99 @@ def PreprocessingPredCMSecond():
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
+
+    global storeClass0
+    global storeClass1
+    global yDataSorted
+
+    firstElKNN = []
+    firstElLR = []
+    firstElMLP = []
+    firstElRF = []
+    firstElGradB = []
+    firstElPredAv = []
+    lastElKNN = []
+    lastElLR = []
+    lastElMLP = []
+    lastElRF = []
+    lastElGradB = []
+    lastElPredAv = []
+    yDataSortedFirst = []
+    yDataSortedLast = []
+
+    for index, item in enumerate(yData):
+        if (item == 0):
+            if (len(predictionsKNN[index]) != 0):
+                firstElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                firstElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                firstElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                firstElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                firstElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                firstElPredAv.append(predictions[index][item]*100)
+            yDataSortedFirst.append(item)
+        else:
+            if (len(predictionsKNN[index]) != 0):
+                lastElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                lastElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                lastElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                lastElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                lastElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                lastElPredAv.append(predictions[index][item]*100)
+            yDataSortedLast.append(item)
+
+    if (storeClass0 > 169 & storeClass1 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+        lastElKNN = computeClusters(lastElKNN)
+        firstElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass0 < 169 & storeClass1 > 169):
+                
+        lastElKNN = computeClusters(lastElKNN)
+        lastElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass1 < 169 & storeClass0 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+
+    else:
+        pass
+
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR        
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    predictions = firstElPredAv + lastElPredAv
+    yDataSorted = yDataSortedFirst + yDataSortedLast
 
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
@@ -3958,18 +4433,28 @@ def SendToPlotCM():
     global CurStage
     if (CurStage == 1):
         PreProcessingInitial()
+        response = {    
+            'OverviewResultsCM': ResultsCM
+        }
     else:
         PreProcessingSecond()
-    response = {    
-        'OverviewResultsCM': ResultsCM
-    }
+        response = {    
+            'OverviewResultsCM': ResultsCMSecond
+        }
     return jsonify(response)
 
 def PreProcessingInitial(): 
     XModels = PreprocessingMetricsCM()
     global allParametersPerfCrossMutr
 
+    global factors
     XModels = XModels.fillna(0)
+    dropMetrics = []
+    for index, element in enumerate(factors):
+        if (element == 0):
+            dropMetrics.append(index)
+    
+    XModels.drop(XModels.columns[dropMetrics], axis=1, inplace=True)
 
     ModelSpaceMDSCM = FunMDS(XModels)
     ModelSpaceTSNECM = FunTsne(XModels)
@@ -3983,21 +4468,30 @@ def PreProcessingInitial():
 def PreProcessingSecond(): 
     XModels = PreprocessingMetricsCMSecond()
 
+    global factors
     XModels = XModels.fillna(0)
+    dropMetrics = []
+    for index, element in enumerate(factors):
+        if (element == 0):
+            dropMetrics.append(index)
+    
+    XModels.drop(XModels.columns[dropMetrics], axis=1, inplace=True)
 
-    ModelSpaceMDSCM = FunMDS(XModels)
-    ModelSpaceTSNECM = FunTsne(XModels)
-    ModelSpaceTSNECM = ModelSpaceTSNECM.tolist()
-    ModelSpaceUMAPCM = FunUMAP(XModels)
+    ModelSpaceMDSCMSecond = FunMDS(XModels)
+    ModelSpaceTSNECMSecond = FunTsne(XModels)
+    ModelSpaceTSNECMSecond = ModelSpaceTSNECMSecond.tolist()
+    ModelSpaceUMAPCMSecond = FunUMAP(XModels)
 
-    PredictionProbSelCM = PreprocessingPredCMSecond()
+    PredictionProbSelCMSecond = PreprocessingPredCMSecond()
 
-    CrossMutateResultsSecond(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM)
+    CrossMutateResultsSecond(ModelSpaceMDSCMSecond,ModelSpaceTSNECMSecond,ModelSpaceUMAPCMSecond,PredictionProbSelCMSecond)
 
 def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM):
 
     global ResultsCM
     global AllTargets
+    global names_labels
+    global yDataSorted
     ResultsCM = []
 
     parametersGenCM = PreprocessingParamCM()
@@ -4022,39 +4516,43 @@ def CrossMutateResults(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,Predict
     ResultsCM.append(json.dumps(ModelSpaceUMAPCM))
     ResultsCM.append(json.dumps(PredictionProbSelCM))
     ResultsCM.append(json.dumps(names_labels))
+    ResultsCM.append(json.dumps(yDataSorted))
 
     return ResultsCM
 
-def CrossMutateResultsSecond(ModelSpaceMDSCM,ModelSpaceTSNECM,ModelSpaceUMAPCM,PredictionProbSelCM):
+def CrossMutateResultsSecond(ModelSpaceMDSCMSecond,ModelSpaceTSNECMSecond,ModelSpaceUMAPCMSecond,PredictionProbSelCMSecond):
 
-    global ResultsCM
+    global ResultsCMSecond
     global AllTargets
-    ResultsCM = []
+    global names_labels
+    global yDataSorted
+    ResultsCMSecond = []
 
-    parametersGenCM = PreprocessingParamCMSecond()
-    metricsPerModelCM = preProcMetricsAllAndSelCMSecond()
-    sumPerClassifierCM = preProcsumPerMetricCMSecond(factors)
-    ModelsIDsCM = PreprocessingIDsCMSecond()
-    parametersGenPDGM = parametersGenCM.to_json(orient='records')
+    parametersGenCMSecond = PreprocessingParamCMSecond()
+    metricsPerModelCMSecond = preProcMetricsAllAndSelCMSecond()
+    sumPerClassifierCMSecond = preProcsumPerMetricCMSecond(factors)
+    ModelsIDsCMSecond = PreprocessingIDsCMSecond()
+    parametersGenPDGMSecond = parametersGenCMSecond.to_json(orient='records')
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
 
-    ResultsCM.append(json.dumps(ModelsIDsCM))
-    ResultsCM.append(json.dumps(sumPerClassifierCM))
-    ResultsCM.append(json.dumps(parametersGenPDGM))
-    ResultsCM.append(json.dumps(metricsPerModelCM))
-    ResultsCM.append(json.dumps(XDataJSONEntireSet))
-    ResultsCM.append(json.dumps(XDataColumns))
-    ResultsCM.append(json.dumps(yData))
-    ResultsCM.append(json.dumps(target_names))
-    ResultsCM.append(json.dumps(AllTargets))
-    ResultsCM.append(json.dumps(ModelSpaceMDSCM))
-    ResultsCM.append(json.dumps(ModelSpaceTSNECM))
-    ResultsCM.append(json.dumps(ModelSpaceUMAPCM))
-    ResultsCM.append(json.dumps(PredictionProbSelCM))
-    ResultsCM.append(json.dumps(names_labels))
+    ResultsCMSecond.append(json.dumps(ModelsIDsCMSecond))
+    ResultsCMSecond.append(json.dumps(sumPerClassifierCMSecond))
+    ResultsCMSecond.append(json.dumps(parametersGenPDGMSecond))
+    ResultsCMSecond.append(json.dumps(metricsPerModelCMSecond))
+    ResultsCMSecond.append(json.dumps(XDataJSONEntireSet))
+    ResultsCMSecond.append(json.dumps(XDataColumns))
+    ResultsCMSecond.append(json.dumps(yData))
+    ResultsCMSecond.append(json.dumps(target_names))
+    ResultsCMSecond.append(json.dumps(AllTargets))
+    ResultsCMSecond.append(json.dumps(ModelSpaceMDSCMSecond))
+    ResultsCMSecond.append(json.dumps(ModelSpaceTSNECMSecond))
+    ResultsCMSecond.append(json.dumps(ModelSpaceUMAPCMSecond))
+    ResultsCMSecond.append(json.dumps(PredictionProbSelCMSecond))
+    ResultsCMSecond.append(json.dumps(names_labels))
+    ResultsCMSecond.append(json.dumps(yDataSorted))
 
-    return ResultsCM
+    return ResultsCMSecond
 
 def PreprocessingPredSel(SelectedIDs):
 
@@ -4092,6 +4590,7 @@ def PreprocessingPredSel(SelectedIDs):
     dicGradB = allParametersPerformancePerModel[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
+
     dfKNN = dfKNN.loc[numberIDKNN]
 
     dfKNN.index += addKNN
@@ -4152,6 +4651,99 @@ def PreprocessingPredSel(SelectedIDs):
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
 
+    global storeClass0
+    global storeClass1
+    global yDataSorted
+
+    firstElKNN = []
+    firstElLR = []
+    firstElMLP = []
+    firstElRF = []
+    firstElGradB = []
+    firstElPredAv = []
+    lastElKNN = []
+    lastElLR = []
+    lastElMLP = []
+    lastElRF = []
+    lastElGradB = []
+    lastElPredAv = []
+    yDataSortedFirst = []
+    yDataSortedLast = []
+
+    for index, item in enumerate(yData):
+        if (item == 0):
+            if (len(predictionsKNN[index]) != 0):
+                firstElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                firstElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                firstElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                firstElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                firstElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                firstElPredAv.append(predictions[index][item]*100)
+            yDataSortedFirst.append(item)
+        else:
+            if (len(predictionsKNN[index]) != 0):
+                lastElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                lastElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                lastElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                lastElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                lastElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                lastElPredAv.append(predictions[index][item]*100)
+            yDataSortedLast.append(item)
+
+    if (storeClass0 > 169 & storeClass1 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+        lastElKNN = computeClusters(lastElKNN)
+        firstElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass0 < 169 & storeClass1 > 169):
+                
+        lastElKNN = computeClusters(lastElKNN)
+        lastElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass1 < 169 & storeClass0 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+
+    else:
+        pass
+
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR        
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    predictions = firstElPredAv + lastElPredAv
+    yDataSorted = yDataSortedFirst + yDataSortedLast
+ 
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
@@ -4182,12 +4774,11 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     numberIDMLP = []
     numberIDRF = []
     numberIDGradB = []
-    print(SelectedIDsEnsem)
+
     for el in SelectedIDsEnsem:
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            print(items)
             if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNN.append(int(items[1]))
             elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
@@ -4219,11 +4810,11 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     dfMLP = df_concatProbs.loc[numberIDMLP]
     dfRF = df_concatProbs.loc[numberIDRF]
     dfGradB = df_concatProbs.loc[numberIDGradB]
-    print(dfGradB)
+
     df_concatProbs = pd.DataFrame()
     df_concatProbs = df_concatProbs.iloc[0:0]
     df_concatProbs = pd.concat([dfKNN, dfLR, dfMLP, dfRF, dfGradB])
-    print(df_concatProbs)
+
     predictionsKNN = []
     for column, content in dfKNN.items():
         el = [sum(x)/len(x) for x in zip(*content)]
@@ -4248,12 +4839,105 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     for column, content in dfGradB.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsGradB.append(el)
-    print(predictionsGradB)
+
     predictions = []
     for column, content in df_concatProbs.items():
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
-    print(predictions)
+
+    global storeClass0
+    global storeClass1
+    global yDataSorted
+
+    firstElKNN = []
+    firstElLR = []
+    firstElMLP = []
+    firstElRF = []
+    firstElGradB = []
+    firstElPredAv = []
+    lastElKNN = []
+    lastElLR = []
+    lastElMLP = []
+    lastElRF = []
+    lastElGradB = []
+    lastElPredAv = []
+    yDataSortedFirst = []
+    yDataSortedLast = []
+
+    for index, item in enumerate(yData):
+        if (item == 0):
+            if (len(predictionsKNN[index]) != 0):
+                firstElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                firstElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                firstElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                firstElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                firstElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                firstElPredAv.append(predictions[index][item]*100)
+            yDataSortedFirst.append(item)
+        else:
+            if (len(predictionsKNN[index]) != 0):
+                lastElKNN.append(predictionsKNN[index][item]*100)
+            if (len(predictionsLR[index]) != 0):
+                lastElLR.append(predictionsLR[index][item]*100)
+            if (len(predictionsMLP[index]) != 0):
+                lastElMLP.append(predictionsMLP[index][item]*100)
+            if (len(predictionsRF[index]) != 0):
+                lastElRF.append(predictionsRF[index][item]*100)
+            if (len(predictionsGradB[index]) != 0):
+                lastElGradB.append(predictionsGradB[index][item]*100)
+            if (len(predictions[index]) != 0):
+                lastElPredAv.append(predictions[index][item]*100)
+            yDataSortedLast.append(item)
+
+    if (storeClass0 > 169 & storeClass1 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+        lastElKNN = computeClusters(lastElKNN)
+        firstElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass0 < 169 & storeClass1 > 169):
+                
+        lastElKNN = computeClusters(lastElKNN)
+        lastElLR = computeClusters(lastElLR)
+        lastElMLP = computeClusters(lastElMLP)
+        lastElRF = computeClusters(lastElRF)
+        lastElGradB = computeClusters(lastElGradB)
+        lastElPredAv = computeClusters(lastElPredAv)
+
+    elif (storeClass1 < 169 & storeClass0 > 169):
+                
+        firstElKNN = computeClusters(firstElKNN)
+        firstElLR = computeClusters(firstElLR)
+        firstElMLP = computeClusters(firstElMLP)
+        firstElRF = computeClusters(firstElRF)
+        firstElGradB = computeClusters(firstElGradB)
+        firstElPredAv = computeClusters(firstElPredAv)
+
+    else:
+        pass
+
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR        
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    predictions = firstElPredAv + lastElPredAv
+    yDataSorted = yDataSortedFirst + yDataSortedLast
+
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
@@ -4266,7 +4950,7 @@ def RetrieveSelIDsPredictEnsem():
     RetrieveIDsSelectionEnsem = RetrieveIDsSelectionEnsem['predictSelectionIDsCM']
     
     ResultsSelPredEnsem = PreprocessingPredSelEnsem(RetrieveIDsSelectionEnsem)
-    print(ResultsSelPredEnsem)
+
     return 'Everything Okay'
 
 @app.route('/data/RetrievePredictionsEnsem', methods=["GET", "POST"])

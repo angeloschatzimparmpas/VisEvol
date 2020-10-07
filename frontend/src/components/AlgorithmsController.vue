@@ -266,6 +266,7 @@ export default {
               visible: false
             },
             yaxis: {
+              nticks: 2,
               range: [minimumDiff, maximumDiff],
               title: {
                 text: 'Dev. (px)',

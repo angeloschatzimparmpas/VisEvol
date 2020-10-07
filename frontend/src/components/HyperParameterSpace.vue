@@ -2,9 +2,9 @@
 <div>
   <div align="center">
             Projection method: <select id="selectBarChart" @change="selectVisualRepresentation()">
-              <option value="mds" selected>MDS</option>
+              <option value="umap" selected>UMAP</option>
+              <option value="mds">MDS</option>
               <option value="tsne">t-SNE</option>
-              <option value="umap">UMAP</option>
             </select>
             &nbsp;&nbsp;
             Action: 
@@ -43,7 +43,7 @@ export default {
       AddEnsemble: 'Add selected models to ensemble',
       WH: [],
       ScatterPlotResults: '',
-      representationDef: 'mds',
+      representationDef: 'umapCM',
       FlagFinalStage: 0,
       //RemainingPointsIndices: []
     }
@@ -331,7 +331,6 @@ export default {
           EventBus.$emit('RemainingPoints', pushModelsRemainingTemp)
           EventBus.$emit('callValidationData', ResultsAll)
           EventBus.$emit('SendSelectedPointsUpdateIndicator', ClassifierIDsList)
-          EventBus.$emit('SendSelectedPointsToServerEvent', ClassifierIDsList)
         }
       })
     },

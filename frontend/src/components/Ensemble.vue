@@ -2,9 +2,9 @@
 <div>
   <div align="center">
             Projection method: <select id="selectBarChartCM" @change="selectVisualRepresentationCM()">
-              <option value="mdsCM" selected>MDS</option>
+              <option value="umapCM" selected>UMAP</option>
+              <option value="mdsCM">MDS</option>
               <option value="tsneCM">t-SNE</option>
-              <option value="umapCM">UMAP</option>
             </select>
             &nbsp;&nbsp;
             Actions: <button
@@ -41,7 +41,7 @@ export default {
       CrossoverMutateText: 'Remove unselected models from ensemble',
       WH: [],
       ScatterPlotResults: '',
-      representationDef: 'mdsCM',
+      representationDef: 'umapCM',
       storeEnsembleLoc: [],
       valueActive: 'Compute performance for active ensemble',
       pushModelsTempCMSame: [],
@@ -281,7 +281,7 @@ export default {
               visible: false,
               range: [minY, maxY]
           },
-                    font: { family: 'Helvetica', size: 22, color: '#000000' },
+          font: { family: 'Helvetica', size: 22, color: '#000000' },
           autosize: true,
           width: width,
           height: height,
@@ -331,7 +331,6 @@ export default {
               EventBus.$emit('RemainingPointsCM', pushModelsRemainingTempCM)
               EventBus.$emit('callValidationData', ResultsAll)
               EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', ClassifierIDsListCM)
-              EventBus.$emit('SendSelectedPointsToServerEventCM', ClassifierIDsListCM)
           }
         })
       },

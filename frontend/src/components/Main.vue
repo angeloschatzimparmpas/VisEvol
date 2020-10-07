@@ -6,7 +6,7 @@
       <b-row class="md-3">
         <b-col cols="3" >
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Performance Metrics Manager</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Validation Metrics Manager</mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px;">
                   <PerformanceMetrics/>
@@ -18,7 +18,7 @@
         </b-col>
         <b-col cols="6">
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="arrow-alt-circle-right"/> {{ Status }}</span>History and Algorithms/Models Selector<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="arrow-alt-circle-right"/> {{ Status }}</span>Process Tracker and Algorithms/Models Selector<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1&2</span></span></mdb-card-header>
             <mdb-card-body>
               <mdb-card-text class="text-left" style="font-size: 18.5px; min-height: 357px">
                 <History/>
@@ -52,11 +52,11 @@
         </b-col>
         <b-col cols="6">
           <mdb-card style="margin-top: 15px;">
-            <mdb-card-header color="primary-color" tag="h5" class="text-center"><small class="float-left"><Knowledge/></small>Majority-Voting Ensemble
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><Knowledge/></span>Majority-Voting Ensemble
               [Sel: {{OverSelLengthCM}} / All: {{OverAllLengthCM}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
               </mdb-card-header>
               <mdb-card-body>
-                <mdb-card-text class="text-center"  style="min-height: 434px">
+                <mdb-card-text class="text-center"  style="min-height: 430px">
                   <Ensemble/>
                 </mdb-card-text>
               </mdb-card-body>
@@ -77,7 +77,7 @@
         </b-col>
         <b-col cols="6">
           <mdb-card style="margin-top: 15px;">
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Predictive Results for Each Data Instance<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_A}}</span></span>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon id="mode0" icon="stop-circle"/><font-awesome-icon id="mode1" style="display: none" icon="play-circle"/> {{ MeanShift }}</span>Predictive Results for Each Data Instance<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">{{projectionID_A}}</span></span>
               </mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-center"  style="min-height: 270px">
@@ -172,8 +172,10 @@ export default Vue.extend({
   data () {
     return {
       Status: " (S) Stage 0",
+      MeanShift: "Mean Shift Clustering",
+      mode: 0,
       valuePickled: 'Close',
-      sankeyCallS: true,
+      sankeyCallS: 1,
       CMNumberofModelsOFFICIAL: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       CMNumberofModels: [0,0,0,0,0,0,5,5,5,5,5,0,5,5,5,5,5,0], // Remove that!
       CMNumberofModelsOFFICIALS2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
@@ -289,6 +291,10 @@ export default Vue.extend({
             var ModelsLocalInitial = JSON.parse(this.OverviewResults[0])
             EventBus.$emit('SendStoredIDsInitial', ModelsLocalInitial)
             var PerformanceInitial = JSON.parse(this.OverviewResults[1])
+            this.mode = JSON.parse(this.OverviewResults[15])
+            if (this.mode == 1) {
+              this.swapSymbol()
+            }
             EventBus.$emit('SendPerformanceInitialAlgs', PerformanceInitial)    
 
             EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResults)
@@ -311,15 +317,16 @@ export default Vue.extend({
             EventBus.$emit('SendPerformance', Performance)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
-            if (this.sankeyCallS) {
+            if (this.sankeyCallS == 1) {
               EventBus.$emit('SendSank')
               EventBus.$emit('emittedEventCallingSankeyStage2')
               this.Status = " (S) Stage 2"
-            } else {
+            } else if (this.sankeyCallS == 2){
               EventBus.$emit('SendSankS')
               EventBus.$emit('emittedEventCallingSankeyStage3')
               EventBus.$emit('hideCrossMut')
               this.Status = " (S) Stage \u2014"
+            } else {
             }
             this.storeBothEnsCM[1] = this.OverviewResults
             this.getFinalResults()
@@ -351,6 +358,7 @@ export default Vue.extend({
       axios.get(path, axiosConfig)
         .then(response => {
           this.OverviewResultsCM = response.data.OverviewResultsCM
+
           var ModelsLocal = JSON.parse(this.OverviewResultsCM[0])
           EventBus.$emit('SendStoredCMHist', ModelsLocal)
           EventBus.$emit('SendStoredIDsInitial', ModelsLocal)
@@ -360,6 +368,7 @@ export default Vue.extend({
           console.log('Server successfully sent all the data related to visualizations for CM!')
           EventBus.$emit('emittedEventCallingScatterPlot', this.OverviewResultsCM)
           this.storeBothEnsCM[0] = this.OverviewResultsCM
+
           EventBus.$emit('callAlgorithhms')
           //EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
           //this.PredictSel = []
@@ -434,8 +443,9 @@ export default Vue.extend({
         .then(response => {
           this.PredictSel = response.data.PredictSel
           console.log('Server successfully sent the predictions!')
-          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
+
           EventBus.$emit('emittedEventCallingGrid', this.storeBothEnsCM[0])
+          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
         })
         .catch(error => {
           console.log(error)
@@ -478,8 +488,8 @@ export default Vue.extend({
         .then(response => {
           this.PredictSelEnsem = response.data.PredictSelEnsem
           console.log('Server successfully sent the predictions!')
-          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
           EventBus.$emit('emittedEventCallingGrid', this.storeBothEnsCM[1])
+          EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
         })
         .catch(error => {
           console.log(error)
@@ -496,7 +506,7 @@ export default Vue.extend({
       } else {
         this.OverSelLengthCM = this.ClassifierIDsListCM.length
         const path = `http://127.0.0.1:5000/data/ServerRequestSelPoin`
-        console.log(this.ClassifierIDsListCM)
+
         const postData = {
           ClassifiersList: this.ClassifierIDsListCM,
         }
@@ -778,7 +788,9 @@ export default Vue.extend({
       this.OverAllLength = 0
       this.OverSelLengthCM = 0
       this.OverAllLengthCM = 0
-      this.sankeyCallS = true
+      this.sankeyCallS = 1
+      this.mode = 0
+      this.CurrentStage = 1
       const postData = {
         ClassifiersList: this.reset
       }
@@ -887,6 +899,12 @@ export default Vue.extend({
           console.log(error)
         })
     },
+    swapSymbol () {
+      var off = document.getElementById('mode0');
+      var on = document.getElementById('mode1');
+      on.style.display = 'inline'
+      off.style.display = 'none'
+    },
     sendPointsCrossMutat () {
       const path = `http://127.0.0.1:5000/data/CrossoverMutation`
 
@@ -906,7 +924,7 @@ export default Vue.extend({
           loopNumber: this.CMNumberofModelsS2,
           Stage: this.CurrentStage
         }
-        this.sankeyCallS = false
+        this.sankeyCallS = this.sankeyCallS + 1
       }
 
       const axiosConfig = {
@@ -941,6 +959,7 @@ export default Vue.extend({
     }
   },
   created () {
+
     // does the browser support the Navigation Timing API?
     if (window.performance) {
         console.info("window.performance is supported");

@@ -64,10 +64,11 @@ export default {
         for (let j=0; j<this.factorsValid.length; j++) {
           if (this.factorsValid[j] == 1) {
             for (let i=0; i<IDs.length; i++){
+
                 let tempValid = JSON.parse(valid[j])
-                console.log(tempValid)
+
                 let tempSplit = IDs[i].split(/([0-9]+)/)
-                console.log(tempSplit)
+
                 if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
                   data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#ff7f00"})
                 } 
@@ -85,7 +86,7 @@ export default {
                 }
                 
                 if (this.selectedSimple.length != 0) {
-                console.log("selected", this.selectedSimple)
+
                   if (this.selectedSimple.includes(IDs[i])) {
                     sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
                     countValuesSel[j] = countValuesSel[j] + 1
@@ -111,8 +112,10 @@ export default {
             for (let j=0; j<this.factorsValid.length; j++) {
                 if (this.factorsValid[j] == 1) {
                     for (let i=0; i<mergedStoreEnsembleLoc.length; i++){
+
                       let tempValid = JSON.parse(valid[j])
                       tempValid = mergedStoreEnsembleLocFormatted.map((item) => tempValid[item])
+
                       let tempSplit = mergedStoreEnsembleLoc[i].split(/([0-9]+)/)
                         if (tempSplit[0] == 'KNN' || tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNNCC' || tempSplit[0] == 'KNNCM' || tempSplit[0] == 'KNNMC' || tempSplit[0] == 'KNNMM') {
                             data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#ff7f00"})

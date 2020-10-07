@@ -48,7 +48,8 @@ export default {
       var svg = d3.select("#containerAll");
       svg.selectAll("*").remove();
 
-      var yValues = JSON.parse(this.GetResultsAll[6])
+      var yValues = JSON.parse(this.GetResultsAll[14])
+
       var targetNames = JSON.parse(this.GetResultsAll[7])
 
       var getIndices = []
@@ -61,7 +62,7 @@ export default {
         getIndices.push(clTemp)
       }
       getIndices.reverse()
-      
+
       var predictions = JSON.parse(this.GetResultsAll[12])
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
@@ -100,20 +101,20 @@ export default {
         dataRF = []
         dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
-          dataAver.push({ id: element, value: PredAver[element][targetNames[i]] })
-          dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] })
-          dataLR.push({ id: element, value: LRPred[element][targetNames[i]] })
-          dataMLP.push({ id: element, value: MLPPred[element][targetNames[i]] })
-          dataRF.push({ id: element, value: RFPred[element][targetNames[i]] })
-          dataGradB.push({ id: element, value: GradBPred[element][targetNames[i]] })
+          dataAver.push({ id: element, value: PredAver[element] })
+          dataKNN.push({ id: element, value: KNNPred[element] })
+          dataLR.push({ id: element, value: LRPred[element] })
+          dataMLP.push({ id: element, value: MLPPred[element] })
+          dataRF.push({ id: element, value: RFPred[element] })
+          dataGradB.push({ id: element, value: GradBPred[element] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
-          dataAver.push({ id: -1, value: 1.0 })
-          dataKNN.push({ id: -1, value: 1.0 })
-          dataLR.push({ id: -1, value: 1.0 })
-          dataMLP.push({ id: -1, value: 1.0 })
-          dataRF.push({ id: -1, value: 1.0 })
-          dataGradB.push({ id: -1, value: 1.0 })
+          dataAver.push({ id: -1, value: 100 })
+          dataKNN.push({ id: -1, value: 100 })
+          dataLR.push({ id: -1, value: 100 })
+          dataMLP.push({ id: -1, value: 100 })
+          dataRF.push({ id: -1, value: 100 })
+          dataGradB.push({ id: -1, value: 100 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
@@ -128,7 +129,7 @@ export default {
     dataMLPResults.reverse()
     dataRFResults.reverse()
     dataGradBResults.reverse()
-    
+
     var classArray = []
     this.StoreIndices = []
     for (let i = 0; i < dataAverGetResults.length; i++) {
@@ -201,7 +202,7 @@ export default {
 
 		function databind(data, size, sqrtSize) {
 
-			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([1, 0])
+			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([100, 0])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -275,7 +276,7 @@ export default {
       svg.selectAll("*").remove();
 
       var predictionsAll = JSON.parse(this.GetResultsAll[12])
-      console.log(this.predictSelection.length)
+
       if (this.predictSelection.length != 0) {
         var predictions = this.predictSelection
         var KNNPred = predictions[0]
@@ -299,7 +300,7 @@ export default {
       var GradBPredAll = predictionsAll[4]
       var PredAverAll = predictionsAll[5]
 
-      var yValues = JSON.parse(this.GetResultsAll[6])
+      var yValues = JSON.parse(this.GetResultsAll[14])
       var targetNames = JSON.parse(this.GetResultsAll[7])
 
       var getIndices = []
@@ -345,12 +346,12 @@ export default {
         dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
 
-          dataAver.push({ id: element, value: PredAver[element][targetNames[i]] - PredAverAll[element][targetNames[i]] })
-          dataKNN.push({ id: element, value: KNNPred[element][targetNames[i]] - KNNPredAll[element][targetNames[i]] })
-          dataLR.push({ id: element, value: LRPred[element][targetNames[i]] - LRPredAll[element][targetNames[i]] })
-          dataMLP.push({ id: element, value: MLPPred[element][targetNames[i]] - MLPPredAll[element][targetNames[i]] })
-          dataRF.push({ id: element, value: RFPred[element][targetNames[i]] - RFPredAll[element][targetNames[i]] })
-          dataGradB.push({ id: element, value: GradBPred[element][targetNames[i]] - GradBPredAll[element][targetNames[i]] })
+          dataAver.push({ id: element, value: PredAver[element] - PredAverAll[element] })
+          dataKNN.push({ id: element, value: KNNPred[element] - KNNPredAll[element] })
+          dataLR.push({ id: element, value: LRPred[element] - LRPredAll[element] })
+          dataMLP.push({ id: element, value: MLPPred[element] - MLPPredAll[element] })
+          dataRF.push({ id: element, value: RFPred[element] - RFPredAll[element] })
+          dataGradB.push({ id: element, value: GradBPred[element] - GradBPredAll[element] })
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
           dataAver.push({ id: -1, value: 0 })
@@ -445,8 +446,7 @@ export default {
 
 		function databind(data, size, sqrtSize) {
 
-      
-			colourScale = d3.scaleSequential(d3.interpolatePRGn).domain([-1, 1])
+			colourScale = d3.scaleSequential(d3.interpolatePRGn).domain([-100, 100])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
