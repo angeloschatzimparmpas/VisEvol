@@ -250,69 +250,71 @@ export default {
         }
       }
 
-      var percentage = []
-      for (let j = 0; j < countMax.length; j++) {
-        if (j >= 15) {
-          if (countMax[j] == 0) {
-            percentage.push((countMin[j]/2)*(-1)*100)
-          } else {
-            percentage.push(countMax[j]/2 * 100)
-          }  
-        } else if (j >= 10) {
-          if (countMax[j] == 0) {
-            percentage.push((countMin[j]/2)*(-1)*100)
-          } else {
-            percentage.push(countMax[j]/2 * 100)
-          }  
-        } else if (j >= 5) {
-          if (countMax[j] == 0) {
-            percentage.push((countMin[j]/2)*(-1)*100)
-          } else {
-            percentage.push(countMax[j]/2 * 100)
-          }  
-        } else {
-          if (countMax[j] == 0) {
-            percentage.push((countMin[j]/2)*(-1) * 100)
-          } else {
-            percentage.push(countMax[j]/2 * 100)
-          }
-        }
-      }
-//CORRECT
       // var percentage = []
       // for (let j = 0; j < countMax.length; j++) {
       //   if (j >= 15) {
       //     if (countMax[j] == 0) {
-      //       percentage.push((countMin[j]/this.values[37-j])*(-1)*100)
+      //       percentage.push((countMin[j]/2)*(-1)*100)
       //     } else {
-      //       percentage.push(countMax[j]/this.values[37-j] * 100)
+      //       percentage.push(countMax[j]/2 * 100)
       //     }  
       //   } else if (j >= 10) {
       //     if (countMax[j] == 0) {
-      //       percentage.push((countMin[j]/this.values[38-j])*(-1)*100)
+      //       percentage.push((countMin[j]/2)*(-1)*100)
       //     } else {
-      //       percentage.push(countMax[j]/this.values[38-j] * 100)
+      //       percentage.push(countMax[j]/2 * 100)
       //     }  
       //   } else if (j >= 5) {
       //     if (countMax[j] == 0) {
-      //       percentage.push((countMin[j]/this.values[39-j])*(-1)*100)
+      //       percentage.push((countMin[j]/2)*(-1)*100)
       //     } else {
-      //       percentage.push(countMax[j]/this.values[39-j] * 100)
+      //       percentage.push(countMax[j]/2 * 100)
       //     }  
       //   } else {
       //     if (countMax[j] == 0) {
-      //       percentage.push((countMin[j]/this.values[40-j])*(-1) * 100)
+      //       percentage.push((countMin[j]/2)*(-1) * 100)
       //     } else {
-      //       percentage.push(countMax[j]/this.values[40-j] * 100)
+      //       percentage.push(countMax[j]/2 * 100)
       //     }
       //   }
       // }
+//CORRECT
+console.log(countMax)
+console.log(countMin)
+      var percentage = []
+      for (let j = 0; j < countMax.length; j++) {
+        if (j >= 15) {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.valuesStage2[37-j])*(-1)*100)
+          } else {
+            percentage.push(countMax[j]/this.valuesStage2[37-j] * 100)
+          }  
+        } else if (j >= 10) {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.valuesStage2[38-j])*(-1)*100)
+          } else {
+            percentage.push(countMax[j]/this.valuesStage2[38-j] * 100)
+          }  
+        } else if (j >= 5) {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.valuesStage2[39-j])*(-1)*100)
+          } else {
+            percentage.push(countMax[j]/this.valuesStage2[39-j] * 100)
+          }  
+        } else {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.valuesStage2[40-j])*(-1) * 100)
+          } else {
+            percentage.push(countMax[j]/this.valuesStage2[40-j] * 100)
+          }
+        }
+      }
 
       this.percentageOverall = percentage
-      
     },
     SankeyViewStage3 () {
       var valuesLoc = this.valuesStage2
+      console.log(valuesLoc)
       var localStep = 2
       var numberofModels = 6
       var units = "Models";
@@ -438,9 +440,9 @@ export default {
       var colorDiff
       colorDiff = d3v5.scaleSequential(d3v5.interpolatePRGn).domain([-100, 100])
       var percentage = this.percentageOverall
-
+      console.log(percentage)
       var previousPercentage = this.storePreviousPercentage
-
+      console.log(previousPercentage)
       // add in the links
         var link = svg.append("g").selectAll(".link")
             .data(graph.links)
@@ -744,40 +746,41 @@ export default {
           }
         }
       }
-
-      var percentage = []
-      for (let j = 0; j < countMax.length; j++) {
-        if (j >= 5) {
-          if (countMax[j] == 0) {
-            percentage.push((countMin[j]/5)*(-1)*100)
-          } else {
-            percentage.push(countMax[j]/5 * 100)
-          }  
-        } else {
-          if (countMax[j] == 0) {
-            percentage.push((countMin[j]/5)*(-1) * 100)
-          } else {
-            percentage.push(countMax[j]/5 * 100)
-          }
-        }
-      }
-//CORRECT
+console.log(countMax)
+console.log(countMin)
       // var percentage = []
       // for (let j = 0; j < countMax.length; j++) {
       //   if (j >= 5) {
       //     if (countMax[j] == 0) {
-      //       percentage.push((countMin[j]/this.values[15-j])*(-1)*100)
+      //       percentage.push((countMin[j]/5)*(-1)*100)
       //     } else {
-      //       percentage.push(countMax[j]/this.values[15-j] * 100)
+      //       percentage.push(countMax[j]/5 * 100)
       //     }  
       //   } else {
       //     if (countMax[j] == 0) {
-      //       percentage.push((countMin[j]/this.values[16-j])*(-1) * 100)
+      //       percentage.push((countMin[j]/5)*(-1) * 100)
       //     } else {
-      //       percentage.push(countMax[j]/this.values[16-j] * 100)
+      //       percentage.push(countMax[j]/5 * 100)
       //     }
       //   }
       // }
+//CORRECT
+      var percentage = []
+      for (let j = 0; j < countMax.length; j++) {
+        if (j >= 5) {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.values[15-j])*(-1)*100)
+          } else {
+            percentage.push(countMax[j]/this.values[15-j] * 100)
+          }  
+        } else {
+          if (countMax[j] == 0) {
+            percentage.push((countMin[j]/this.values[16-j])*(-1) * 100)
+          } else {
+            percentage.push(countMax[j]/this.values[16-j] * 100)
+          }
+        }
+      }
 
       this.percentageOverall = percentage
       

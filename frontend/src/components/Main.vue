@@ -184,6 +184,7 @@ export default Vue.extend({
       projectionID_A: 1,
       projectionID_B: 1,
       storeEnsemble: [],
+      storeEnsemblePermanently: [],
       PredictSelEnsem: [],
       firstTimeExec: true,
       unselectedRemainingPoints: [],
@@ -312,11 +313,14 @@ export default Vue.extend({
             this.Status = " (S) Stage 1"
           } else {   
             var Performance = JSON.parse(this.OverviewResults[1])
-            EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemble)
-            EventBus.$emit('SendStoredEnsemble', this.storeEnsemble)
+            console.log(this.storeEnsemblePermanently)
+            EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemblePermanently)
+            EventBus.$emit('SendStoredEnsemble', this.storeEnsemblePermanently)
             EventBus.$emit('SendPerformance', Performance)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
+            this.storeBothEnsCM[1] = this.OverviewResults
+            this.getFinalResults()
             if (this.sankeyCallS == 1) {
               EventBus.$emit('SendSank')
               EventBus.$emit('emittedEventCallingSankeyStage2')
@@ -328,8 +332,6 @@ export default Vue.extend({
               this.Status = " (S) Stage \u2014"
             } else {
             }
-            this.storeBothEnsCM[1] = this.OverviewResults
-            this.getFinalResults()
             EventBus.$emit('emittedEventCallingGrid', this.OverviewResults)
             EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
             //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
@@ -370,6 +372,7 @@ export default Vue.extend({
           this.storeBothEnsCM[0] = this.OverviewResultsCM
 
           EventBus.$emit('callAlgorithhms')
+          EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', [])
           //EventBus.$emit('emittedEventCallingSankey', this.OverviewResultsCM)
           //this.PredictSel = []
           //EventBus.$emit('emittedEventCallingGrid', this.OverviewResultsCM)
@@ -549,6 +552,12 @@ export default Vue.extend({
       axios.post(path, postData, axiosConfig)
       .then(response => {
       console.log('Remove from Ensemble (scatterplot)!')
+      this.storeEnsemblePermanently = []
+      for (let i = 0; i < this.ClassifierIDsListRemaining.length; i++) {
+        this.storeEnsemblePermanently.push(this.ClassifierIDsListRemaining[i])
+      }
+      console.log(this.storeEnsemblePermanently)
+      EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', [])
       this.getDatafromtheBackEnd()
       })
       .catch(error => {
@@ -907,21 +916,23 @@ export default Vue.extend({
     },
     sendPointsCrossMutat () {
       const path = `http://127.0.0.1:5000/data/CrossoverMutation`
-
-      var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsemble)
-
+      for (let i = 0; i < this.storeEnsemble.length; i++) {
+        this.storeEnsemblePermanently.push(this.storeEnsemble[i])
+      }
+      var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsemblePermanently)
+      console.log(mergedStoreEnsembleLoc)
       if (this.CurrentStage == 1) {
         var postData = {
           RemainingPoints: this.unselectedRemainingPoints,
           StoreEnsemble: mergedStoreEnsembleLoc,
-          loopNumber: this.CMNumberofModels,
+          loopNumber: this.CMNumberofModelsOFFICIAL,
           Stage: this.CurrentStage
         }
       } else {
         var postData = {
           RemainingPoints: this.unselectedRemainingPoints,
           StoreEnsemble: mergedStoreEnsembleLoc,
-          loopNumber: this.CMNumberofModelsS2,
+          loopNumber: this.CMNumberofModelsOFFICIALS2,
           Stage: this.CurrentStage
         }
         this.sankeyCallS = this.sankeyCallS + 1
@@ -1011,7 +1022,7 @@ export default Vue.extend({
     EventBus.$on('RemainingPointsCM', data => { this.unselectedRemainingPointsEnsem = data })
 
     EventBus.$on('ChangeKey', data => { this.keyNow = data })
-    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data; this.storeEnsemble.push(this.ClassifierIDsList) })
+    EventBus.$on('SendSelectedPointsUpdateIndicator', data => { this.ClassifierIDsList = data; this.storeEnsemble = []; this.storeEnsemble.push(this.ClassifierIDsList) })
     EventBus.$on('SendSelectedPointsUpdateIndicator', this.SelectedPoints)
     EventBus.$on('sendToServerSelectedScatter', this.SendSelectedPointsToServer)
 
@@ -1049,7 +1060,9 @@ export default Vue.extend({
   
     EventBus.$on('AllSelModels', data => {this.valueSel = data})
 
-    EventBus.$on('RemoveFromEnsemble', data => { this.ClassifierIDsListRemaining = data })
+    EventBus.$on('RemoveFromEnsemble', data => { 
+      this.ClassifierIDsListRemaining = data;
+     })
     EventBus.$on('RemoveFromEnsemble', this.RemoveFromEnsembleModels)
 
     EventBus.$on('OpenModal', this.openModalFun)

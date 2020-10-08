@@ -95,6 +95,20 @@ def reset():
     global randomSearchVar
     randomSearchVar = 100
 
+    global stage1addKNN
+    global stage1addLR
+    global stage1addMLP
+    global stage1addRF
+    global stage1addGradB
+    global stageTotalReached
+
+    stage1addKNN = 0
+    stage1addLR = 0
+    stage1addMLP = 0
+    stage1addRF = 0
+    stage1addGradB = 0
+    stageTotalReached = randomSearchVar*5
+
     global keyData
     keyData = 0
 
@@ -237,6 +251,20 @@ def retrieveFileName():
 
     global randomSearchVar
     randomSearchVar = int(data['RandomSearch'])
+
+    global stage1addKNN
+    global stage1addLR
+    global stage1addMLP
+    global stage1addRF
+    global stage1addGradB
+    global stageTotalReached
+
+    stage1addKNN = 0
+    stage1addLR = 0
+    stage1addMLP = 0
+    stage1addRF = 0
+    stage1addGradB = 0
+    stageTotalReached = randomSearchVar*5
 
     global storeClass0
     storeClass0 = 0
@@ -938,16 +966,17 @@ def EnsembleIDs():
         match = re.match(r"([a-z]+)([0-9]+)", el, re.I)
         if match:
             items = match.groups()
-            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM")):
+            if ((items[0] == "KNN") | (items[0] == "KNNC") | (items[0] == "KNNM") | (items[0] == "KNNCC") | (items[0] == "KNNCM") | (items[0] == "KNNMC") | (items[0] == "KNNMM")):
                 numberIDKNNGlob.append(int(items[1]))
-            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM")):
+            elif ((items[0] == "LR") | (items[0] == "LRC") | (items[0] == "LRM") | (items[0] == "LRCC") | (items[0] == "LRCM") | (items[0] == "LRMC") | (items[0] == "LRMM")):
                 numberIDLRGlob.append(int(items[1]))
-            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM")):
+            elif ((items[0] == "MLP") | (items[0] == "MLPC") | (items[0] == "MLPM") | (items[0] == "MLPCC") | (items[0] == "MLPCM") | (items[0] == "MLPMC") | (items[0] == "MLPMM")):
                 numberIDMLPGlob.append(int(items[1]))
-            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM")):
+            elif ((items[0] == "RF") | (items[0] == "RFC") | (items[0] == "RFM") | (items[0] == "RFCC") | (items[0] == "RFCM") | (items[0] == "RFMC") | (items[0] == "RFMM")):
                 numberIDRFGlob.append(int(items[1]))
             else:
                 numberIDGradBGlob.append(int(items[1]))
+
     EnsembleIdsAll = numberIDKNNGlob + numberIDLRGlob + numberIDMLPGlob + numberIDRFGlob + numberIDGradBGlob
     return EnsembleIdsAll
 
@@ -1405,6 +1434,13 @@ def EnsembleModel (Models, keyRetrieved):
     global randomSearchVar
     greater = randomSearchVar*5
 
+    global stage1addKNN
+    global stage1addLR
+    global stage1addMLP
+    global stage1addRF
+    global stage1addGradB
+    global stageTotalReached
+
     global numberIDKNNGlob
     global numberIDLRGlob
     global numberIDMLPGlob
@@ -1424,24 +1460,38 @@ def EnsembleModel (Models, keyRetrieved):
     dfParamKNN = pd.DataFrame.from_dict(tempDic)
     dfParamKNNFilt = dfParamKNN.iloc[:,0]
     for eachelem in numberIDKNNGlob:
-        if (eachelem >= greater):
+        if (eachelem >= stageTotalReached):
             arg = dfParamKNNFilt[eachelem-addKNN]
+        elif (eachelem >= greater):
+            arg = dfParamKNNFilt[eachelem-stage1addKNN]
         else:
             arg = dfParamKNNFilt[eachelem-KNNModelsCount]
         all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), KNeighborsClassifier().set_params(**arg)))
+
     temp = allParametersPerformancePerModel[5]
     temp = temp['params']
     temp = {int(k):v for k,v in temp.items()}
     tempDic = {    
         'params': temp
     }
+    print(numberIDLRGlob)
     dfParamLR = pd.DataFrame.from_dict(tempDic)
     dfParamLRFilt = dfParamLR.iloc[:,0]
+    print(dfParamLRFilt)
+    print(addLR)
+    print(stage1addLR)
     for eachelem in numberIDLRGlob:
-        if (eachelem >= greater):
+        if (eachelem >= stageTotalReached):
+            print('mpike1')
+            print(eachelem-addLR)
             arg = dfParamLRFilt[eachelem-addLR]
+        elif (eachelem >= greater):
+            print('mpike2')
+            arg = dfParamLRFilt[eachelem-stage1addLR]
         else:
             arg = dfParamLRFilt[eachelem-LRModelsCount]
+            print('mpike3')
+        print(arg)
         all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), LogisticRegression(random_state=RANDOM_SEED).set_params(**arg)))
 
     temp = allParametersPerformancePerModel[9]
@@ -1453,8 +1503,10 @@ def EnsembleModel (Models, keyRetrieved):
     dfParamMLP = pd.DataFrame.from_dict(tempDic)
     dfParamMLPFilt = dfParamMLP.iloc[:,0]
     for eachelem in numberIDMLPGlob:
-        if (eachelem >= greater):
+        if (eachelem >= stageTotalReached):
             arg = dfParamMLPFilt[eachelem-addMLP]
+        elif (eachelem >= greater):
+            arg = dfParamMLPFilt[eachelem-stage1addMLP]
         else:
             arg = dfParamMLPFilt[eachelem-MLPModelsCount]
         all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), MLPClassifier(random_state=RANDOM_SEED).set_params(**arg)))
@@ -1469,8 +1521,10 @@ def EnsembleModel (Models, keyRetrieved):
     dfParamRFFilt = dfParamRF.iloc[:,0]
 
     for eachelem in numberIDRFGlob:
-        if (eachelem >= greater):
+        if (eachelem >= stageTotalReached):
             arg = dfParamRFFilt[eachelem-addRF]
+        elif (eachelem >= greater):
+            arg = dfParamRFFilt[eachelem-stage1addRF]
         else:
             arg = dfParamRFFilt[eachelem-RFModelsCount]
         all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), RandomForestClassifier(random_state=RANDOM_SEED).set_params(**arg)))
@@ -1484,14 +1538,17 @@ def EnsembleModel (Models, keyRetrieved):
     dfParamGradB = pd.DataFrame.from_dict(tempDic)
     dfParamGradBFilt = dfParamGradB.iloc[:,0]
     for eachelem in numberIDGradBGlob:
-        if (eachelem >= greater):
+        if (eachelem >= stageTotalReached):
             arg = dfParamGradBFilt[eachelem-addGradB]
+        elif (eachelem >= greater):
+            arg = dfParamGradBFilt[eachelem-stage1addGradB]
         else:
             arg = dfParamGradBFilt[eachelem-GradBModelsCount]
         all_classifiers.append(make_pipeline(ColumnSelector(cols=columnsInit), GradientBoostingClassifier(random_state=RANDOM_SEED).set_params(**arg)))
 
     global sclf 
     sclf = 0
+    print(all_classifiers)
     sclf = EnsembleVoteClassifier(clfs=all_classifiers,
                         voting='soft')
 
@@ -2901,6 +2958,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
 
     addGradB = addRF + setMaxLoopValue[37] + setMaxLoopValue[31] + setMaxLoopValue[25] + setMaxLoopValue[19]
 
+
     return 'Everything Okay'
 
 def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
@@ -3507,6 +3565,14 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBC[3]], ignore_index=True)
     allParametersPerformancePerModel[19] = pd.concat([allParametersPerformancePerModel[19], allParametersPerfCrossMutrGradBM[3]], ignore_index=True)
 
+    global stage1addKNN
+    global stage1addLR
+    global stage1addMLP
+    global stage1addRF
+    global stage1addGradB
+    global stageTotalReached
+    global randomSearch
+
     addKNN = addGradB
 
     addLR = addKNN + setMaxLoopValue[16] + setMaxLoopValue[10]
@@ -3516,6 +3582,17 @@ def InitializeFirstStageCM (RemainingIds, setMaxLoopValue):
     addRF = addMLP + setMaxLoopValue[14] + setMaxLoopValue[8]
 
     addGradB = addRF + setMaxLoopValue[13] + setMaxLoopValue[7]
+
+    addAllNew = setMaxLoopValue[16] + setMaxLoopValue[10] + setMaxLoopValue[15] + setMaxLoopValue[9] + setMaxLoopValue[14] + setMaxLoopValue[8] + setMaxLoopValue[13] + setMaxLoopValue[7] + setMaxLoopValue[12] + setMaxLoopValue[6]
+
+    stage1addKNN = addKNN
+    stage1addLR = addLR
+    stage1addMLP = addMLP
+    stage1addRF = addRF
+    stage1addGradB = addGradB
+    stageTotalReached = stageTotalReached + addAllNew
+
+    print(stageTotalReached)
 
     return 'Everything Okay'
 
@@ -4984,7 +5061,7 @@ def RetrieveSelClassifiersIDandRemoveFromEnsemble():
     ClassifierIDsList = request.get_data().decode('utf8').replace("'", '"')
     ClassifierIDsList = json.loads(ClassifierIDsList)
     ClassifierIDsListCleaned = ClassifierIDsList['ClassifiersList']
-
+    
     EnsembleActive = []
     EnsembleActive = ClassifierIDsListCleaned.copy()
 
