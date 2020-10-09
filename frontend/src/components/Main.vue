@@ -172,7 +172,7 @@ export default Vue.extend({
   data () {
     return {
       Status: " (S) Stage 0",
-      MeanShift: "Mean Shift Clustering",
+      MeanShift: "K-means Clustering",
       mode: 0,
       valuePickled: 'Close',
       sankeyCallS: 1,
@@ -195,7 +195,7 @@ export default Vue.extend({
       DataResults: '',
       keyNow: 1,
       instancesImportance: '',
-      RetrieveValueFile: 'HeartC', // this is for the default data set
+      RetrieveValueFile: 'biodegC', // this is for the default data set
       ClassifierIDsList: [],
       ClassifierIDsListCM: [],
       SelectedFeaturesPerClassifier: '',
@@ -911,6 +911,7 @@ export default Vue.extend({
     swapSymbol () {
       var off = document.getElementById('mode0');
       var on = document.getElementById('mode1');
+      EventBus.$emit('ON', true)
       on.style.display = 'inline'
       off.style.display = 'none'
     },

@@ -1,12 +1,12 @@
-# first line: 584
+# first line: 718
 @memory.cache
-def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd):
+def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd,crossValidation):
     print(clf)
     search = RandomizedSearchCV(    
         estimator=clf, param_distributions=params, n_iter=100,
         cv=crossValidation, refit='accuracy', scoring=scoring,
         verbose=0, n_jobs=-1)
-
+    
     # fit and extract the probabilities
     search.fit(XData, yData)
 

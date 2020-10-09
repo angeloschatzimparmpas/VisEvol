@@ -25,7 +25,8 @@ export default {
       predictSelection: [],
       StoreIndices: [],
       classesNumber: 9,
-      InfoPred: []
+      InfoPred: [],
+      flag: false
     }
   },
   methods: {
@@ -51,18 +52,33 @@ export default {
       var yValues = JSON.parse(this.GetResultsAll[14])
 
       var targetNames = JSON.parse(this.GetResultsAll[7])
-
       var getIndices = []
-      for (let i = 0; i < targetNames.length; i++) {
-        let clTemp = []
-        let j = -1
-        while((j = yValues.indexOf(targetNames[i], j + 1)) !== -1) {
-          clTemp.push(j);
+      if (!this.flag) {
+
+        for (let i = 0; i < targetNames.length; i++) {
+          let clTemp = []
+          let j = -1
+          while((j = yValues.indexOf(targetNames[i], j + 1)) !== -1) {
+            clTemp.push(j);
+          }
+          getIndices.push(clTemp)
         }
-        getIndices.push(clTemp)
+
+      }
+      else {
+        var tempFirst = []
+        for (let i = 0; i < 169; i++) {
+          tempFirst.push(i)
+        }
+        var tempLast = []
+        for (let i = 169; i < 338; i++) {
+          tempLast.push(i)
+        }
+        getIndices.push(tempFirst)
+        getIndices.push(tempLast)
       }
       getIndices.reverse()
-
+      console.log(getIndices)
       var predictions = JSON.parse(this.GetResultsAll[12])
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
@@ -83,15 +99,8 @@ export default {
       var dataGradB = []
       var dataGradBResults = []
 
-      var max = 0
-      for (let i = 0; i < targetNames.length; i++) {
-        if (getIndices[targetNames[i]].length > max) {
-          max = getIndices[targetNames[i]].length
-        } 
-      }
-
-      var sqrtSize = Math.ceil(Math.sqrt(max))
-      var size = sqrtSize * sqrtSize
+      var sqrtSize = 13
+      var size = 169
 
       for (let i = 0; i < targetNames.length; i++) {
         dataAver = []
@@ -101,20 +110,44 @@ export default {
         dataRF = []
         dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
-          dataAver.push({ id: element, value: PredAver[element] })
-          dataKNN.push({ id: element, value: KNNPred[element] })
-          dataLR.push({ id: element, value: LRPred[element] })
-          dataMLP.push({ id: element, value: MLPPred[element] })
-          dataRF.push({ id: element, value: RFPred[element] })
-          dataGradB.push({ id: element, value: GradBPred[element] })
+          if (PredAver.length == 0) {
+            dataAver.push({ id: -1, value: 0 })
+          } else {
+            dataAver.push({ id: element, value: PredAver[element] })
+          }
+          if (KNNPred.length == 0) {
+            dataKNN.push({ id: -1, value: 0 })
+          } else {
+            dataKNN.push({ id: element, value: KNNPred[element] })
+          }
+          if (LRPred.length == 0) {
+            dataLR.push({ id: -1, value: 0 })
+          } else {
+            dataLR.push({ id: element, value: LRPred[element] })
+          }
+          if (MLPPred.length == 0) {
+            dataMLP.push({ id: -1, value: 0 })
+          } else {
+            dataMLP.push({ id: element, value: MLPPred[element] })
+          }
+          if (RFPred.length == 0) {
+            dataRF.push({ id: -1, value: 0 })
+          } else {
+            dataRF.push({ id: element, value: RFPred[element] })
+          }
+          if (GradBPred.length == 0) {
+            dataGradB.push({ id: -1, value: 0 })
+          } else {
+            dataGradB.push({ id: element, value: GradBPred[element] })
+          } 
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
-          dataAver.push({ id: -1, value: 100 })
-          dataKNN.push({ id: -1, value: 100 })
-          dataLR.push({ id: -1, value: 100 })
-          dataMLP.push({ id: -1, value: 100 })
-          dataRF.push({ id: -1, value: 100 })
-          dataGradB.push({ id: -1, value: 100 })
+          dataAver.push({ id: -1, value: 0 })
+          dataKNN.push({ id: -1, value: 0 })
+          dataLR.push({ id: -1, value: 0 })
+          dataMLP.push({ id: -1, value: 0 })
+          dataRF.push({ id: -1, value: 0 })
+          dataGradB.push({ id: -1, value: 0 })
         }
         dataAverGetResults.push(dataAver)
         dataKNNResults.push(dataKNN)
@@ -129,7 +162,8 @@ export default {
     dataMLPResults.reverse()
     dataRFResults.reverse()
     dataGradBResults.reverse()
-
+    console.log(dataAverGetResults)
+    console.log(dataKNNResults)
     var classArray = []
     this.StoreIndices = []
     for (let i = 0; i < dataAverGetResults.length; i++) {
@@ -140,7 +174,7 @@ export default {
         indices[j] = dataAverGetResults[i][j].id;
       }
       this.StoreIndices.push(indices)
-      
+      console.log(indices)
       dataKNNResults[i].sort(function(a, b){
         return indices.indexOf(a.id) - indices.indexOf(b.id)
       });
@@ -163,7 +197,7 @@ export default {
 
       classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i],dataMLPResults[i],dataRFResults[i],dataGradBResults[i]));
     }
-
+    console.log(classArray)
     var classStore = [].concat.apply([], classArray);
 		// === Set up canvas === //
 
@@ -187,7 +221,7 @@ export default {
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
 		var groupSpacing = 42;
 		var cellSpacing = 2;
-    var cellSize = Math.floor((width - 1 * groupSpacing) / (13 * sqrtSize)) - cellSpacing;
+    var cellSize = 4
 
 		// === First call === //
 		databind(classStore, size, sqrtSize); // ...then update the databind function
@@ -215,7 +249,7 @@ export default {
 	        return groupSpacing * x0 + (cellSpacing + cellSize) * (x1 + x0 * 10);
 	      })
 	      .attr('y', function(d, i) {
-	        var y0 = Math.floor(i / data.length), y1 = Math.floor(i % size / sqrtSize);
+	        var y0 = Math.floor(i / 2028), y1 = Math.floor(i % size / sqrtSize);
 	        return groupSpacing * y0 + (cellSpacing + cellSize) * (y1 + y0 * 10);
 	      })
 				.attr('width', 0)
@@ -304,13 +338,29 @@ export default {
       var targetNames = JSON.parse(this.GetResultsAll[7])
 
       var getIndices = []
-      for (let i = 0; i < targetNames.length; i++) {
-        let clTemp = []
-        let j = -1
-        while((j = yValues.indexOf(targetNames[i], j + 1)) !== -1) {
-          clTemp.push(j);
+      if (!this.flag) {
+
+        for (let i = 0; i < targetNames.length; i++) {
+          let clTemp = []
+          let j = -1
+          while((j = yValues.indexOf(targetNames[i], j + 1)) !== -1) {
+            clTemp.push(j);
+          }
+          getIndices.push(clTemp)
         }
-        getIndices.push(clTemp)
+
+      }
+      else {
+        var tempFirst = []
+        for (let i = 0; i < 169; i++) {
+          tempFirst.push(i)
+        }
+        var tempLast = []
+        for (let i = 169; i < 338; i++) {
+          tempLast.push(i)
+        }
+        getIndices.push(tempFirst)
+        getIndices.push(tempLast)
       }
       getIndices.reverse()
 
@@ -327,15 +377,8 @@ export default {
       var dataGradB = []
       var dataGradBResults = []
 
-      var max = 0
-      for (let i = 0; i < targetNames.length; i++) {
-        if (getIndices[targetNames[i]].length > max) {
-          max = getIndices[targetNames[i]].length
-        } 
-      }
-
-      var sqrtSize = Math.ceil(Math.sqrt(max))
-      var size = sqrtSize * sqrtSize
+      var sqrtSize = 13
+      var size = 169
 
       for (let i = 0; i < targetNames.length; i++) {
         dataAver = []
@@ -345,13 +388,37 @@ export default {
         dataRF = []
         dataGradB = []
         getIndices[targetNames[i]].forEach(element => {
-
-          dataAver.push({ id: element, value: PredAver[element] - PredAverAll[element] })
-          dataKNN.push({ id: element, value: KNNPred[element] - KNNPredAll[element] })
-          dataLR.push({ id: element, value: LRPred[element] - LRPredAll[element] })
-          dataMLP.push({ id: element, value: MLPPred[element] - MLPPredAll[element] })
-          dataRF.push({ id: element, value: RFPred[element] - RFPredAll[element] })
-          dataGradB.push({ id: element, value: GradBPred[element] - GradBPredAll[element] })
+          if (PredAver.length == 0) {
+            dataAver.push({ id: -1, value: 0 })
+          } else {
+            dataAver.push({ id: element, value: PredAver[element] - PredAverAll[element] })
+          }
+          if (KNNPred.length == 0) {
+            dataKNN.push({ id: -1, value: 0 })
+          } else {
+            dataKNN.push({ id: element, value: KNNPred[element] - KNNPredAll[element] })
+          }
+          if (LRPred.length == 0) {
+            dataLR.push({ id: -1, value: 0 })
+          } else {
+            dataLR.push({ id: element, value: LRPred[element] - LRPredAll[element] })
+          }
+          if (MLPPred.length == 0) {
+            dataMLP.push({ id: -1, value: 0 })
+          } else {
+            dataMLP.push({ id: element, value: MLPPred[element] - MLPPredAll[element] })
+          }
+          if (RFPred.length == 0) {
+            dataRF.push({ id: -1, value: 0 })
+          } else {
+            dataRF.push({ id: element, value: RFPred[element] - RFPredAll[element] })
+          }
+          if (GradBPred.length == 0) {
+            dataGradB.push({ id: -1, value: 0 })
+          } else {
+            dataGradB.push({ id: element, value: GradBPred[element] - GradBPredAll[element] })
+          }       
+          
         });
         for (let j = 0; j < size - getIndices[targetNames[i]].length; j++) {
           dataAver.push({ id: -1, value: 0 })
@@ -431,7 +498,7 @@ export default {
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
 		var groupSpacing = 42;
 		var cellSpacing = 2;
-    var cellSize = Math.floor((width - 1 * groupSpacing) / (13 * sqrtSize)) - cellSpacing;
+    var cellSize = 4
 
 		// === First call === //
 		databind(classStore, size, sqrtSize); // ...then update the databind function
@@ -459,7 +526,7 @@ export default {
 	        return groupSpacing * x0 + (cellSpacing + cellSize) * (x1 + x0 * 10);
 	      })
 	      .attr('y', function(d, i) {
-	        var y0 = Math.floor(i / data.length), y1 = Math.floor(i % size / sqrtSize);
+	        var y0 = Math.floor(i / 2028), y1 = Math.floor(i % size / sqrtSize);
 	        return groupSpacing * y0 + (cellSpacing + cellSize) * (y1 + y0 * 10);
 	      })
 				.attr('width', 0)
@@ -626,6 +693,8 @@ export default {
   },
   },
   mounted () {
+      EventBus.$on('ON', data => {this.flag = data})
+
       EventBus.$on('emittedEventCallingInfo', data => { this.InfoPred = data })
       EventBus.$on('LegendPredict', this.legendCol)
 

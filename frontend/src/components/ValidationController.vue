@@ -45,7 +45,6 @@ export default {
       var colorsGlobalBins = []
       var countFactors = 0
       var activeLines = []
-
       for (let j=0; j<this.factorsValid.length; j++) {
         if (this.factorsValid[j] == 1) {
             countFactors = countFactors + 1
@@ -56,13 +55,17 @@ export default {
       var sumGlobalSel = new Array(countFactors).fill(0)
       var countValuesSel = new Array(countFactors).fill(0)
       var globalActive = this.activeCurr
+      var measure = 0
 
       if (globalActive == 1) {
         var IDs = JSON.parse(this.ResultsValid[0])
         var valid = JSON.parse(this.ResultsValid[3])
 
         for (let j=0; j<this.factorsValid.length; j++) {
-          if (this.factorsValid[j] == 1) {
+            if (this.factorsValid[j] == 0) {
+                measure = measure + 1
+            }
+          else {
             for (let i=0; i<IDs.length; i++){
 
                 let tempValid = JSON.parse(valid[j])
@@ -84,12 +87,11 @@ export default {
                 else {
                   data.push({Algorithm: this.Metrics[j], value: tempValid[i], category: "#a6cee3"})
                 }
-                
                 if (this.selectedSimple.length != 0) {
-
+  
                   if (this.selectedSimple.includes(IDs[i])) {
-                    sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
-                    countValuesSel[j] = countValuesSel[j] + 1
+                    sumGlobalSel[j-measure] = sumGlobalSel[j-measure] + tempValid[i]
+                    countValuesSel[j-measure] = countValuesSel[j-measure] + 1
                   }
                 }
               }
@@ -110,7 +112,10 @@ export default {
                 mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
             }
             for (let j=0; j<this.factorsValid.length; j++) {
-                if (this.factorsValid[j] == 1) {
+                    if (this.factorsValid[j] == 0) {
+                        measure = measure + 1
+                    }
+                    else {
                     for (let i=0; i<mergedStoreEnsembleLoc.length; i++){
 
                       let tempValid = JSON.parse(valid[j])
