@@ -52,6 +52,11 @@ cors = CORS(app, resources={r"/data/*": {"origins": "*"}})
 @app.route('/data/Reset', methods=["GET", "POST"])
 def reset():
 
+    global labelsClass0
+    global labelsClass1
+    labelsClass0 = []
+    labelsClass1 = []
+
     global yDataSorted
     yDataSorted = []
 
@@ -231,6 +236,11 @@ def retrieveFileName():
     global DataResultsRawExternal
     global DataRawLengthExternal
 
+    global labelsClass0
+    global labelsClass1
+    labelsClass0 = []
+    labelsClass1 = []
+
     global yDataSorted
     yDataSorted = []
 
@@ -257,7 +267,7 @@ def retrieveFileName():
     print(crossValidation)
     global randomSearchVar
     randomSearchVar = int(data['RandomSearch'])
-
+    print(randomSearchVar)
     global stage1addKNN
     global stage1addLR
     global stage1addMLP
@@ -384,6 +394,9 @@ def retrieveFileName():
 
     global keySend
     keySend=0
+    
+    global fileInput
+    fileInput = data['fileName']
 
     DataRawLength = -1
     DataRawLengthTest = -1
@@ -401,12 +414,8 @@ def retrieveFileName():
         CollectionDB = mongo.db.biodegC.find()
         CollectionDBTest = mongo.db.biodegCTest.find()
         CollectionDBExternal = mongo.db.biodegCExt.find()
-        names_labels.append('Biodegradable')
         names_labels.append('Non-biodegradable')
-    elif data['fileName'] == 'seismicC':
-        CollectionDB = mongo.db.seismicC.find()
-        names_labels.append('Hazardous')
-        names_labels.append('Non-hazardous')
+        names_labels.append('Biodegradable')
     elif data['fileName'] == 'breastC':
         CollectionDB = mongo.db.diabetesC.find()
         names_labels.append('Malignant')
@@ -479,7 +488,7 @@ def sendToServerData():
             target_names.append(value)
             AllTargetsFloatValues.append(Class)
             previous = value
-
+ 
     ArrayDataResults = pd.DataFrame.from_dict(DataResults)
 
     global XData, yData, RANDOM_SEED
@@ -493,7 +502,7 @@ def sendToServerData():
     global storeClass1
 
     for item in yData:
-        if (item == 0):
+        if (item == 1):
             storeClass0 = storeClass0 + 1
         else:
             storeClass1 = storeClass1 + 1
@@ -629,7 +638,7 @@ def dataSetSelection():
     global storeClass1
 
     for item in yData:
-        if (item == 0):
+        if (item == 1):
             storeClass0 = storeClass0 + 1
         else:
             storeClass1 = storeClass1 + 1
@@ -673,6 +682,7 @@ def retrieveModel():
     global allParametersPerformancePerModel
     global HistoryPreservation
     global crossValidation
+    global randomSearchVar
 
     for eachAlgor in algorithms:
         if (eachAlgor) == 'KNN':
@@ -706,7 +716,7 @@ def retrieveModel():
             countAllModels = countAllModels + randomSearchVar
             AlgorithmsIDsEnd = countAllModels
             countAllModels = countAllModels + randomSearchVar
-        allParametersPerformancePerModel = randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd,crossValidation)
+        allParametersPerformancePerModel = randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd,crossValidation,randomSearchVar)
     HistoryPreservation = allParametersPerformancePerModel.copy()
     # call the function that sends the results to the frontend
 
@@ -716,10 +726,11 @@ location = './cachedir'
 memory = Memory(location, verbose=0)
 
 @memory.cache
-def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd,crossValidation):
+def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd,crossValidation,randomSear):
+    print('search')
     print(clf)
     search = RandomizedSearchCV(    
-        estimator=clf, param_distributions=params, n_iter=100,
+        estimator=clf, param_distributions=params, n_iter=randomSear,
         cv=crossValidation, refit='accuracy', scoring=scoring,
         verbose=0, n_jobs=-1)
     
@@ -900,7 +911,7 @@ def PreprocessingPred():
 
         el = [sum(x)/len(x) for x in zip(*content)]
         predictions.append(el)
-    
+
     global storeClass0
     global storeClass1
     global yDataSorted
@@ -921,65 +932,84 @@ def PreprocessingPred():
     yDataSortedLast = []
 
     for index, item in enumerate(yData):
-        if (item == 0):
-            if (len(predictionsKNN[index]) != 0):
-                firstElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                firstElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                firstElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                firstElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                firstElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                firstElPredAv.append(predictions[index][item]*100)
-            yDataSortedFirst.append(item)
-        else:
-            if (len(predictionsKNN[index]) != 0):
-                lastElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                lastElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                lastElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                lastElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                lastElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                lastElPredAv.append(predictions[index][item]*100)
-            yDataSortedLast.append(item)
-
+            if (item == 1):
+                if (len(predictionsKNN[index]) != 0):
+                    firstElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    firstElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    firstElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    firstElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    firstElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    firstElPredAv.append(predictions[index][item]*100)
+                yDataSortedFirst.append(item)
+            else:
+                if (len(predictionsKNN[index]) != 0):
+                    lastElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    lastElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    lastElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    lastElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    lastElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    lastElPredAv.append(predictions[index][item]*100)
+                yDataSortedLast.append(item)      
+    predictions = firstElPredAv + lastElPredAv
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR   
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    yDataSorted = yDataSortedFirst + yDataSortedLast
     if (storeClass0 > 169 and storeClass1 > 169):
         yDataSortedFirst = []
         yDataSortedLast = []    
-        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB)
-        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB)
+        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB,1)
+        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB,2)
         for item in lastElPredAv:
             yDataSortedFirst.append(0)
             yDataSortedLast.append(0)
 
-    predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
-    predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
-    predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
-    predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
-    predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
-    predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
-    yDataSorted = yDataSortedFirst + yDataSortedLast
-    
+        predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
+        predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
+        predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
+        predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
+        predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
+        predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
+        yDataSorted = yDataSortedFirst + yDataSortedLast
+
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
-def computeClusters(dataLocal,one,two,three,four,five):
+def computeClusters(dataLocal,one,two,three,four,five,flagLocal):
     if (len(dataLocal) != 0):
+        global labelsClass0
+        global labelsClass1
         XKNN = np.array(list(zip(one,np.zeros(len(one)))), dtype=np.int)
         XLR = np.array(list(zip(two,np.zeros(len(two)))), dtype=np.int)
         XMLP = np.array(list(zip(three,np.zeros(len(three)))), dtype=np.int)
         XRF = np.array(list(zip(four,np.zeros(len(four)))), dtype=np.int)
         XGradB = np.array(list(zip(five,np.zeros(len(five)))), dtype=np.int)
         X = np.array(list(zip(dataLocal,np.zeros(len(dataLocal)))), dtype=np.int)
-        ms = cluster.KMeans(n_clusters=169,random_state=RANDOM_SEED, n_jobs=-1)
-        ms.fit(X)
-        labels = ms.labels_
+        if (flagLocal == 1):
+            ms = cluster.KMeans(n_clusters=100,random_state=RANDOM_SEED, n_jobs=-1)
+            ms.fit(X)
+            labelsClass0 = ms.labels_
+            labels = labelsClass0
+        if (flagLocal == 2):
+            ms = cluster.KMeans(n_clusters=100,random_state=RANDOM_SEED, n_jobs=-1)
+            ms.fit(X)
+            labelsClass1 = ms.labels_
+            labels = labelsClass1
+        if (flagLocal == 3):
+            labels = labelsClass0
+        if (flagLocal == 4):
+            labels = labelsClass1
         #labels_unique = np.unique(labels)
         #n_clusters_ = len(labels)
 
@@ -989,7 +1019,8 @@ def computeClusters(dataLocal,one,two,three,four,five):
         gatherPointsMLP = []
         gatherPointsRF = []
         gatherPointsGradB = []
-        for k in range(169):
+
+        for k in range(100):
             my_members = labels == k
             if (len(X[my_members, 0]) == 0):
                 gatherPointsAv.append(0)
@@ -1162,51 +1193,58 @@ def PreprocessingPredEnsemble():
     yDataSortedLast = []
 
     for index, item in enumerate(yData):
-        if (item == 0):
-            if (len(predictionsKNN[index]) != 0):
-                firstElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                firstElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                firstElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                firstElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                firstElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                firstElPredAv.append(predictions[index][item]*100)
-            yDataSortedFirst.append(item)
-        else:
-            if (len(predictionsKNN[index]) != 0):
-                lastElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                lastElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                lastElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                lastElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                lastElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                lastElPredAv.append(predictions[index][item]*100)
-            yDataSortedLast.append(item)
+            if (item == 1):
+                if (len(predictionsKNN[index]) != 0):
+                    firstElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    firstElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    firstElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    firstElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    firstElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    firstElPredAv.append(predictions[index][item]*100)
+                yDataSortedFirst.append(item)
+            else:
+                if (len(predictionsKNN[index]) != 0):
+                    lastElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    lastElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    lastElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    lastElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    lastElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    lastElPredAv.append(predictions[index][item]*100)
+                yDataSortedLast.append(item)  
+    predictions = firstElPredAv + lastElPredAv
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR   
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    yDataSorted = yDataSortedFirst + yDataSortedLast
 
     if (storeClass0 > 169 and storeClass1 > 169):
         yDataSortedFirst = []
         yDataSortedLast = []    
-        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB)
-        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB)
+        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB,3)
+        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB,4)
         for item in lastElPredAv:
             yDataSortedFirst.append(0)
             yDataSortedLast.append(0)
 
-    predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
-    predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
-    predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
-    predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
-    predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
-    predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
-    yDataSorted = yDataSortedFirst + yDataSortedLast
+        predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
+        predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
+        predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
+        predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
+        predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
+        predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
+        yDataSorted = yDataSortedFirst + yDataSortedLast
 
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
@@ -1607,6 +1645,7 @@ def EnsembleModel (Models, keyRetrieved):
     PerClassResultsClass0 = []
     global PerClassResultsClass1
     PerClassResultsClass1 = []
+    global fileInput
 
     nested_score = model_selection.cross_val_score(sclf, X=XData, y=yData, cv=crossValidation, scoring=make_scorer(classification_report_with_accuracy_score))
     PerClassResultsClass0Con = pd.concat(PerClassResultsClass0, axis=1, sort=False)
@@ -1617,81 +1656,157 @@ def EnsembleModel (Models, keyRetrieved):
     conf_mat = confusion_matrix(yData, y_pred)
     cm = conf_mat.astype('float') / conf_mat.sum(axis=1)[:, np.newaxis]
     cm.diagonal()
-
-    if (keyRetrieved == 0):
-        scores.append(cm[0][0])
-        scores.append(cm[1][1])
-        scores.append(cm[0][0])
-        scores.append(cm[1][1])
-        scores.append(averageClass0.precision)
-        scores.append(averageClass1.precision)
-        scores.append(averageClass0.precision)
-        scores.append(averageClass1.precision)
-        scores.append(averageClass0.recall)
-        scores.append(averageClass1.recall)
-        scores.append(averageClass0.recall)
-        scores.append(averageClass1.recall)
-        scores.append(averageClass0['f1-score'])
-        scores.append(averageClass1['f1-score'])
-        scores.append(averageClass0['f1-score'])
-        scores.append(averageClass1['f1-score'])
-        previousState.append(scores[0])
-        previousState.append(scores[1])
-        previousState.append(scores[4])
-        previousState.append(scores[5])
-        previousState.append(scores[8])
-        previousState.append(scores[9])
-        previousState.append(scores[12])
-        previousState.append(scores[13])
-    else:
-        scores.append(cm[0][0])
-        scores.append(cm[1][1])
-        if (cm[0][0] > previousState[0]):
-            scores.append(cm[0][0])
-            previousState[0] = cm[0][0]
-        else:
-            scores.append(previousState[0])
-        if (cm[1][1] > previousState[1]):
+    print(cm)
+    if (fileInput == 'heartC'):
+        if (keyRetrieved == 0):
             scores.append(cm[1][1])
-            previousState[1] = cm[1][1]
-        else:
-            scores.append(previousState[1])
-        scores.append(averageClass0.precision)
-        scores.append(averageClass1.precision)
-        if (averageClass0.precision > previousState[2]):
-            scores.append(averageClass0.precision)
-            previousState[2] = averageClass0.precision
-        else:
-            scores.append(previousState[2])
-        if (averageClass1.precision > previousState[3]):
+            scores.append(cm[0][0])
+            scores.append(cm[1][1])
+            scores.append(cm[0][0])
             scores.append(averageClass1.precision)
-            previousState[3] = averageClass1.precision
-        else:
-            scores.append(previousState[3])
-        scores.append(averageClass0.recall)
-        scores.append(averageClass1.recall)
-        if (averageClass0.recall > previousState[4]):
-            scores.append(averageClass0.recall)
-            previousState[4] = averageClass0.recall
-        else:
-            scores.append(previousState[4])
-        if (averageClass1.recall > previousState[5]):
+            scores.append(averageClass0.precision)
+            scores.append(averageClass1.precision)
+            scores.append(averageClass0.precision)
             scores.append(averageClass1.recall)
-            previousState[5] = averageClass1.recall
-        else:
-            scores.append(previousState[5])
-        scores.append(averageClass0['f1-score'])
-        scores.append(averageClass1['f1-score'])
-        if (averageClass0['f1-score'] > previousState[6]):
-            scores.append(averageClass0['f1-score'])
-            previousState[6] = averageClass0['f1-score']
-        else:
-            scores.append(previousState[6])
-        if (averageClass1['f1-score'] > previousState[7]):
+            scores.append(averageClass0.recall)
+            scores.append(averageClass1.recall)
+            scores.append(averageClass0.recall)
             scores.append(averageClass1['f1-score'])
-            previousState[7] = averageClass1['f1-score']
+            scores.append(averageClass0['f1-score'])
+            scores.append(averageClass1['f1-score'])
+            scores.append(averageClass0['f1-score'])
+            previousState.append(scores[0])
+            previousState.append(scores[1])
+            previousState.append(scores[4])
+            previousState.append(scores[5])
+            previousState.append(scores[8])
+            previousState.append(scores[9])
+            previousState.append(scores[12])
+            previousState.append(scores[13])
         else:
-            scores.append(previousState[7])
+            scores.append(cm[1][1])
+            scores.append(cm[0][0])
+            if (cm[1][1] > previousState[0]):
+                scores.append(cm[1][1])
+                previousState[0] = cm[1][1]
+            else:
+                scores.append(previousState[0])
+            if (cm[0][0] > previousState[1]):
+                scores.append(cm[0][0])
+                previousState[1] = cm[0][0]
+            else:
+                scores.append(previousState[1])
+            scores.append(averageClass1.precision)
+            scores.append(averageClass0.precision)
+            if (averageClass1.precision > previousState[2]):
+                scores.append(averageClass1.precision)
+                previousState[2] = averageClass1.precision
+            else:
+                scores.append(previousState[2])
+            if (averageClass0.precision > previousState[3]):
+                scores.append(averageClass0.precision)
+                previousState[3] = averageClass0.precision
+            else:
+                scores.append(previousState[3])
+            scores.append(averageClass1.recall)
+            scores.append(averageClass0.recall)
+            if (averageClass1.recall > previousState[4]):
+                scores.append(averageClass1.recall)
+                previousState[4] = averageClass1.recall
+            else:
+                scores.append(previousState[4])
+            if (averageClass0.recall > previousState[5]):
+                scores.append(averageClass0.recall)
+                previousState[5] = averageClass0.recall
+            else:
+                scores.append(previousState[5])
+            scores.append(averageClass1['f1-score'])
+            scores.append(averageClass0['f1-score'])
+            if (averageClass1['f1-score'] > previousState[6]):
+                scores.append(averageClass1['f1-score'])
+                previousState[6] = averageClass1['f1-score']
+            else:
+                scores.append(previousState[6])
+            if (averageClass0['f1-score'] > previousState[7]):
+                scores.append(averageClass0['f1-score'])
+                previousState[7] = averageClass0['f1-score']
+            else:
+                scores.append(previousState[7])
+    else:
+        if (keyRetrieved == 0):
+            scores.append(cm[0][0])
+            scores.append(cm[1][1])
+            scores.append(cm[0][0])
+            scores.append(cm[1][1])
+            scores.append(averageClass0.precision)
+            scores.append(averageClass1.precision)
+            scores.append(averageClass0.precision)
+            scores.append(averageClass1.precision)
+            scores.append(averageClass0.recall)
+            scores.append(averageClass1.recall)
+            scores.append(averageClass0.recall)
+            scores.append(averageClass1.recall)
+            scores.append(averageClass0['f1-score'])
+            scores.append(averageClass1['f1-score'])
+            scores.append(averageClass0['f1-score'])
+            scores.append(averageClass1['f1-score'])
+            previousState.append(scores[0])
+            previousState.append(scores[1])
+            previousState.append(scores[4])
+            previousState.append(scores[5])
+            previousState.append(scores[8])
+            previousState.append(scores[9])
+            previousState.append(scores[12])
+            previousState.append(scores[13])
+        else:
+            scores.append(cm[0][0])
+            scores.append(cm[1][1])
+            if (cm[0][0] > previousState[0]):
+                scores.append(cm[0][0])
+                previousState[0] = cm[0][0]
+            else:
+                scores.append(previousState[0])
+            if (cm[1][1] > previousState[1]):
+                scores.append(cm[1][1])
+                previousState[1] = cm[1][1]
+            else:
+                scores.append(previousState[1])
+            scores.append(averageClass0.precision)
+            scores.append(averageClass1.precision)
+            if (averageClass0.precision > previousState[2]):
+                scores.append(averageClass0.precision)
+                previousState[2] = averageClass0.precision
+            else:
+                scores.append(previousState[2])
+            if (averageClass1.precision > previousState[3]):
+                scores.append(averageClass1.precision)
+                previousState[3] = averageClass1.precision
+            else:
+                scores.append(previousState[3])
+            scores.append(averageClass0.recall)
+            scores.append(averageClass1.recall)
+            if (averageClass0.recall > previousState[4]):
+                scores.append(averageClass0.recall)
+                previousState[4] = averageClass0.recall
+            else:
+                scores.append(previousState[4])
+            if (averageClass1.recall > previousState[5]):
+                scores.append(averageClass1.recall)
+                previousState[5] = averageClass1.recall
+            else:
+                scores.append(previousState[5])
+            scores.append(averageClass0['f1-score'])
+            scores.append(averageClass1['f1-score'])
+            if (averageClass0['f1-score'] > previousState[6]):
+                scores.append(averageClass0['f1-score'])
+                previousState[6] = averageClass0['f1-score']
+            else:
+                scores.append(previousState[6])
+            if (averageClass1['f1-score'] > previousState[7]):
+                scores.append(averageClass1['f1-score'])
+                previousState[7] = averageClass1['f1-score']
+            else:
+                scores.append(previousState[7])
 
     global StanceTest
     if (StanceTest):
@@ -3947,51 +4062,57 @@ def PreprocessingPredCM():
     yDataSortedLast = []
 
     for index, item in enumerate(yData):
-        if (item == 0):
-            if (len(predictionsKNN[index]) != 0):
-                firstElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                firstElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                firstElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                firstElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                firstElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                firstElPredAv.append(predictions[index][item]*100)
-            yDataSortedFirst.append(item)
-        else:
-            if (len(predictionsKNN[index]) != 0):
-                lastElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                lastElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                lastElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                lastElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                lastElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                lastElPredAv.append(predictions[index][item]*100)
-            yDataSortedLast.append(item)
-
+            if (item == 1):
+                if (len(predictionsKNN[index]) != 0):
+                    firstElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    firstElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    firstElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    firstElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    firstElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    firstElPredAv.append(predictions[index][item]*100)
+                yDataSortedFirst.append(item)
+            else:
+                if (len(predictionsKNN[index]) != 0):
+                    lastElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    lastElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    lastElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    lastElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    lastElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    lastElPredAv.append(predictions[index][item]*100)
+                yDataSortedLast.append(item)  
+    predictions = firstElPredAv + lastElPredAv
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR   
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    yDataSorted = yDataSortedFirst + yDataSortedLast
     if (storeClass0 > 169 and storeClass1 > 169):
         yDataSortedFirst = []
         yDataSortedLast = []    
-        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB)
-        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB)
+        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB,3)
+        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB,4)
         for item in lastElPredAv:
             yDataSortedFirst.append(0)
             yDataSortedLast.append(0)
 
-    predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
-    predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
-    predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
-    predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
-    predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
-    predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
-    yDataSorted = yDataSortedFirst + yDataSortedLast
+        predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
+        predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
+        predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
+        predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
+        predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
+        predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
+        yDataSorted = yDataSortedFirst + yDataSortedLast
     
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
@@ -4100,51 +4221,57 @@ def PreprocessingPredCMSecond():
     yDataSortedLast = []
 
     for index, item in enumerate(yData):
-        if (item == 0):
-            if (len(predictionsKNN[index]) != 0):
-                firstElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                firstElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                firstElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                firstElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                firstElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                firstElPredAv.append(predictions[index][item]*100)
-            yDataSortedFirst.append(item)
-        else:
-            if (len(predictionsKNN[index]) != 0):
-                lastElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                lastElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                lastElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                lastElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                lastElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                lastElPredAv.append(predictions[index][item]*100)
-            yDataSortedLast.append(item)
-
+            if (item == 1):
+                if (len(predictionsKNN[index]) != 0):
+                    firstElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    firstElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    firstElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    firstElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    firstElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    firstElPredAv.append(predictions[index][item]*100)
+                yDataSortedFirst.append(item)
+            else:
+                if (len(predictionsKNN[index]) != 0):
+                    lastElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    lastElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    lastElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    lastElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    lastElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    lastElPredAv.append(predictions[index][item]*100)
+                yDataSortedLast.append(item)  
+    predictions = firstElPredAv + lastElPredAv
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR   
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    yDataSorted = yDataSortedFirst + yDataSortedLast
     if (storeClass0 > 169 and storeClass1 > 169):
         yDataSortedFirst = []
         yDataSortedLast = []    
-        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB)
-        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB)
+        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB,3)
+        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB,4)
         for item in lastElPredAv:
             yDataSortedFirst.append(0)
             yDataSortedLast.append(0)
 
-    predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
-    predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
-    predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
-    predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
-    predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
-    predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
-    yDataSorted = yDataSortedFirst + yDataSortedLast
+        predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
+        predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
+        predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
+        predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
+        predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
+        predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
+        yDataSorted = yDataSortedFirst + yDataSortedLast
     
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
@@ -4723,7 +4850,6 @@ def PreprocessingPredSel(SelectedIDs):
 
     predictionsRF = []
     for column, content in dfRF.items():
-
         el = [sum(x)/len(x) for x in zip(*content)]
         predictionsRF.append(el)
 
@@ -4757,52 +4883,58 @@ def PreprocessingPredSel(SelectedIDs):
     yDataSortedLast = []
 
     for index, item in enumerate(yData):
-        if (item == 0):
-            if (len(predictionsKNN[index]) != 0):
-                firstElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                firstElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                firstElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                firstElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                firstElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                firstElPredAv.append(predictions[index][item]*100)
-            yDataSortedFirst.append(item)
-        else:
-            if (len(predictionsKNN[index]) != 0):
-                lastElKNN.append(predictionsKNN[index][item]*100)
-            if (len(predictionsLR[index]) != 0):
-                lastElLR.append(predictionsLR[index][item]*100)
-            if (len(predictionsMLP[index]) != 0):
-                lastElMLP.append(predictionsMLP[index][item]*100)
-            if (len(predictionsRF[index]) != 0):
-                lastElRF.append(predictionsRF[index][item]*100)
-            if (len(predictionsGradB[index]) != 0):
-                lastElGradB.append(predictionsGradB[index][item]*100)
-            if (len(predictions[index]) != 0):
-                lastElPredAv.append(predictions[index][item]*100)
-            yDataSortedLast.append(item)
-
+            if (item == 1):
+                if (len(predictionsKNN[index]) != 0):
+                    firstElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    firstElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    firstElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    firstElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    firstElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    firstElPredAv.append(predictions[index][item]*100)
+                yDataSortedFirst.append(item)
+            else:
+                if (len(predictionsKNN[index]) != 0):
+                    lastElKNN.append(predictionsKNN[index][item]*100)
+                if (len(predictionsLR[index]) != 0):
+                    lastElLR.append(predictionsLR[index][item]*100)
+                if (len(predictionsMLP[index]) != 0):
+                    lastElMLP.append(predictionsMLP[index][item]*100)
+                if (len(predictionsRF[index]) != 0):
+                    lastElRF.append(predictionsRF[index][item]*100)
+                if (len(predictionsGradB[index]) != 0):
+                    lastElGradB.append(predictionsGradB[index][item]*100)
+                if (len(predictions[index]) != 0):
+                    lastElPredAv.append(predictions[index][item]*100)
+                yDataSortedLast.append(item)  
+    predictions = firstElPredAv + lastElPredAv
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR   
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    yDataSorted = yDataSortedFirst + yDataSortedLast
     if (storeClass0 > 169 and storeClass1 > 169):
         yDataSortedFirst = []
         yDataSortedLast = []    
-        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB)
-        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB)
+        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB,3)
+        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB,4)
         for item in lastElPredAv:
             yDataSortedFirst.append(0)
             yDataSortedLast.append(0)
 
-    predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
-    predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
-    predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
-    predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
-    predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
-    predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
-    yDataSorted = yDataSortedFirst + yDataSortedLast
-    
+        predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
+        predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
+        predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
+        predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
+        predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
+        predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
+        yDataSorted = yDataSortedFirst + yDataSortedLast
+
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
@@ -4849,11 +4981,11 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
             else:
                 numberIDGradB.append(int(items[1]))
 
-    dicKNN = allParametersPerformancePerModel[3]
-    dicLR = allParametersPerformancePerModel[7]
-    dicMLP = allParametersPerformancePerModel[11]
-    dicRF = allParametersPerformancePerModel[15]
-    dicGradB = allParametersPerformancePerModel[19]
+    dicKNN = allParametersPerformancePerModelEnsem[3]
+    dicLR = allParametersPerformancePerModelEnsem[7]
+    dicMLP = allParametersPerformancePerModelEnsem[11]
+    dicRF = allParametersPerformancePerModelEnsem[15]
+    dicGradB = allParametersPerformancePerModelEnsem[19]
 
     dfKNN = pd.DataFrame.from_dict(dicKNN)
     dfLR = pd.DataFrame.from_dict(dicLR)
@@ -4924,7 +5056,7 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     yDataSortedLast = []
 
     for index, item in enumerate(yData):
-        if (item == 0):
+        if (item == 1):
             if (len(predictionsKNN[index]) != 0):
                 firstElKNN.append(predictionsKNN[index][item]*100)
             if (len(predictionsLR[index]) != 0):
@@ -4951,24 +5083,31 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
                 lastElGradB.append(predictionsGradB[index][item]*100)
             if (len(predictions[index]) != 0):
                 lastElPredAv.append(predictions[index][item]*100)
-            yDataSortedLast.append(item)
+            yDataSortedLast.append(item)  
+    predictions = firstElPredAv + lastElPredAv
+    predictionsKNN = firstElKNN + lastElKNN
+    predictionsLR = firstElLR + lastElLR   
+    predictionsMLP = firstElMLP + lastElMLP
+    predictionsRF = firstElRF + lastElRF
+    predictionsGradB = firstElGradB + lastElGradB
+    yDataSorted = yDataSortedFirst + yDataSortedLast
 
     if (storeClass0 > 169 and storeClass1 > 169):
         yDataSortedFirst = []
         yDataSortedLast = []    
-        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB)
-        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB)
+        ResultsGatheredFirst = computeClusters(firstElPredAv,firstElKNN,firstElLR,firstElMLP,firstElRF,firstElGradB,3)
+        ResultsGatheredLast = computeClusters(lastElPredAv,lastElKNN,lastElLR,lastElMLP,lastElRF,lastElGradB,4)
         for item in lastElPredAv:
             yDataSortedFirst.append(0)
             yDataSortedLast.append(0)
 
-    predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
-    predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
-    predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
-    predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
-    predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
-    predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
-    yDataSorted = yDataSortedFirst + yDataSortedLast
+        predictions = ResultsGatheredFirst[0] + ResultsGatheredLast[0]
+        predictionsKNN = ResultsGatheredFirst[1] + ResultsGatheredLast[1]
+        predictionsLR = ResultsGatheredFirst[2] + ResultsGatheredLast[2]        
+        predictionsMLP = ResultsGatheredFirst[3] + ResultsGatheredLast[3]
+        predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
+        predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
+        yDataSorted = yDataSortedFirst + yDataSortedLast
     
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 

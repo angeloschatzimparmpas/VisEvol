@@ -706,6 +706,8 @@ export default Vue.extend({
       axios.post(path, postData, axiosConfig)
       .then(response => {
         console.log('File name was sent successfully!')
+        this.CMNumberofModelsOFFICIAL = [0,0,0,0,0,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0],
+        this.CMNumberofModelsOFFICIALS2 = [0,0,0,0,0,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0],
         this.SendAlgorithmsToServer()
       })
       .catch(error => {

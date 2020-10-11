@@ -26,7 +26,8 @@ export default {
       StoreIndices: [],
       classesNumber: 9,
       InfoPred: [],
-      flag: false
+      flag: false,
+      RetrieveValueFi: 'biodegC' // default file name
     }
   },
   methods: {
@@ -67,18 +68,22 @@ export default {
       }
       else {
         var tempFirst = []
-        for (let i = 0; i < 169; i++) {
+        for (let i = 0; i < 100; i++) {
           tempFirst.push(i)
         }
         var tempLast = []
-        for (let i = 169; i < 338; i++) {
+        for (let i = 100; i < 200; i++) {
           tempLast.push(i)
         }
         getIndices.push(tempFirst)
         getIndices.push(tempLast)
       }
-      getIndices.reverse()
-      console.log(getIndices)
+
+      if (this.RetrieveValueFi == "heartC") {
+        getIndices.reverse()
+      }
+
+
       var predictions = JSON.parse(this.GetResultsAll[12])
       var KNNPred = predictions[0]
       var LRPred = predictions[1]
@@ -156,25 +161,24 @@ export default {
         dataRFResults.push(dataRF)
         dataGradBResults.push(dataGradB)
       }
-    dataAverGetResults.reverse()
-    dataKNNResults.reverse()
-    dataLRResults.reverse()
-    dataMLPResults.reverse()
-    dataRFResults.reverse()
-    dataGradBResults.reverse()
-    console.log(dataAverGetResults)
-    console.log(dataKNNResults)
+    // dataAverGetResults.reverse()
+    // dataKNNResults.reverse()
+    // dataLRResults.reverse()
+    // dataMLPResults.reverse()
+    // dataRFResults.reverse()
+    // dataGradBResults.reverse()
+
     var classArray = []
     this.StoreIndices = []
     for (let i = 0; i < dataAverGetResults.length; i++) {
-      dataAverGetResults[i].sort((a, b) => (a.value > b.value) ? 1 : -1)
+      dataAverGetResults[i].sort((a, b) => (a.value > b.value) ? -1 : 1)
       var len = dataAverGetResults[i].length
       var indices = new Array(len)
       for (let j = 0; j < len; j++) {
         indices[j] = dataAverGetResults[i][j].id;
       }
       this.StoreIndices.push(indices)
-      console.log(indices)
+
       dataKNNResults[i].sort(function(a, b){
         return indices.indexOf(a.id) - indices.indexOf(b.id)
       });
@@ -197,7 +201,7 @@ export default {
 
       classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i],dataMLPResults[i],dataRFResults[i],dataGradBResults[i]));
     }
-    console.log(classArray)
+
     var classStore = [].concat.apply([], classArray);
 		// === Set up canvas === //
 
@@ -236,7 +240,7 @@ export default {
 
 		function databind(data, size, sqrtSize) {
 
-			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([100, 0])
+			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 100])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -352,17 +356,20 @@ export default {
       }
       else {
         var tempFirst = []
-        for (let i = 0; i < 169; i++) {
+        for (let i = 0; i < 100; i++) {
           tempFirst.push(i)
         }
         var tempLast = []
-        for (let i = 169; i < 338; i++) {
+        for (let i = 100; i < 200; i++) {
           tempLast.push(i)
         }
         getIndices.push(tempFirst)
         getIndices.push(tempLast)
       }
-      getIndices.reverse()
+      
+      if (this.RetrieveValueFi == "heartC") {
+        getIndices.reverse()
+      }
 
       var dataAver = []
       var dataAverGetResults = []
@@ -387,6 +394,7 @@ export default {
         dataMLP = []
         dataRF = []
         dataGradB = []
+
         getIndices[targetNames[i]].forEach(element => {
           if (PredAver.length == 0) {
             dataAver.push({ id: -1, value: 0 })
@@ -401,6 +409,7 @@ export default {
           if (LRPred.length == 0) {
             dataLR.push({ id: -1, value: 0 })
           } else {
+ 
             dataLR.push({ id: element, value: LRPred[element] - LRPredAll[element] })
           }
           if (MLPPred.length == 0) {
@@ -435,12 +444,6 @@ export default {
         dataRFResults.push(dataRF)
         dataGradBResults.push(dataGradB)
       }
-    dataAverGetResults.reverse()
-    dataKNNResults.reverse()
-    dataLRResults.reverse()
-    dataMLPResults.reverse()
-    dataRFResults.reverse()
-    dataGradBResults.reverse()
 
     var classArray = []
 
@@ -473,7 +476,7 @@ export default {
 
       classArray.push(dataAverGetResults[i].concat(dataKNNResults[i], dataLRResults[i], dataMLPResults[i], dataRFResults[i], dataGradBResults[i]));
     }
-    
+
     var classStore = [].concat.apply([], classArray);
 
 		// === Set up canvas === //
@@ -693,6 +696,7 @@ export default {
   },
   },
   mounted () {
+      EventBus.$on('SendToServerDataSetConfirmation', data => { this.RetrieveValueFi = data })
       EventBus.$on('ON', data => {this.flag = data})
 
       EventBus.$on('emittedEventCallingInfo', data => { this.InfoPred = data })
