@@ -104,6 +104,7 @@ export default {
                 activeLines.push('meanSelection')
             }
         } else {
+
             var valid = JSON.parse(this.ResultsValid[3])
 
             var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsemble)
@@ -139,8 +140,8 @@ export default {
                         }
                         if (this.selectedEnsem.length != 0) {
                             if (this.selectedEnsem.includes(mergedStoreEnsembleLoc[i])) {
-                                sumGlobalSel[j] = sumGlobalSel[j] + tempValid[i]
-                                countValuesSel[j] = countValuesSel[j] + 1
+                                sumGlobalSel[j-measure] = sumGlobalSel[j-measure] + tempValid[i]
+                                countValuesSel[j-measure] = countValuesSel[j-measure] + 1
                             }
                         }
                     }

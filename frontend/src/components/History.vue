@@ -23,6 +23,7 @@ export default {
       PerFCM: [],
       storedEnsem: [],
       storedCM: [],
+      previouslyIDs: [],
       percentageOverall: [],
       values: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       valuesStage2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
@@ -39,16 +40,85 @@ export default {
       svgLeg.selectAll("*").remove();
     },
     computePerformanceDiffS () {
-      var colorsforScatterPlot = this.PerF
-      var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
-      var mergedStoreEnsembleLocFormatted = []
-      for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
-        mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
+
+      var max = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      var min = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      var tempDataKNNC = []
+      var tempDataLRC = []
+      var tempDataMLPC = []
+      var tempDataRFC = []
+      var tempDataGradBC = []
+      var tempDataKNNM = []
+      var tempDataLRM = []
+      var tempDataMLPM = []
+      var tempDataRFM = []
+      var tempDataGradBM = []
+      var splitData = []
+      console.log(this.previouslyIDs)
+      for (let i = 0; i < this.previouslyIDs.length; i++) {
+        let tempSplit = this.previouslyIDs[i].split(/([0-9]+)/)
+        if (tempSplit[0] == 'KNNC') {
+          tempDataKNNC.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'LRC') {
+          tempDataLRC.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'MLPC') {
+          tempDataMLPC.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'RFC') {
+          tempDataRFC.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'GradBC') {
+          tempDataGradBC.push(this.previouslyIDs[i])
+        } else if (tempSplit[0] == 'KNNM') {
+          tempDataKNNM.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'LRM') {
+          tempDataLRM.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'MLPM') {
+          tempDataMLPM.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'RFM') {
+          tempDataRFM.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'GradBM') {
+          tempDataGradBM.push(this.previouslyIDs[i])
+        }
+        else {
+        }
       }
-      
-      colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
-      var max = Math.max.apply(Math, colorsforScatterPlot)
-      var min = Math.min.apply(Math, colorsforScatterPlot)
+      splitData.push(tempDataKNNC)
+      splitData.push(tempDataLRC)
+      splitData.push(tempDataMLPC)
+      splitData.push(tempDataRFC)
+      splitData.push(tempDataGradBC)
+      splitData.push(tempDataKNNM)
+      splitData.push(tempDataLRM)
+      splitData.push(tempDataMLPM)
+      splitData.push(tempDataRFM)
+      splitData.push(tempDataGradBM)
+
+      for (let i = 0; i < splitData.length; i++) {
+        var colorsforScatterPlot = this.PerF
+        if (splitData[i].length != 0) {
+          var mergedStoreEnsembleLoc = [].concat.apply([], splitData[i])
+          var mergedStoreEnsembleLocFormatted = []
+          for (let j = 0; j < mergedStoreEnsembleLoc.length; j++) {
+            mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[j].replace(/\D/g,'')))
+          }
+
+        colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
+
+        max[i] = Math.max.apply(Math, colorsforScatterPlot)
+        min[i] = Math.min.apply(Math, colorsforScatterPlot)
+        }
+        
+      } 
+
+      console.log(max)
+      console.log(min)
 
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -57,199 +127,200 @@ export default {
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
 
         if (tempSplit[0] == 'KNNCC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[0]) {
             countMax[0] = countMax[0] + 1
-          } else if (this.PerFCM[i] < min) {
+          } else if (this.PerFCM[i] < min[0]) {
             countMin[0] = countMin[0] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'KNNCM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[0]) {
             countMax[1] = countMax[1] + 1
-          } else if (this.PerFCM[i] < min) {
+          } else if (this.PerFCM[i] < min[0]) {
             countMin[1] = countMin[1] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'LRCC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[1]) {
             countMax[2] = countMax[2] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[1]) {
             countMin[2] = countMin[2] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'LRCM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[1]) {
             countMax[3] = countMax[3] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[1]) {
             countMin[3] = countMin[3] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'MLPCC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[2]) {
             countMax[4] = countMax[4] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[2]) {
             countMin[4] = countMin[4] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'MLPCM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[2]) {
             countMax[5] = countMax[5] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[2]) {
             countMin[5] = countMin[5] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'RFCC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[3]) {
             countMax[6] = countMax[6] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[3]) {
             countMin[6] = countMin[6] + 1
           }
         }
         else if (tempSplit[0] == 'RFCM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[3]) {
             countMax[7] = countMax[7] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[3]) {
             countMin[7] = countMin[7] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'GradBCC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[4]) {
             countMax[8] = countMax[8] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[4]) {
             countMin[8] = countMin[8] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'GradBCM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[4]) {
             countMax[9] = countMax[9] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[4]) {
             countMin[9] = countMin[9] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'KNNMC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[5]) {
             countMax[10] = countMax[10] + 1
-          } else if (this.PerFCM[i] < min) {
+          } else if (this.PerFCM[i] < min[5]) {
             countMin[10] = countMin[10] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'KNNMM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[5]) {
             countMax[11] = countMax[11] + 1
-          } else if (this.PerFCM[i] < min) {
+          } else if (this.PerFCM[i] < min[5]) {
             countMin[11] = countMin[11] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'LRMC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[6]) {
             countMax[12] = countMax[12] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[6]) {
             countMin[12] = countMin[12] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'LRMM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[6]) {
             countMax[13] = countMax[13] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[6]) {
             countMin[13] = countMin[13] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'MLPMC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[7]) {
             countMax[14] = countMax[14] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[7]) {
             countMin[14] = countMin[14] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'MLPMM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[7]) {
             countMax[15] = countMax[15] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[7]) {
             countMin[15] = countMin[15] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'RFMC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[8]) {
             countMax[16] = countMax[16] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[8]) {
             countMin[16] = countMin[16] + 1
           }
         }
         else if (tempSplit[0] == 'RFMM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[8]) {
             countMax[17] = countMax[17] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[8]) {
             countMin[17] = countMin[17] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'GradBMC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[9]) {
             countMax[18] = countMax[18] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[9]) {
             countMin[18] = countMin[18] + 1
           } else {
             continue
           }
         }
         else {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[9]) {
             countMax[19] = countMax[19] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[9]) {
             countMin[19] = countMin[19] + 1
           } else {
             continue
           }
         }
       }
-
+      console.log(countMax)
+      console.log(countMin)
       // var percentage = []
       // for (let j = 0; j < countMax.length; j++) {
       //   if (j >= 15) {
@@ -279,8 +350,7 @@ export default {
       //   }
       // }
 //CORRECT
-console.log(countMax)
-console.log(countMin)
+
       var percentage = []
       for (let j = 0; j < countMax.length; j++) {
         if (j >= 15) {
@@ -314,7 +384,7 @@ console.log(countMin)
     },
     SankeyViewStage3 () {
       var valuesLoc = this.valuesStage2
-      console.log(valuesLoc)
+
       var localStep = 2
       var numberofModels = 6
       var units = "Models";
@@ -440,9 +510,9 @@ console.log(countMin)
       var colorDiff
       colorDiff = d3v5.scaleSequential(d3v5.interpolatePRGn).domain([-100, 100])
       var percentage = this.percentageOverall
-      console.log(percentage)
+
       var previousPercentage = this.storePreviousPercentage
-      console.log(previousPercentage)
+
       // add in the links
         var link = svg.append("g").selectAll(".link")
             .data(graph.links)
@@ -630,19 +700,60 @@ console.log(countMin)
 
     },
     computePerformanceDiff () {
-      var colorsforScatterPlot = this.PerF
 
-      var mergedStoreEnsembleLoc = [].concat.apply([], this.storedEnsem)
-      var mergedStoreEnsembleLocFormatted = []
-      for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
-        mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
+      var max = [0, 0, 0, 0, 0]
+      var min = [0, 0, 0, 0, 0]
+      var tempDataKNN = []
+      var tempDataLR = []
+      var tempDataMLP = []
+      var tempDataRF = []
+      var tempDataGradB = []
+      var splitData = []
+
+      for (let i = 0; i < this.previouslyIDs.length; i++) {
+        let tempSplit = this.previouslyIDs[i].split(/([0-9]+)/)
+        if (tempSplit[0] == 'KNN') {
+          tempDataKNN.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'LR') {
+          tempDataLR.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'MLP') {
+          tempDataMLP.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'RF') {
+          tempDataRF.push(this.previouslyIDs[i])
+        }
+        else if (tempSplit[0] == 'GradB') {
+          tempDataGradB.push(this.previouslyIDs[i])
+        }
+        else {
+        }
       }
-      
-      colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
+      splitData.push(tempDataKNN)
+      splitData.push(tempDataLR)
+      splitData.push(tempDataMLP)
+      splitData.push(tempDataRF)
+      splitData.push(tempDataGradB)
 
-      var max = Math.max.apply(Math, colorsforScatterPlot)
-      var min = Math.min.apply(Math, colorsforScatterPlot)
+      for (let i = 0; i < splitData.length; i++) {
+        var colorsforScatterPlot = this.PerF
+        if (splitData[i].length != 0) {
+          var mergedStoreEnsembleLoc = [].concat.apply([], splitData[i])
+          var mergedStoreEnsembleLocFormatted = []
+          for (let j = 0; j < mergedStoreEnsembleLoc.length; j++) {
+            mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[j].replace(/\D/g,'')))
+          }
 
+        colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
+
+        max[i] = Math.max.apply(Math, colorsforScatterPlot)
+        min[i] = Math.min.apply(Math, colorsforScatterPlot)
+        }
+        
+      } 
+      console.log(max)
+      console.log(min)
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
@@ -650,104 +761,104 @@ console.log(countMin)
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
 
         if (tempSplit[0] == 'KNNC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[0]) {
             countMax[0] = countMax[0] + 1
-          } else if (this.PerFCM[i] < min) {
+          } else if (this.PerFCM[i] < min[0]) {
             countMin[0] = countMin[0] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'KNNM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[0]) {
             countMax[1] = countMax[1] + 1
-          } else if (this.PerFCM[i] < min) {
+          } else if (this.PerFCM[i] < min[0]) {
             countMin[1] = countMin[1] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'LRC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[1]) {
             countMax[2] = countMax[2] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[1]) {
             countMin[2] = countMin[2] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'LRM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[1]) {
             countMax[3] = countMax[3] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[1]) {
             countMin[3] = countMin[3] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'MLPC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[2]) {
             countMax[4] = countMax[4] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[2]) {
             countMin[4] = countMin[4] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'MLPM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[2]) {
             countMax[5] = countMax[5] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[2]) {
             countMin[5] = countMin[5] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'RFC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[3]) {
             countMax[6] = countMax[6] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[3]) {
             countMin[6] = countMin[6] + 1
           }
         }
         else if (tempSplit[0] == 'RFM') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[3]) {
             countMax[7] = countMax[7] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[3]) {
             countMin[7] = countMin[7] + 1
           } else {
             continue
           }
         }
         else if (tempSplit[0] == 'GradBC') {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[4]) {
             countMax[8] = countMax[8] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[4]) {
             countMin[8] = countMin[8] + 1
           } else {
             continue
           }
         }
         else {
-          if (this.PerFCM[i] > max) {
+          if (this.PerFCM[i] > max[4]) {
             countMax[9] = countMax[9] + 1
           }
-          else if (this.PerFCM[i] < min) {
+          else if (this.PerFCM[i] < min[4]) {
             countMin[9] = countMin[9] + 1
           } else {
             continue
           }
         }
       }
-console.log(countMax)
-console.log(countMin)
+      console.log(countMax)
+      console.log(countMin)
       // var percentage = []
       // for (let j = 0; j < countMax.length; j++) {
       //   if (j >= 5) {
@@ -1357,6 +1468,10 @@ console.log(countMin)
   mounted() {
     //EventBus.$on('emittedEventCallingSankeyLegend', this.LegendStable)
 
+    EventBus.$on('updateRandomS', data => { this.RandomSearLoc = data })
+    EventBus.$on('updateStage1', data => { this.values = data })
+    EventBus.$on('updateStage2', data => { this.valuesStage2 = data })
+
     EventBus.$on('emittedEventCallingSankeyStage2', this.SankeyViewStage2)
     EventBus.$on('emittedEventCallingSankeyStage3', this.SankeyViewStage3)
 
@@ -1374,6 +1489,8 @@ console.log(countMin)
     this.WH = data})
     EventBus.$on('ResponsiveandChange', data => {
     this.WH = data})
+
+    EventBus.$on('SendModelsAll', data => { this.previouslyIDs = data })
 
     EventBus.$on('SendPerformance', data => {
     this.PerF = data})

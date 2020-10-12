@@ -40,7 +40,7 @@
     <b-row class="md-3">
         <b-col cols="6">
           <mdb-card style="margin-top: 15px;">
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Solution Space of Hyper-Parameters
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Space
               [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
             </mdb-card-header>
             <mdb-card-body>
@@ -88,7 +88,7 @@
         </b-col>
         <b-col cols="3">
           <mdb-card style="margin-top: 15px;">
-            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="calculator" /></span>Predictive Results for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center"><span class="float-left"><font-awesome-icon icon="calculator" /></span>Performance for Majority-Voting Ensemble<span class="badge badge-primary badge-pill float-right">Active<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">2</span></span>
               </mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-center"  style="min-height: 270px">   
@@ -311,12 +311,13 @@ export default Vue.extend({
             this.firstTimeExec = false
             EventBus.$emit('callAlgorithhms')
             this.Status = " (S) Stage 1"
-          } else {   
+          } else {
+            var IDsPreviously = JSON.parse(this.OverviewResults[16])   
             var Performance = JSON.parse(this.OverviewResults[1])
-            console.log(this.storeEnsemblePermanently)
+            EventBus.$emit('SendModelsAll', IDsPreviously)
+            EventBus.$emit('SendPerformance', Performance)
             EventBus.$emit('SendStoredEnsembleHist', this.storeEnsemblePermanently)
             EventBus.$emit('SendStoredEnsemble', this.storeEnsemblePermanently)
-            EventBus.$emit('SendPerformance', Performance)
             EventBus.$emit('emittedEventCallingCrossoverMutation', this.OverviewResults)
             this.PredictSelEnsem = []
             this.storeBothEnsCM[1] = this.OverviewResults
@@ -706,8 +707,11 @@ export default Vue.extend({
       axios.post(path, postData, axiosConfig)
       .then(response => {
         console.log('File name was sent successfully!')
-        this.CMNumberofModelsOFFICIAL = [0,0,0,0,0,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0],
-        this.CMNumberofModelsOFFICIALS2 = [0,0,0,0,0,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0],
+        this.CMNumberofModelsOFFICIAL = [0,0,0,0,0,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0]
+        this.CMNumberofModelsOFFICIALS2 = [0,0,0,0,0,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,this.RandomSear/2,0,Math.floor(this.RandomSear/4),this.RandomSear/4,Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),0,Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),0,Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),0,Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),Math.floor(this.RandomSear/4),0]
+        EventBus.$emit('updateRandomS', this.RandomSear)
+        EventBus.$emit('updateStage1', this.CMNumberofModelsOFFICIAL)
+        EventBus.$emit('updateStage2', this.CMNumberofModelsOFFICIALS2)
         this.SendAlgorithmsToServer()
       })
       .catch(error => {
@@ -923,7 +927,7 @@ export default Vue.extend({
         this.storeEnsemblePermanently.push(this.storeEnsemble[i])
       }
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsemblePermanently)
-      console.log(mergedStoreEnsembleLoc)
+
       if (this.CurrentStage == 1) {
         var postData = {
           RemainingPoints: this.unselectedRemainingPoints,

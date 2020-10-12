@@ -64,7 +64,6 @@ export default {
           }
           getIndices.push(clTemp)
         }
-
       }
       else {
         var tempFirst = []
@@ -78,11 +77,9 @@ export default {
         getIndices.push(tempFirst)
         getIndices.push(tempLast)
       }
-
       if (this.RetrieveValueFi == "heartC") {
         getIndices.reverse()
       }
-
 
       var predictions = JSON.parse(this.GetResultsAll[12])
       var KNNPred = predictions[0]
@@ -227,8 +224,13 @@ export default {
 		var cellSpacing = 2;
     var cellSize = 4
 
+    if (!this.flag) {
+      var lengthOverall = classStore.length
+    } else {
+      var lengthOverall = 2028
+    }
 		// === First call === //
-		databind(classStore, size, sqrtSize); // ...then update the databind function
+		databind(classStore, size, sqrtSize, lengthOverall); // ...then update the databind function
 
 		var t = d3.timer(function(elapsed) {
 			draw();
@@ -238,7 +240,7 @@ export default {
 
 		// === Bind and draw functions === //
 
-		function databind(data, size, sqrtSize) {
+		function databind(data, size, sqrtSize, lengthOverallLocal) {
 
 			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 100])
 
@@ -253,7 +255,7 @@ export default {
 	        return groupSpacing * x0 + (cellSpacing + cellSize) * (x1 + x0 * 10);
 	      })
 	      .attr('y', function(d, i) {
-	        var y0 = Math.floor(i / 2028), y1 = Math.floor(i % size / sqrtSize);
+	        var y0 = Math.floor(i / lengthOverallLocal), y1 = Math.floor(i % size / sqrtSize);
 	        return groupSpacing * y0 + (cellSpacing + cellSize) * (y1 + y0 * 10);
 	      })
 				.attr('width', 0)
@@ -503,8 +505,14 @@ export default {
 		var cellSpacing = 2;
     var cellSize = 4
 
+    if (!this.flag) {
+      var lengthOverall = classStore.length
+    } else {
+      var lengthOverall = 2028
+    }
+
 		// === First call === //
-		databind(classStore, size, sqrtSize); // ...then update the databind function
+		databind(classStore, size, sqrtSize, lengthOverall); // ...then update the databind function
 		
 		var t = d3.timer(function(elapsed) {
 			draw();
@@ -514,7 +522,7 @@ export default {
 
 		// === Bind and draw functions === //
 
-		function databind(data, size, sqrtSize) {
+		function databind(data, size, sqrtSize, lengthOverallLocal) {
 
 			colourScale = d3.scaleSequential(d3.interpolatePRGn).domain([-100, 100])
 
@@ -529,7 +537,7 @@ export default {
 	        return groupSpacing * x0 + (cellSpacing + cellSize) * (x1 + x0 * 10);
 	      })
 	      .attr('y', function(d, i) {
-	        var y0 = Math.floor(i / 2028), y1 = Math.floor(i % size / sqrtSize);
+	        var y0 = Math.floor(i / lengthOverallLocal), y1 = Math.floor(i % size / sqrtSize);
 	        return groupSpacing * y0 + (cellSpacing + cellSize) * (y1 + y0 * 10);
 	      })
 				.attr('width', 0)

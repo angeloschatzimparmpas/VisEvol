@@ -328,6 +328,7 @@ export default {
                 pushModelsRemainingTempCM.push(allModels[i])
               }
             }
+            console.log(ClassifierIDsListCM)
               EventBus.$emit('RemainingPointsCM', pushModelsRemainingTempCM)
               EventBus.$emit('callValidationData', ResultsAll)
               EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', ClassifierIDsListCM)

@@ -333,6 +333,18 @@ def retrieveFileName():
     global addGradB
     addGradB = addRF+randomSearchVar
 
+    global KNNModelsCount
+    global LRModelsCount
+    global MLPModelsCount
+    global RFModelsCount
+    global GradBModelsCount
+
+    KNNModelsCount = 0
+    LRModelsCount = KNNModelsCount+randomSearchVar
+    MLPModelsCount = LRModelsCount+randomSearchVar
+    RFModelsCount = MLPModelsCount+randomSearchVar
+    GradBModelsCount = RFModelsCount+randomSearchVar
+
     # Initializing models
 
     global RetrieveModelsList
@@ -397,6 +409,7 @@ def retrieveFileName():
     
     global fileInput
     fileInput = data['fileName']
+
 
     DataRawLength = -1
     DataRawLengthTest = -1
@@ -983,7 +996,6 @@ def PreprocessingPred():
         predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
-
     return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
 
 def computeClusters(dataLocal,one,two,three,four,five,flagLocal):
@@ -1813,12 +1825,10 @@ def EnsembleModel (Models, keyRetrieved):
         sclf.fit(XData, yData)
         y_pred = sclf.predict(XDataTest)
         print('Test data set')
-        print(accuracy_score(yDataTest, y_pred))
         print(classification_report(yDataTest, y_pred))
 
         y_pred = sclf.predict(XDataExternal)
         print('External data set')
-        print(accuracy_score(yDataExternal, y_pred))
         print(classification_report(yDataExternal, y_pred))
 
     return 'Okay'
@@ -1867,6 +1877,8 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumP
     XDataJSONEntireSet = XData.to_json(orient='records')
     XDataColumns = XData.columns.tolist()
 
+    ModelsIDsPreviously = PreprocessingIDs()
+
     Results.append(json.dumps(ModelsIDs))
     Results.append(json.dumps(sumPerClassifier))
     Results.append(json.dumps(parametersGenPD))
@@ -1883,6 +1895,7 @@ def returnResults(ModelSpaceMDS,ModelSpaceTSNE,ModelSpaceUMAP,parametersGen,sumP
     Results.append(json.dumps(names_labels))
     Results.append(json.dumps(yDataSorted))
     Results.append(json.dumps(mode))
+    Results.append(json.dumps(ModelsIDsPreviously))
 
     return Results
 
