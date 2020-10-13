@@ -1927,7 +1927,7 @@ def CrossoverMutateFun():
     EnsembleActive = json.loads(EnsembleActive)
 
     EnsembleActive = EnsembleActive['StoreEnsemble']
-    print(EnsembleActive)
+
     setMaxLoopValue = request.get_data().decode('utf8').replace("'", '"')
     setMaxLoopValue = json.loads(setMaxLoopValue)
 
@@ -1937,7 +1937,6 @@ def CrossoverMutateFun():
     CurStage = json.loads(CurStage)
 
     CurStage = CurStage['Stage']
-    print(CurStage)
     if (CurStage == 1):
         InitializeFirstStageCM(RemainingIds, setMaxLoopValue)
     elif (CurStage == 2):
@@ -1948,7 +1947,7 @@ def CrossoverMutateFun():
 
 def RemoveSelected(RemainingIds):
     global allParametersPerfCrossMutr
-    print(RemainingIds)
+
     for loop in range(20): 
         indexes = []
         for i, val in enumerate(allParametersPerfCrossMutr[loop*4]): 
@@ -2976,6 +2975,14 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNCC[3]], ignore_index=True)
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNCM[3]], ignore_index=True)
     
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNMM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNMM[3]], ignore_index=True)
+
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRCC[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRCM[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRCC[2]], ignore_index=True)
@@ -2983,6 +2990,14 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRCC[3]], ignore_index=True)
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRCM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRMC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRMM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRMC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRMM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRMC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRMM[3]], ignore_index=True)
     
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPCC[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPCM[1]], ignore_index=True)
@@ -2992,39 +3007,6 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPCC[3]], ignore_index=True)
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPCM[3]], ignore_index=True)
 
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFCC[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFCM[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFCC[2]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFCM[2]], ignore_index=True)
-    
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFCC[3]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFCM[3]], ignore_index=True)
-
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBCC[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBCM[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBCC[2]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBCM[2]], ignore_index=True)
-
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBCC[3]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBCM[3]], ignore_index=True)
-    
-    # MUTATION
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNMC[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrKNNMM[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNMC[2]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrKNNMM[2]], ignore_index=True)
-
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNMC[3]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrKNNMM[3]], ignore_index=True)
-    
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRMC[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrLRMM[1]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRMC[2]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrLRMM[2]], ignore_index=True)
-    
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRMC[3]], ignore_index=True)
-    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrLRMM[3]], ignore_index=True)
-    
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPMC[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrMLPMM[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrMLPMC[2]], ignore_index=True)
@@ -3033,6 +3015,14 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPMC[3]], ignore_index=True)
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrMLPMM[3]], ignore_index=True)
 
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFCM[2]], ignore_index=True)
+    
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFCM[3]], ignore_index=True)
+
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFMC[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrRFMM[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrRFMC[2]], ignore_index=True)
@@ -3040,6 +3030,14 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFMC[3]], ignore_index=True)
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrRFMM[3]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBCC[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBCM[1]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBCC[2]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[18] = pd.concat([allParametersPerformancePerModelEnsem[18], allParametersPerfCrossMutrGradBCM[2]], ignore_index=True)
+
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBCC[3]], ignore_index=True)
+    allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBCM[3]], ignore_index=True)
 
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBMC[1]], ignore_index=True)
     allParametersPerformancePerModelEnsem[17] = pd.concat([allParametersPerformancePerModelEnsem[17], allParametersPerfCrossMutrGradBMM[1]], ignore_index=True)

@@ -78,6 +78,7 @@ export default {
       var TSNEData = JSON.parse(this.ScatterPlotResults[10])
       var UMAPData = JSON.parse(this.ScatterPlotResults[11])
       var mergedStoreEnsembleLoc = [].concat.apply([], this.storeEnsembleLoc)
+
       var mergedStoreEnsembleLocFormatted = []
       for (let i = 0; i < mergedStoreEnsembleLoc.length; i++) {
         mergedStoreEnsembleLocFormatted.push(parseInt(mergedStoreEnsembleLoc[i].replace(/\D/g,'')))
@@ -328,7 +329,7 @@ export default {
                 pushModelsRemainingTempCM.push(allModels[i])
               }
             }
-            console.log(ClassifierIDsListCM)
+
               EventBus.$emit('RemainingPointsCM', pushModelsRemainingTempCM)
               EventBus.$emit('callValidationData', ResultsAll)
               EventBus.$emit('SendSelectedPointsUpdateIndicatorCM', ClassifierIDsListCM)
