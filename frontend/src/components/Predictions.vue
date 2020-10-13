@@ -3,7 +3,17 @@
     <div id="containerAll"></div>
     <div id="containerSelection"></div>
     <div id="LegendMain"></div>
-    <div id="LegendHeat"></div>
+    <b-row>
+      <b-col cols="2">
+        <div id="HistClass0" style = "margin-top: 42px"></div>
+      </b-col>
+      <b-col cols="8">
+        <div id="LegendHeat"></div>
+      </b-col>
+      <b-col cols="2" style="margin-left: -120px !important">
+        <div id="HistClass1" style = "margin-top: 42px"></div>
+      </b-col>
+    </b-row>
   </div>
 </template>
 
@@ -11,9 +21,10 @@
 import * as d3Base from 'd3'
 import { EventBus } from '../main.js'
 import * as colorbr from 'colorbrewer'
+import * as Plotly from 'plotly.js'
 
 // attach all d3 plugins to the d3 library
-const d3 = Object.assign(d3Base)
+const d3v5 = Object.assign(d3Base)
 const colorbrewer = Object.assign(colorbr)
 
 export default {
@@ -27,19 +38,23 @@ export default {
       classesNumber: 9,
       InfoPred: [],
       flag: false,
+      classOver0: [],
+      classOver1: [],
       RetrieveValueFi: 'biodegC' // default file name
     }
   },
   methods: {
     reset () {
-      var svg = d3.select("#containerAll");
+      var svg = d3v5.select("#containerAll");
       svg.selectAll("*").remove();
-      var svg = d3.select("#containerSelection");
+      var svg = d3v5.select("#containerSelection");
       svg.selectAll("*").remove();
-      var svgLegG = d3.select("#LegendMain");
+      var svgLegG = d3v5.select("#LegendMain");
       svgLegG.selectAll("*").remove();
-      var svgLeg = d3.select("#LegendHeat");
+      var svgLeg = d3v5.select("#LegendHeat");
       svgLeg.selectAll("*").remove();
+      Plotly.purge('HistClass0')
+      Plotly.purge('HistClass1')
       this.GetResultsAll = []
       this.predictSelection = []
       this.StoreIndices = []
@@ -47,15 +62,23 @@ export default {
     },
     Grid () {
 
-      var svg = d3.select("#containerAll");
+      var svg = d3v5.select("#containerAll");
       svg.selectAll("*").remove();
 
       var yValues = JSON.parse(this.GetResultsAll[14])
 
       var targetNames = JSON.parse(this.GetResultsAll[7])
       var getIndices = []
-      if (!this.flag) {
 
+      var predictions = JSON.parse(this.GetResultsAll[12])
+      var KNNPred = predictions[0]
+      var LRPred = predictions[1]
+      var MLPPred = predictions[2]
+      var RFPred = predictions[3]
+      var GradBPred = predictions[4]
+      var PredAver = predictions[5]
+
+      if (!this.flag) {
         for (let i = 0; i < targetNames.length; i++) {
           let clTemp = []
           let j = -1
@@ -64,6 +87,8 @@ export default {
           }
           getIndices.push(clTemp)
         }
+        var Class0 = []
+        var Class1 = []
       }
       else {
         var tempFirst = []
@@ -76,18 +101,13 @@ export default {
         }
         getIndices.push(tempFirst)
         getIndices.push(tempLast)
+        this.classOver0 = predictions[6]
+        this.classOver1 = predictions[7]
       }
       if (this.RetrieveValueFi == "heartC") {
         getIndices.reverse()
       }
 
-      var predictions = JSON.parse(this.GetResultsAll[12])
-      var KNNPred = predictions[0]
-      var LRPred = predictions[1]
-      var MLPPred = predictions[2]
-      var RFPred = predictions[3]
-      var GradBPred = predictions[4]
-      var PredAver = predictions[5]
       var dataAver = []
       var dataAverGetResults = []
       var dataKNN = []
@@ -207,7 +227,7 @@ export default {
 		var colourScale;
 
 
-		var canvas = d3.select('#containerAll')
+		var canvas = d3v5.select('#containerAll')
 			.append('canvas')
 			.attr('width', width)
       .attr('height', height);
@@ -217,7 +237,7 @@ export default {
 		// === Bind data to custom elements === //
 
 		var customBase = document.createElement('custom');
-		var custom = d3.select(customBase); // this is our svg replacement
+		var custom = d3v5.select(customBase); // this is our svg replacement
 
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
 		var groupSpacing = 42;
@@ -232,7 +252,7 @@ export default {
 		// === First call === //
 		databind(classStore, size, sqrtSize, lengthOverall); // ...then update the databind function
 
-		var t = d3.timer(function(elapsed) {
+		var t = d3v5.timer(function(elapsed) {
 			draw();
 			if (elapsed > 2500) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
@@ -242,7 +262,7 @@ export default {
 
 		function databind(data, size, sqrtSize, lengthOverallLocal) {
 
-			colourScale = d3.scaleSequential(d3.interpolateGreens).domain([0, 100])
+			colourScale = d3v5.scaleSequential(d3v5.interpolateGreens).domain([0, 100])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -301,7 +321,7 @@ export default {
 
 				// for each virtual/custom element...
 
-				var node = d3.select(this);
+				var node = d3v5.select(this);
 				context.fillStyle = node.attr('fillStyle');
 				context.fillRect(node.attr('x'), node.attr('y'), node.attr('width'), node.attr('height'))
 
@@ -312,7 +332,7 @@ export default {
   },
   GridSelection () {
 
-      var svg = d3.select("#containerSelection");
+      var svg = d3v5.select("#containerSelection");
       svg.selectAll("*").remove();
 
       var predictionsAll = JSON.parse(this.GetResultsAll[12])
@@ -488,7 +508,7 @@ export default {
 		var colourScale;
 
 
-		var canvas = d3.select('#containerSelection')
+		var canvas = d3v5.select('#containerSelection')
 			.append('canvas')
 			.attr('width', width)
 			.attr('height', height);
@@ -498,7 +518,7 @@ export default {
 		// === Bind data to custom elements === //
 
 		var customBase = document.createElement('custom');
-		var custom = d3.select(customBase); // this is our svg replacement
+		var custom = d3v5.select(customBase); // this is our svg replacement
 
     // settings for a grid with 40 cells in a row and 2x5 cells in a group
 		var groupSpacing = 42;
@@ -514,7 +534,7 @@ export default {
 		// === First call === //
 		databind(classStore, size, sqrtSize, lengthOverall); // ...then update the databind function
 		
-		var t = d3.timer(function(elapsed) {
+		var t = d3v5.timer(function(elapsed) {
 			draw();
 			if (elapsed > 2500) t.stop();
 		}); // start a timer that runs the draw function for 500 ms (this needs to be higher than the transition in the databind function)
@@ -524,7 +544,7 @@ export default {
 
 		function databind(data, size, sqrtSize, lengthOverallLocal) {
 
-			colourScale = d3.scaleSequential(d3.interpolatePRGn).domain([-100, 100])
+			colourScale = d3v5.scaleSequential(d3v5.interpolatePRGn).domain([-100, 100])
 
 			var join = custom.selectAll('custom.rect')
         .data(data);
@@ -584,7 +604,7 @@ export default {
 
 				// for each virtual/custom element...
 
-				var node = d3.select(this);
+				var node = d3v5.select(this);
 				context.fillStyle = node.attr('fillStyle');
 				context.fillRect(node.attr('x'), node.attr('y'), node.attr('width'), node.attr('height'))
 
@@ -606,13 +626,13 @@ export default {
     // http://bl.ocks.org/mbostock/5577023
     var colors = colorbrewer.PRGn[this.classesNumber];
 
-    var svgLegGl = d3.select("#LegendMain");
+    var svgLegGl = d3v5.select("#LegendMain");
       svgLegGl.selectAll("*").remove();
 
-    var svgLeg = d3.select("#LegendHeat");
+    var svgLeg = d3v5.select("#LegendHeat");
       svgLeg.selectAll("*").remove();
 
-    var svgLegGl = d3.select("#LegendMain").append("svg")
+    var svgLegGl = d3v5.select("#LegendMain").append("svg")
       .attr("width", viewerWidth)
       .attr("height", viewerHeight*0.35)
       .style("margin-top", "0")
@@ -651,7 +671,7 @@ export default {
     svgLegGl.append("text").attr("x", 275).attr("y", heightText+30).text(info[0]).style("font-size", "16px").style("font-weight", "bold").attr("alignment-baseline","top")
     svgLegGl.append("text").attr("x", 882).attr("y", heightText+30).text(info[1]).style("font-size", "16px").style("font-weight", "bold").attr("alignment-baseline","top")
 
-      var svgLeg = d3.select("#LegendHeat").append("svg")
+      var svgLeg = d3v5.select("#LegendHeat").append("svg")
         .attr("width", viewerWidth/2)
         .attr("height", viewerHeight*0.10)
         .style("margin-top", "35px")
@@ -701,6 +721,111 @@ export default {
           .attr("y", (viewerPosTop + cellSizeHeat) + 5);
 
       svgLeg.append("text").attr("x", 220).attr("y", 30).text("Difference in predictive power").style("font-size", "16px").attr("alignment-baseline","top")
+      
+      Plotly.purge('HistClass0')
+      Plotly.purge('HistClass1')
+
+      if (this.classOver0 !=0 && this.classOver1 != 0) {
+        function range(start, end) {
+          var ans = [];
+          for (let i = start; i < end; i++) {
+              ans.push(i+1);
+          }
+          return ans;
+        }
+        var max_of_array = Math.max.apply(Math, this.classOver0)
+        var min_of_array = Math.min.apply(Math, this.classOver0)
+        var class0Local = Object.values(this.classOver0)
+        var class1Local = Object.values(this.classOver1)
+
+        var indicesClass0 = this.StoreIndices[0].map( function(value) { 
+            return value - 100; 
+        } );
+        var indicesClass1 = this.StoreIndices[1]
+
+        var indicesClass0Trim = indicesClass0.slice(0,100)
+        var indicesClass1Trim = indicesClass1.slice(0,100)
+
+        var histogram0 = []
+        var histogram1 = []
+
+        indicesClass0Trim.forEach(element => {
+          histogram0.push(class0Local[element])
+        });
+        indicesClass1Trim.forEach(element => {
+          histogram1.push(class1Local[element])    
+        });
+
+        var trace = {
+          x: range(0,100),
+          y: histogram0, 
+          marker: {
+            color: "rgba(192, 192, 192, 1)", 
+            line: {
+              color:  "rgba(85, 85, 85, 1)", 
+              width: 1
+            }
+          },  
+          type: "bar", 
+        };
+
+        var layout = {
+          width: 300,
+          height: 62,
+          bargap: 0.1,
+          showlegend: false,
+          margin: {
+            l: 40,
+            r: 15,
+            b: 14,
+            t: 10,
+            pad: 0
+          },
+          title: "Distribution of Instances (Sorted)",
+          yaxis: {title: "Instances"}
+        };
+        var data = [trace]
+        var config = {'displayModeBar': false}
+
+        Plotly.newPlot('HistClass0', data, layout, config);
+
+        var max_of_array = Math.max.apply(Math, this.classOver1);
+        var min_of_array = Math.min.apply(Math, this.classOver1);
+
+        var trace = {
+          x: range(0,100),
+          y: histogram1,
+          marker: {
+            color: "rgba(192, 192, 192, 1)", 
+            line: {
+              color:  "rgba(85, 85, 85, 1)", 
+              width: 1
+            }
+          },  
+          type: "bar", 
+        };
+
+        var layout = {
+          width: 300,
+          height: 62,
+          bargap: 0.1,
+          showlegend: false,
+          margin: {
+            l: 40,
+            r: 15,
+            b: 14,
+            t: 10,
+            pad: 0
+          },
+          title: "Distribution of Instances (Sorted)",
+          yaxis: {title: "Instances"}
+        };
+        var data = [trace]
+        var config = {'displayModeBar': false}
+
+        Plotly.newPlot('HistClass1', data, layout, config);
+      }
+     
   },
   },
   mounted () {
@@ -730,22 +855,26 @@ export default {
 </script>
 
 <style type="text/css">
-		canvas {
-			border:  1px dotted #ccc;
-		}
+canvas {
+  border:  1px dotted #ccc;
+}
 
-    #containerForAll {
-      height: 100px;
-      position: relative;
-    }
-    #LegendMain {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    #LegendMain {
-      z-index: 10;
-    }
+#containerForAll {
+  height: 100px;
+  position: relative;
+}
+#LegendMain {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+#LegendMain {
+  z-index: 10;
+}
+
+.gtitle {
+  transform: translate(-432px, -99px) !important;
+}
 </style>

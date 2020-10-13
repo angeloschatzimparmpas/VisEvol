@@ -943,6 +943,11 @@ def PreprocessingPred():
     lastElPredAv = []
     yDataSortedFirst = []
     yDataSortedLast = []
+    gatherPointsAllClass0 = []
+    gatherPointsAllClass1 = []
+
+    ResultsGatheredFirst = [0,0,0,0,0,0,0]
+    ResultsGatheredLast = [0,0,0,0,0,0,0]
 
     for index, item in enumerate(yData):
             if (item == 1):
@@ -996,7 +1001,7 @@ def PreprocessingPred():
         predictionsRF = ResultsGatheredFirst[4] + ResultsGatheredLast[4]
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
-    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions, ResultsGatheredLast[6], ResultsGatheredFirst[6]]
 
 def computeClusters(dataLocal,one,two,three,four,five,flagLocal):
     if (len(dataLocal) != 0):
@@ -1032,6 +1037,11 @@ def computeClusters(dataLocal,one,two,three,four,five,flagLocal):
         gatherPointsRF = []
         gatherPointsGradB = []
 
+        gatherPointsAll = [0] * 100
+        for ind, val in enumerate(labels):
+            for k in range(100):
+                if (k == val):
+                    gatherPointsAll[k] = gatherPointsAll[val] + 1
         for k in range(100):
             my_members = labels == k
             if (len(X[my_members, 0]) == 0):
@@ -1071,7 +1081,7 @@ def computeClusters(dataLocal,one,two,three,four,five,flagLocal):
     else:
         gatherPointsAv = []
         
-    return [gatherPointsAv,gatherPointsKNN,gatherPointsLR,gatherPointsMLP,gatherPointsRF,gatherPointsGradB]
+    return [gatherPointsAv,gatherPointsKNN,gatherPointsLR,gatherPointsMLP,gatherPointsRF,gatherPointsGradB, gatherPointsAll]
 
 def EnsembleIDs():
     global EnsembleActive
@@ -1917,7 +1927,7 @@ def CrossoverMutateFun():
     EnsembleActive = json.loads(EnsembleActive)
 
     EnsembleActive = EnsembleActive['StoreEnsemble']
-
+    print(EnsembleActive)
     setMaxLoopValue = request.get_data().decode('utf8').replace("'", '"')
     setMaxLoopValue = json.loads(setMaxLoopValue)
 
@@ -1927,7 +1937,7 @@ def CrossoverMutateFun():
     CurStage = json.loads(CurStage)
 
     CurStage = CurStage['Stage']
-
+    print(CurStage)
     if (CurStage == 1):
         InitializeFirstStageCM(RemainingIds, setMaxLoopValue)
     elif (CurStage == 2):
@@ -1938,7 +1948,7 @@ def CrossoverMutateFun():
 
 def RemoveSelected(RemainingIds):
     global allParametersPerfCrossMutr
-
+    print(RemainingIds)
     for loop in range(20): 
         indexes = []
         for i, val in enumerate(allParametersPerfCrossMutr[loop*4]): 

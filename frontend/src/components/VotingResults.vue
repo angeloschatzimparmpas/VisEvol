@@ -172,9 +172,9 @@ export default {
               .attr('class', 'score')
               .text(function(d){return d[rCol];});
 
-      chart.append("text").attr("x",width/3).attr("y", 20).attr("class","title").text(info[0]+' (%)');
-      chart.append("text").attr("x",width/3+rightOffset).attr("y", 20).attr("class","title").text(info[1]+' (%)');
-      chart.append("text").attr("x",width+labelArea/3).attr("y", 20).attr("class","title").text("Metrics");
+      chart.append("text").attr("x",width/3).attr("y", 20).attr("class","title").text(info[0]);
+      chart.append("text").attr("x",width/3+rightOffset).attr("y", 20).attr("class","title").text(info[1]);
+      chart.append("text").attr("x",width+labelArea/3).attr("y", 20).attr("class","title").text("Metrics (%)");
     },
     legendColFinal () {        
     //==================================================

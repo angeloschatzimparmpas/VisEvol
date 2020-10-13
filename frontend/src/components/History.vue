@@ -25,6 +25,10 @@ export default {
       storedCM: [],
       previouslyIDs: [],
       percentageOverall: [],
+      countShowS1max: [],
+      countShowS1min: [],
+      countShowS2max: [],
+      countShowS2min: [],
       values: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0],
       valuesStage2: [0,0,0,0,0,0,50,50,50,50,50,0,50,50,50,50,50,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0,25,25,25,25,25,0],
       loop: 0,
@@ -54,36 +58,35 @@ export default {
       var tempDataRFM = []
       var tempDataGradBM = []
       var splitData = []
-      console.log(this.previouslyIDs)
       for (let i = 0; i < this.previouslyIDs.length; i++) {
         let tempSplit = this.previouslyIDs[i].split(/([0-9]+)/)
-        if (tempSplit[0] == 'KNNC') {
+        if (tempSplit[0] == 'KNNC' || tempSplit[0] == 'KNN') {
           tempDataKNNC.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'LRC') {
+        else if (tempSplit[0] == 'LRC' || tempSplit[0] == 'LR') {
           tempDataLRC.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'MLPC') {
+        else if (tempSplit[0] == 'MLPC' || tempSplit[0] == 'MLP') {
           tempDataMLPC.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'RFC') {
+        else if (tempSplit[0] == 'RFC' || tempSplit[0] == 'RF') {
           tempDataRFC.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'GradBC') {
+        else if (tempSplit[0] == 'GradBC' || tempSplit[0] == 'GradB') {
           tempDataGradBC.push(this.previouslyIDs[i])
-        } else if (tempSplit[0] == 'KNNM') {
+        } else if (tempSplit[0] == 'KNNM' || tempSplit[0] == 'KNN') {
           tempDataKNNM.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'LRM') {
+        else if (tempSplit[0] == 'LRM' || tempSplit[0] == 'LR') {
           tempDataLRM.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'MLPM') {
+        else if (tempSplit[0] == 'MLPM' || tempSplit[0] == 'MLP') {
           tempDataMLPM.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'RFM') {
+        else if (tempSplit[0] == 'RFM' || tempSplit[0] == 'RF') {
           tempDataRFM.push(this.previouslyIDs[i])
         }
-        else if (tempSplit[0] == 'GradBM') {
+        else if (tempSplit[0] == 'GradBM' || tempSplit[0] == 'GradB') {
           tempDataGradBM.push(this.previouslyIDs[i])
         }
         else {
@@ -116,9 +119,6 @@ export default {
         }
         
       } 
-
-      console.log(max)
-      console.log(min)
 
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -319,8 +319,9 @@ export default {
           }
         }
       }
-      console.log(countMax)
-      console.log(countMin)
+
+      this.countShowS2max = countMax
+      this.countShowS2min = countMin
       // var percentage = []
       // for (let j = 0; j < countMax.length; j++) {
       //   if (j >= 15) {
@@ -532,61 +533,61 @@ export default {
               if(d.target.node == 40){
                 return colorDiff(percentage[0]);
               } else if(d.target.node == 39){
-                return colorDiff(percentage[1]);
-              } else if(d.target.node == 38){
                 return colorDiff(percentage[2]);
-              } else if(d.target.node == 37){
-                return colorDiff(percentage[3]);
-              } else if(d.target.node == 36){
+              } else if(d.target.node == 38){
                 return colorDiff(percentage[4]);
-              } else if(d.target.node == 34){
-                return colorDiff(percentage[5]);
-              } else if(d.target.node == 33){
+              } else if(d.target.node == 37){
                 return colorDiff(percentage[6]);
-              } else if(d.target.node == 32){
-                return colorDiff(percentage[7]);
-              } else if(d.target.node == 31){
+              } else if(d.target.node == 36){
                 return colorDiff(percentage[8]);
+              } else if(d.target.node == 34){
+                return colorDiff(percentage[1]);
+              } else if(d.target.node == 33){
+                return colorDiff(percentage[3]);
+              } else if(d.target.node == 32){
+                return colorDiff(percentage[5]);
+              } else if(d.target.node == 31){
+                return colorDiff(percentage[7]);
               } else if(d.target.node == 30){
                 return colorDiff(percentage[9]);
               } else if(d.target.node == 28){
                 return colorDiff(percentage[10]);
               } else if(d.target.node == 27){
-                return colorDiff(percentage[11]);
-              } else if(d.target.node == 26){
                 return colorDiff(percentage[12]);
-              } else if(d.target.node == 25){
-                return colorDiff(percentage[13]);
-              } else if(d.target.node == 24){
+              } else if(d.target.node == 26){
                 return colorDiff(percentage[14]);
-              } else if(d.target.node == 22){
-                return colorDiff(percentage[15]);
-              } else if(d.target.node == 21){
+              } else if(d.target.node == 25){
                 return colorDiff(percentage[16]);
-              } else if(d.target.node == 20){
-                return colorDiff(percentage[17]);
-              } else if(d.target.node == 19){
+              } else if(d.target.node == 24){
                 return colorDiff(percentage[18]);
+              } else if(d.target.node == 22){
+                return colorDiff(percentage[11]);
+              } else if(d.target.node == 21){
+                return colorDiff(percentage[13]);
+              } else if(d.target.node == 20){
+                return colorDiff(percentage[15]);
+              } else if(d.target.node == 19){
+                return colorDiff(percentage[17]);
               } else if(d.target.node == 18){
                 return colorDiff(percentage[19]);
               } else if(d.target.node == 16){
                 return colorDiff(previousPercentage[0]);
               } else if(d.target.node == 15){
-                return colorDiff(previousPercentage[1]);
-              } else if(d.target.node == 14){
                 return colorDiff(previousPercentage[2]);
-              } else if(d.target.node == 13){
-                return colorDiff(previousPercentage[3]);
-              } else if(d.target.node == 12){
+              } else if(d.target.node == 14){
                 return colorDiff(previousPercentage[4]);
-              } else if(d.target.node == 10){
+              } else if(d.target.node == 13){
                 return colorDiff(previousPercentage[5]);
-              } else if(d.target.node == 9){
-                return colorDiff(previousPercentage[6]);
-              } else if(d.target.node == 8){
-                return colorDiff(previousPercentage[7]);
-              } else if(d.target.node == 7){
+              } else if(d.target.node == 12){
                 return colorDiff(previousPercentage[8]);
+              } else if(d.target.node == 10){
+                return colorDiff(previousPercentage[1]);
+              } else if(d.target.node == 9){
+                return colorDiff(previousPercentage[3]);
+              } else if(d.target.node == 8){
+                return colorDiff(previousPercentage[5]);
+              } else if(d.target.node == 7){
+                return colorDiff(previousPercentage[7]);
               } else if(d.target.node == 6){
                 return colorDiff(previousPercentage[9]);
               } else {
@@ -597,6 +598,177 @@ export default {
             .sort(function(a, b) { return b.dy - a.dy; })
             .on("mouseover",linkmouseover)
             .on("mouseout",linkmouseout);  
+
+        var countMaxLocal = this.countShowS2max
+        var countMinLocal = this.countShowS2min
+
+        // add the link titles
+        link.append("svg:title") //this is the mouseover stuff title is an svg element you can use "svg:title" or just "title"
+              .text(function(d) {
+              if (d.source.node == 6 && d.target.node == 24) {
+                if (countMaxLocal[18] != 0) {
+                  return '+'+countMaxLocal[18]+'/'+format(d.value);
+                } else if (countMinLocal[18] != 0){
+                  return '-'+countMinLocal[18]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 6 && d.target.node == 18) {
+                if (countMaxLocal[19] != 0) {
+                  return '+'+countMaxLocal[19]+'/'+format(d.value);
+                } else if (countMinLocal[19] != 0) {
+                  return '-'+countMinLocal[19]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 7 && d.target.node == 25) {
+                if (countMaxLocal[16] != 0) {
+                  return '+'+countMaxLocal[16]+'/'+format(d.value);
+                } else if (countMinLocal[16] != 0) {
+                  return '-'+countMinLocal[16]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 7 && d.target.node == 19) {
+                if (countMaxLocal[17] != 0) {
+                  return '+'+countMaxLocal[17]+'/'+format(d.value);
+                } else if (countMinLocal[17] != 0) {
+                  return '-'+countMinLocal[17]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 8 && d.target.node == 26) {
+                if (countMaxLocal[14] != 0) {
+                  return '+'+countMaxLocal[14]+'/'+format(d.value);
+                } else if (countMinLocal[14] != 0) {
+                  return '-'+countMinLocal[14]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 8 && d.target.node == 20) {
+                if (countMaxLocal[15] != 0) {
+                  return '+'+countMaxLocal[15]+'/'+format(d.value);
+                } else if (countMinLocal[15] != 0) {
+                  return '-'+countMinLocal[15]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 9 && d.target.node == 27) {
+                if (countMaxLocal[12] != 0) {
+                  return '+'+countMaxLocal[12]+'/'+format(d.value);
+                } else if (countMinLocal[12] != 0) {
+                  return '-'+countMinLocal[12]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 9 && d.target.node == 21) {
+                if (countMaxLocal[13] != 0) {
+                  return '+'+countMaxLocal[13]+'/'+format(d.value);
+                } else if (countMinLocal[13] != 0) {
+                  return '-'+countMinLocal[13]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 10 && d.target.node == 28) {
+                if (countMaxLocal[10] != 0) {
+                  return '+'+countMaxLocal[10]+'/'+format(d.value);
+                } else if (countMinLocal[10] != 0) {
+                  return '-'+countMinLocal[10]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 10 && d.target.node == 22) {
+                if (countMaxLocal[11] != 0) {
+                  return '+'+countMaxLocal[11]+'/'+format(d.value);
+                } else if (countMinLocal[11] != 0) {
+                  return '-'+countMinLocal[11]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 12 && d.target.node == 36) {
+                if (countMaxLocal[8] != 0) {
+                  return '+'+countMaxLocal[8]+'/'+format(d.value);
+                } else if (countMinLocal[8] != 0){
+                  return '-'+countMinLocal[8]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 12 && d.target.node == 30) {
+                if (countMaxLocal[9] != 0) {
+                  return '+'+countMaxLocal[9]+'/'+format(d.value);
+                } else if (countMinLocal[9] != 0) {
+                  return '-'+countMinLocal[9]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 13 && d.target.node == 37) {
+                if (countMaxLocal[6] != 0) {
+                  return '+'+countMaxLocal[6]+'/'+format(d.value);
+                } else if (countMinLocal[6] != 0) {
+                  return '-'+countMinLocal[6]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 13 && d.target.node == 31) {
+                if (countMaxLocal[7] != 0) {
+                  return '+'+countMaxLocal[7]+'/'+format(d.value);
+                } else if (countMinLocal[7] != 0) {
+                  return '-'+countMinLocal[7]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 14 && d.target.node == 38) {
+                if (countMaxLocal[4] != 0) {
+                  return '+'+countMaxLocal[4]+'/'+format(d.value);
+                } else if (countMinLocal[4] != 0) {
+                  return '-'+countMinLocal[4]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 14 && d.target.node == 32) {
+                if (countMaxLocal[5] != 0) {
+                  return '+'+countMaxLocal[5]+'/'+format(d.value);
+                } else if (countMinLocal[5] != 0) {
+                  return '-'+countMinLocal[5]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 15 && d.target.node == 39) {
+                if (countMaxLocal[2] != 0) {
+                  return '+'+countMaxLocal[2]+'/'+format(d.value);
+                } else if (countMinLocal[2] != 0) {
+                  return '-'+countMinLocal[2]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 15 && d.target.node == 33) {
+                if (countMaxLocal[3] != 0) {
+                  return '+'+countMaxLocal[3]+'/'+format(d.value);
+                } else if (countMinLocal[3] != 0) {
+                  return '-'+countMinLocal[3]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 16 && d.target.node == 40) {
+                if (countMaxLocal[0] != 0) {
+                  return '+'+countMaxLocal[0]+'/'+format(d.value);
+                } else if (countMinLocal[0] != 0) {
+                  return '-'+countMinLocal[0]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 16 && d.target.node == 34) {
+                if (countMaxLocal[1] != 0) {
+                  return '+'+countMaxLocal[1]+'/'+format(d.value);
+                } else if (countMinLocal[1] != 0) {
+                  return '-'+countMinLocal[1]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else {
+                return format(d.value);
+              }
+              });
 
       // add the link titles
         link.append("svg:title") //this is the mouseover stuff title is an svg element you can use "svg:title" or just "title"
@@ -746,20 +918,16 @@ export default {
           }
 
         colorsforScatterPlot = mergedStoreEnsembleLocFormatted.map((item) => colorsforScatterPlot[item])
-
         max[i] = Math.max.apply(Math, colorsforScatterPlot)
         min[i] = Math.min.apply(Math, colorsforScatterPlot)
         }
         
       } 
-      console.log(max)
-      console.log(min)
+
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
       for (let i = 0; i < this.storedCM.length; i++) {
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
-
         if (tempSplit[0] == 'KNNC') {
           if (this.PerFCM[i] > max[0]) {
             countMax[0] = countMax[0] + 1
@@ -857,8 +1025,9 @@ export default {
           }
         }
       }
-      console.log(countMax)
-      console.log(countMin)
+      this.countShowS1max = countMax
+      this.countShowS1min = countMin
+
       // var percentage = []
       // for (let j = 0; j < countMax.length; j++) {
       //   if (j >= 5) {
@@ -1059,21 +1228,21 @@ export default {
               if(d.target.node == 16){
                 return colorDiff(percentage[0]);
               } else if(d.target.node == 15){
-                return colorDiff(percentage[1]);
-              } else if(d.target.node == 14){
                 return colorDiff(percentage[2]);
-              } else if(d.target.node == 13){
-                return colorDiff(percentage[3]);
-              } else if(d.target.node == 12){
+              } else if(d.target.node == 14){
                 return colorDiff(percentage[4]);
-              } else if(d.target.node == 10){
-                return colorDiff(percentage[5]);
-              } else if(d.target.node == 9){
+              } else if(d.target.node == 13){
                 return colorDiff(percentage[6]);
-              } else if(d.target.node == 8){
-                return colorDiff(percentage[7]);
-              } else if(d.target.node == 7){
+              } else if(d.target.node == 12){
                 return colorDiff(percentage[8]);
+              } else if(d.target.node == 10){
+                return colorDiff(percentage[1]);
+              } else if(d.target.node == 9){
+                return colorDiff(percentage[3]);
+              } else if(d.target.node == 8){
+                return colorDiff(percentage[5]);
+              } else if(d.target.node == 7){
+                return colorDiff(percentage[7]);
               } else if(d.target.node == 6){
                 return colorDiff(percentage[9]);
               } else {
@@ -1084,11 +1253,98 @@ export default {
             .sort(function(a, b) { return b.dy - a.dy; })
             .on("mouseover",linkmouseover)
             .on("mouseout",linkmouseout);  
+      
+      var countMaxLocal = this.countShowS1max
+      var countMinLocal = this.countShowS1min
 
       // add the link titles
         link.append("svg:title") //this is the mouseover stuff title is an svg element you can use "svg:title" or just "title"
               .text(function(d) {
-              return format(d.value); });
+              if (d.source.node == 0 && d.target.node == 12) {
+                if (countMaxLocal[8] != 0) {
+                  return '+'+countMaxLocal[8]+'/'+format(d.value);
+                } else if (countMinLocal[8] != 0){
+                  return '-'+countMinLocal[8]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 0 && d.target.node == 6) {
+                if (countMaxLocal[9] != 0) {
+                  return '+'+countMaxLocal[9]+'/'+format(d.value);
+                } else if (countMinLocal[9] != 0) {
+                  return '-'+countMinLocal[9]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 1 && d.target.node == 13) {
+                if (countMaxLocal[6] != 0) {
+                  return '+'+countMaxLocal[6]+'/'+format(d.value);
+                } else if (countMinLocal[6] != 0) {
+                  return '-'+countMinLocal[6]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 1 && d.target.node == 7) {
+                if (countMaxLocal[7] != 0) {
+                  return '+'+countMaxLocal[7]+'/'+format(d.value);
+                } else if (countMinLocal[7] != 0) {
+                  return '-'+countMinLocal[7]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 2 && d.target.node == 14) {
+                if (countMaxLocal[4] != 0) {
+                  return '+'+countMaxLocal[4]+'/'+format(d.value);
+                } else if (countMinLocal[4] != 0) {
+                  return '-'+countMinLocal[4]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 2 && d.target.node == 8) {
+                if (countMaxLocal[5] != 0) {
+                  return '+'+countMaxLocal[5]+'/'+format(d.value);
+                } else if (countMinLocal[5] != 0) {
+                  return '-'+countMinLocal[5]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 3 && d.target.node == 15) {
+                if (countMaxLocal[2] != 0) {
+                  return '+'+countMaxLocal[2]+'/'+format(d.value);
+                } else if (countMinLocal[2] != 0) {
+                  return '-'+countMinLocal[2]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 3 && d.target.node == 9) {
+                if (countMaxLocal[3] != 0) {
+                  return '+'+countMaxLocal[3]+'/'+format(d.value);
+                } else if (countMinLocal[3] != 0) {
+                  return '-'+countMinLocal[3]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 4 && d.target.node == 16) {
+                if (countMaxLocal[0] != 0) {
+                  return '+'+countMaxLocal[0]+'/'+format(d.value);
+                } else if (countMinLocal[0] != 0) {
+                  return '-'+countMinLocal[0]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else if (d.source.node == 4 && d.target.node == 10) {
+                if (countMaxLocal[1] != 0) {
+                  return '+'+countMaxLocal[1]+'/'+format(d.value);
+                } else if (countMinLocal[1] != 0) {
+                  return '-'+countMinLocal[1]+'/'+format(d.value);
+                } else {
+                  return format(d.value);
+                }
+              } else {
+                return format(d.value);
+              }
+              });
+              
 
       // add in the nodes (creating the groups of the rectanlges)
         var node = svg.append("g").selectAll(".node") 
