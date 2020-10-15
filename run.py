@@ -1214,6 +1214,9 @@ def PreprocessingPredEnsemble():
     yDataSortedFirst = []
     yDataSortedLast = []
 
+    ResultsGatheredFirst = [0,0,0,0,0,0,0]
+    ResultsGatheredLast = [0,0,0,0,0,0,0]
+
     for index, item in enumerate(yData):
             if (item == 1):
                 if (len(predictionsKNN[index]) != 0):
@@ -1268,7 +1271,7 @@ def PreprocessingPredEnsemble():
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
 
-    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions, ResultsGatheredLast[6], ResultsGatheredFirst[6]]
 
 def PreprocessingParam():
     dicKNN = allParametersPerformancePerModel[1]
@@ -4082,6 +4085,9 @@ def PreprocessingPredCM():
     yDataSortedFirst = []
     yDataSortedLast = []
 
+    ResultsGatheredFirst = [0,0,0,0,0,0,0]
+    ResultsGatheredLast = [0,0,0,0,0,0,0]
+
     for index, item in enumerate(yData):
             if (item == 1):
                 if (len(predictionsKNN[index]) != 0):
@@ -4135,7 +4141,7 @@ def PreprocessingPredCM():
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
     
-    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions, ResultsGatheredLast[6], ResultsGatheredFirst[6]]
 
 def PreprocessingPredCMSecond():
     dicKNNCC = allParametersPerfCrossMutr[3]
@@ -4241,6 +4247,9 @@ def PreprocessingPredCMSecond():
     yDataSortedFirst = []
     yDataSortedLast = []
 
+    ResultsGatheredFirst = [0,0,0,0,0,0,0]
+    ResultsGatheredLast = [0,0,0,0,0,0,0]
+
     for index, item in enumerate(yData):
             if (item == 1):
                 if (len(predictionsKNN[index]) != 0):
@@ -4294,7 +4303,7 @@ def PreprocessingPredCMSecond():
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
     
-    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions, ResultsGatheredLast[6], ResultsGatheredFirst[6]]
 
 def PreprocessingParamCM():
     dicKNNC = allParametersPerfCrossMutr[1]
@@ -4903,6 +4912,9 @@ def PreprocessingPredSel(SelectedIDs):
     yDataSortedFirst = []
     yDataSortedLast = []
 
+    ResultsGatheredFirst = [0,0,0,0,0,0,0]
+    ResultsGatheredLast = [0,0,0,0,0,0,0]
+
     for index, item in enumerate(yData):
             if (item == 1):
                 if (len(predictionsKNN[index]) != 0):
@@ -4956,7 +4968,7 @@ def PreprocessingPredSel(SelectedIDs):
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
 
-    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions, ResultsGatheredLast[6], ResultsGatheredFirst[6]]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 @app.route('/data/SendtoSeverSelIDs', methods=["GET", "POST"])
@@ -5076,6 +5088,9 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
     yDataSortedFirst = []
     yDataSortedLast = []
 
+    ResultsGatheredFirst = [0,0,0,0,0,0,0]
+    ResultsGatheredLast = [0,0,0,0,0,0,0]
+
     for index, item in enumerate(yData):
         if (item == 1):
             if (len(predictionsKNN[index]) != 0):
@@ -5130,7 +5145,7 @@ def PreprocessingPredSelEnsem(SelectedIDsEnsem):
         predictionsGradB = ResultsGatheredFirst[5] + ResultsGatheredLast[5]
         yDataSorted = yDataSortedFirst + yDataSortedLast
     
-    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions]
+    return [predictionsKNN, predictionsLR, predictionsMLP, predictionsRF, predictionsGradB, predictions, ResultsGatheredLast[6], ResultsGatheredFirst[6]]
 
 @cross_origin(origin='localhost',headers=['Content-Type','Authorization'])
 @app.route('/data/SendtoSeverSelIDsEnsem', methods=["GET", "POST"])

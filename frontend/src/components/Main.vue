@@ -338,9 +338,9 @@ export default Vue.extend({
             //EventBus.$emit('emittedEventCallingGridSelection', this.OverviewResults)
             EventBus.$emit('callValidationData', this.OverviewResults)
             EventBus.$emit('callValidation')
-            EventBus.$emit('LegendPredictEnsem') 
             EventBus.$emit('callAlgorithhms')
-            
+            EventBus.$emit('LegendPredict') 
+            EventBus.$emit('LegendPredictEnsem') 
           }
         })
         .catch(error => {
@@ -447,9 +447,9 @@ export default Vue.extend({
         .then(response => {
           this.PredictSel = response.data.PredictSel
           console.log('Server successfully sent the predictions!')
-
           EventBus.$emit('emittedEventCallingGrid', this.storeBothEnsCM[0])
           EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSel)
+          EventBus.$emit('LegendPredict') 
         })
         .catch(error => {
           console.log(error)
@@ -494,6 +494,7 @@ export default Vue.extend({
           console.log('Server successfully sent the predictions!')
           EventBus.$emit('emittedEventCallingGrid', this.storeBothEnsCM[1])
           EventBus.$emit('SendSelectedPointsToServerEvent', this.PredictSelEnsem)
+          EventBus.$emit('LegendPredict') 
         })
         .catch(error => {
           console.log(error)
