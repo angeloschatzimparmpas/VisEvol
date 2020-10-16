@@ -2689,6 +2689,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         for column in pairDF:
             listData = []
             randomZeroOne = random.randint(0, 1)
+
             valuePerColumn = pairDF[column].iloc[randomZeroOne]
             listData.append(valuePerColumn)
             crossoverDF[column] = listData
@@ -2709,7 +2710,6 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
         localCrossMutr[1] = pd.concat([localCrossMutr[1], localCrossMutr[(loop+1)*4+1]], ignore_index=True)
         localCrossMutr[2] = pd.concat([localCrossMutr[2], localCrossMutr[(loop+1)*4+2]], ignore_index=True)
         localCrossMutr[3] = pd.concat([localCrossMutr[3], localCrossMutr[(loop+1)*4+3]], ignore_index=True)
-    
     allParametersPerfCrossMutrRFMC.append(localCrossMutr[0])
     allParametersPerfCrossMutrRFMC.append(localCrossMutr[1])
     allParametersPerfCrossMutrRFMC.append(localCrossMutr[2])
@@ -3050,7 +3050,7 @@ def InitializeSecondStageCM (RemainingIds, setMaxLoopValue):
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBMC[3]], ignore_index=True)
     allParametersPerformancePerModelEnsem[19] = pd.concat([allParametersPerformancePerModelEnsem[19], allParametersPerfCrossMutrGradBMM[3]], ignore_index=True)
 
-    allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNCC + allParametersPerfCrossMutrKNNCM + allParametersPerfCrossMutrLRCC + allParametersPerfCrossMutrLRCM + allParametersPerfCrossMutrMLPCC + allParametersPerfCrossMutrMLPCM + allParametersPerfCrossMutrRFCC + allParametersPerfCrossMutrRFCM + allParametersPerfCrossMutrGradBCC + allParametersPerfCrossMutrGradBCM + allParametersPerfCrossMutrKNNMC + allParametersPerfCrossMutrKNNMM + allParametersPerfCrossMutrLRMC + allParametersPerfCrossMutrLRMM + allParametersPerfCrossMutrMLPMC + allParametersPerfCrossMutrMLPMM + allParametersPerfCrossMutrRFMC + allParametersPerfCrossMutrRFMM + allParametersPerfCrossMutrGradBMC + allParametersPerfCrossMutrGradBMM
+    allParametersPerfCrossMutr = allParametersPerfCrossMutrKNNCC + allParametersPerfCrossMutrKNNCM + allParametersPerfCrossMutrKNNMC + allParametersPerfCrossMutrKNNMM + allParametersPerfCrossMutrLRCC + allParametersPerfCrossMutrLRCM + allParametersPerfCrossMutrLRMC + allParametersPerfCrossMutrLRMM + allParametersPerfCrossMutrMLPCC + allParametersPerfCrossMutrMLPCM + allParametersPerfCrossMutrMLPMC + allParametersPerfCrossMutrMLPMM + allParametersPerfCrossMutrRFCC + allParametersPerfCrossMutrRFCM + allParametersPerfCrossMutrRFMC + allParametersPerfCrossMutrRFMM + allParametersPerfCrossMutrGradBCC + allParametersPerfCrossMutrGradBCM + allParametersPerfCrossMutrGradBMC + allParametersPerfCrossMutrGradBMM
     allParametersPerformancePerModel[0] = allParametersPerformancePerModel[0] + allParametersPerfCrossMutrKNNCC[0] + allParametersPerfCrossMutrKNNCM[0]
 
     allParametersPerformancePerModel[1] = pd.concat([allParametersPerformancePerModel[1], allParametersPerfCrossMutrKNNCC[1]], ignore_index=True)

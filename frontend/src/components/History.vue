@@ -122,10 +122,8 @@ export default {
 
       var countMax = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
       var countMin = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
       for (let i = 0; i < this.storedCM.length; i++) {
         let tempSplit = this.storedCM[i].split(/([0-9]+)/)
-
         if (tempSplit[0] == 'KNNCC') {
           if (this.PerFCM[i] > max[0]) {
             countMax[0] = countMax[0] + 1
@@ -319,7 +317,6 @@ export default {
           }
         }
       }
-
       this.countShowS2max = countMax
       this.countShowS2min = countMin
       // var percentage = []
