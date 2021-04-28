@@ -413,7 +413,7 @@ def retrieveFileName():
 
     DataRawLength = -1
     DataRawLengthTest = -1
-    print(data['fileName'])
+
     if data['fileName'] == 'heartC':
         CollectionDB = mongo.db.HeartC.find()
         names_labels.append('Healthy')
@@ -740,7 +740,7 @@ memory = Memory(location, verbose=0)
 
 @memory.cache
 def randomSearch(XData, yData, clf, params, eachAlgor, AlgorithmsIDsEnd,crossValidation,randomSear):
-    print('search')
+    print('inside')
     print(clf)
     search = RandomizedSearchCV(    
         estimator=clf, param_distributions=params, n_iter=randomSear,

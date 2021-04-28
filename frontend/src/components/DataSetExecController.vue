@@ -2,8 +2,8 @@
   <div class="text-center">
     <label id="data" for="param-dataset" data-toggle="tooltip" data-placement="right" title="Tip: use one of the data sets already provided or upload a new file.">{{ dataset }}</label>
     <select id="selectFile" @change="selectDataSet()">
-        <option value="biodegC.csv" selected>Biodegradation</option>
-        <option value="heartC.csv">Heart disease</option>
+        <option value="biodegC.csv">Biodegradation</option>
+        <option value="heartC.csv" selected>Heart disease</option>
         <option value="local">Upload file</option>
     </select>
     <button class="btn-outline-success"
@@ -34,7 +34,7 @@ export default {
   name: 'DataSetExecController',
   data () {
     return {
-      defaultDataSet: 'HeartC', // default value for the first data set
+      defaultDataSet: 'heartC', // default value for the first data set
       searchText: 'Hyper-parameter search',
       resetText: 'Reset',
       dataset: 'Data set:'

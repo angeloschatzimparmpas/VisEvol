@@ -6,7 +6,7 @@
       <b-row class="md-3">
         <b-col cols="3" >
           <mdb-card>
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Validation Metrics Manager</mdb-card-header>
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Data Sets and Validation Metrics</mdb-card-header>
               <mdb-card-body>
                 <mdb-card-text class="text-left" style="font-size: 18.5px;">
                   <PerformanceMetrics/>
@@ -40,7 +40,7 @@
     <b-row class="md-3">
         <b-col cols="6">
           <mdb-card style="margin-top: 15px;">
-            <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyper-Parameters' Space
+            <mdb-card-header color="primary-color" tag="h5" class="text-center">Hyperparameter Space
               [Sel: {{OverSelLength}} / All: {{OverAllLength}}]<small class="float-right"></small><span class="badge badge-info badge-pill float-right">Projection<span class="badge badge-light" style="margin-left:4px; margin-bottom:1px">1</span></span>
             </mdb-card-header>
             <mdb-card-body>
@@ -195,7 +195,7 @@ export default Vue.extend({
       DataResults: '',
       keyNow: 1,
       instancesImportance: '',
-      RetrieveValueFile: 'biodegC', // this is for the default data set
+      RetrieveValueFile: 'heartC', // this is for the default data set
       ClassifierIDsList: [],
       ClassifierIDsListCM: [],
       SelectedFeaturesPerClassifier: '',
