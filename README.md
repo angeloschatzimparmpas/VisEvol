@@ -1,5 +1,7 @@
 # VisEvol: Visual Analytics to Support Hyperparameter Search through Evolutionary Optimization
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6280751b6d1242f798870ebcd3b9957b)](https://www.codacy.com/gh/angeloschatzimparmpas/VisEvol/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=angeloschatzimparmpas/VisEvol&amp;utm_campaign=Badge_Grade)
+
 This Git repository contains the code that accompanies the research paper "VisEvol: Visual Analytics to Support Hyperparameter Search through Evolutionary Optimization". The details of the experiments and the research outcome are described in [the paper](https://diglib.eg.org/handle/10.1111/cgf14300).
 
 **Note:** VisEvol is optimized to work better for standard resolutions (such as 1440p/QHD (Quad High Definition) and 1080p). Any other resolution might need manual adjustment of your browser's zoom level to work properly.
