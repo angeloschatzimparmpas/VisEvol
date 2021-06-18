@@ -98,6 +98,15 @@
           </mdb-card>
         </b-col>
       </b-row>
+      <div class="footer" style="margin-top: 0px">
+      <hr>
+      <p class="text-muted credit no-top-margin no-bottom-margin">
+          &copy; ISOVIS group 2020&ndash;2021
+      </p>
+      <p class="text-muted credit no-top-margin no-bottom-margin">
+          Last updated: June 18, 2021
+      </p>
+      </div>
     </b-container>
     <div class="w3-container">
     <div id="myModal" class="w3-modal" style="position: fixed;">
