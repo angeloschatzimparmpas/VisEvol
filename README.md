@@ -1,6 +1,6 @@
 # VisEvol: Visual Analytics to Support Hyperparameter Search through Evolutionary Optimization
 
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6280751b6d1242f798870ebcd3b9957b)](https://www.codacy.com/gh/angeloschatzimparmpas/VisEvol/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=angeloschatzimparmpas/VisEvol&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/6cbe41b01034459eb8448d5521af68fb)](https://www.codacy.com/gh/angeloschatzimparmpas/VisEvol/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=angeloschatzimparmpas/VisEvol&amp;utm_campaign=Badge_Grade)
 
 This Git repository contains the code that accompanies the research paper "VisEvol: Visual Analytics to Support Hyperparameter Search through Evolutionary Optimization". The details of the experiments and the research outcome are described in [the paper](https://diglib.eg.org/handle/10.1111/cgf14300).
 
