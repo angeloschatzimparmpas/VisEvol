@@ -17,8 +17,8 @@ def import_content(filepath):
 
     data = pd.read_csv(file_res)
     data_json = json.loads(data.to_json(orient='records'))
-    db_cm.remove()
-    db_cm.insert(data_json)
+    db_cm.drop()
+    db_cm.insert_many(data_json)
 
 if __name__ == "__main__":
   filepath = '/Users/anchaa/Documents/Research/VisEvol_code/extra_data_sets/iris.csv'
